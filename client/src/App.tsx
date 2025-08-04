@@ -40,6 +40,7 @@ function AppContent() {
         <>
           <Route path="/" component={HomePage} />
           <Route path="/lists" component={HomePage} />
+          <Route path="/calendar" component={HomePage} />
           <Route path="/reminders" component={HomePage} />
           <Route path="/settings" component={HomePage} />
         </>

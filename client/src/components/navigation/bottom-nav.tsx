@@ -1,11 +1,11 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ShoppingCart, Bell, Settings } from "lucide-react";
+import { MessageCircle, ShoppingCart, Calendar, Bell, Settings } from "lucide-react";
 
 const navItems = [
   { path: "/", icon: MessageCircle, label: "Chat" },
   { path: "/lists", icon: ShoppingCart, label: "Lists" },
-  { path: "/reminders", icon: Bell, label: "Reminders" },
+  { path: "/calendar", icon: Calendar, label: "Calendar" },
   { path: "/settings", icon: Settings, label: "Settings" },
 ];
 

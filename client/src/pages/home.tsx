@@ -2,6 +2,7 @@ import { useUser } from "@/context/user-context";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
+import { CalendarPage } from "@/components/calendar/calendar-page";
 import { SettingsPage } from "@/components/settings/settings-page";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ export default function HomePage() {
     switch (location) {
       case "/lists":
         return <ShoppingLists user={user} />;
+      case "/calendar":
+        return <CalendarPage user={user} />;
       case "/reminders":
         return <RemindersPage user={user} />;
       case "/settings":
@@ -50,6 +53,8 @@ export default function HomePage() {
     switch (location) {
       case "/lists":
         return "Shopping Lists";
+      case "/calendar":
+        return "Calendar";
       case "/reminders":
         return "Reminders";
       case "/settings":
