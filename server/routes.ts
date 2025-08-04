@@ -207,11 +207,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             if (action.type === "create_appointment" && action.data?.appointment) {
               // Handle appointment creation
+              let appointmentDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to tomorrow
+              
+              if (action.data.appointment.date) {
+                try {
+                  appointmentDate = new Date(action.data.appointment.date);
+                  if (isNaN(appointmentDate.getTime())) {
+                    appointmentDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                  }
+                } catch (e) {
+                  appointmentDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                }
+              }
+              
               await storage.createReminder({
                 userId,
                 title: action.data.appointment.title,
                 description: action.data.appointment.description || `Appointment: ${action.data.appointment.title}`,
-                dueDate: action.data.appointment.date ? new Date(action.data.appointment.date) : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                dueDate: appointmentDate,
                 category: "Appointment"
               });
             } else if (action.type === "add_to_list" && action.data?.items) {

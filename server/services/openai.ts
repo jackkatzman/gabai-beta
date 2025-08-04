@@ -87,6 +87,12 @@ Guidelines:
     
 11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
 
+TIME PARSING RULES:
+- When user says time like "1:40", "2:30", etc. without AM/PM, interpret as PM if between 1:00-11:59
+- For times like "8:00", "9:15", "10:30", interpret as AM if between 6:00-11:59 AM
+- Always format appointment dates as ISO strings with proper timezone
+- Example: "remind me at 1:40" should become "2024-01-15T13:40:00.000Z" (1:40 PM)
+
 Always respond with valid JSON in this format:
 
 For list items:
