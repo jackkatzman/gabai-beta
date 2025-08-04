@@ -12,10 +12,27 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ user }: ChatInterfaceProps) {
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(() => {
+    // Restore conversation ID from localStorage
+    return localStorage.getItem(`gabai_conversation_${user.id}`) || null;
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Load the most recent conversation for this user
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["/api/conversations", user.id],
+  });
+
+  // Set current conversation to the most recent one if none is set
+  useEffect(() => {
+    if (!currentConversationId && Array.isArray(conversations) && conversations.length > 0) {
+      const mostRecent = conversations[0]; // Conversations are ordered by updatedAt desc
+      setCurrentConversationId(mostRecent.id);
+      localStorage.setItem(`gabai_conversation_${user.id}`, mostRecent.id);
+    }
+  }, [conversations, currentConversationId, user.id]);
 
   // Get messages for current conversation
   const { data: messages = [], isLoading } = useQuery<Message[]>({
@@ -29,6 +46,8 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       api.sendMessage(message, user.id, currentConversationId || undefined),
     onSuccess: (response) => {
       setCurrentConversationId(response.conversationId);
+      // Save conversation ID to localStorage
+      localStorage.setItem(`gabai_conversation_${user.id}`, response.conversationId);
       
       // Update messages cache
       queryClient.setQueryData(

@@ -325,6 +325,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Smart lists routes
+  app.get("/api/smart-lists/:userId", async (req, res) => {
+    try {
+      const lists = await storage.getSmartLists(req.params.userId);
+      res.json(lists);
+    } catch (error: any) {
+      console.error("Get smart lists error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/smart-lists", async (req, res) => {
+    try {
+      const listData = insertSmartListSchema.parse(req.body);
+      const list = await storage.createSmartList(listData);
+      res.json(list);
+    } catch (error: any) {
+      console.error("Create smart list error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/smart-lists/:id", async (req, res) => {
+    try {
+      const updates = insertSmartListSchema.partial().parse(req.body);
+      const list = await storage.updateSmartList(req.params.id, updates);
+      res.json(list);
+    } catch (error: any) {
+      console.error("Update smart list error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/smart-lists/:id", async (req, res) => {
+    try {
+      await storage.deleteSmartList(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Delete smart list error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/smart-lists/:id/share", async (req, res) => {
+    try {
+      const shareCode = await storage.shareList(req.params.id);
+      res.json({ shareCode });
+    } catch (error: any) {
+      console.error("Share list error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/smart-lists/join", async (req, res) => {
+    try {
+      const { shareCode, userId } = req.body;
+      if (!shareCode || !userId) {
+        return res.status(400).json({ message: "Share code and user ID are required" });
+      }
+      const list = await storage.joinSharedList(shareCode, userId);
+      res.json(list);
+    } catch (error: any) {
+      console.error("Join shared list error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // List items routes  
+  app.post("/api/list-items", async (req, res) => {
+    try {
+      const itemData = insertListItemSchema.parse(req.body);
+      const item = await storage.createListItem(itemData);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Create list item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/list-items/:id", async (req, res) => {
+    try {
+      const updates = insertListItemSchema.partial().parse(req.body);
+      const item = await storage.updateListItem(req.params.id, updates);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Update list item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/list-items/:id", async (req, res) => {
+    try {
+      await storage.deleteListItem(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Delete list item error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
