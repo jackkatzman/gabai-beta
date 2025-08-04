@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Mic, Check, Edit, Trash2, Calendar, Clock, CalendarDays } from "lucide-react";
@@ -189,6 +189,9 @@ export function CalendarPage({ user }: CalendarPageProps) {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Appointment</DialogTitle>
+                <DialogDescription>
+                  Schedule a new appointment or meeting in your calendar.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>

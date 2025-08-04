@@ -423,7 +423,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reminders", async (req, res) => {
     try {
-      const reminderData = insertReminderSchema.parse(req.body);
+      // Convert dueDate string to Date object if needed
+      const bodyWithDate = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : new Date()
+      };
+      
+      const reminderData = insertReminderSchema.parse(bodyWithDate);
       const reminder = await storage.createReminder(reminderData);
       res.json(reminder);
     } catch (error: any) {
@@ -434,7 +440,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/reminders/:id", async (req, res) => {
     try {
-      const updates = insertReminderSchema.partial().parse(req.body);
+      // Convert dueDate string to Date object if needed
+      const bodyWithDate = {
+        ...req.body,
+        ...(req.body.dueDate && { dueDate: new Date(req.body.dueDate) })
+      };
+      
+      const updates = insertReminderSchema.partial().parse(bodyWithDate);
       const reminder = await storage.updateReminder(req.params.id, updates);
       res.json(reminder);
     } catch (error: any) {
