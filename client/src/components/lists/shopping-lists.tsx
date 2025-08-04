@@ -489,7 +489,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(getShareUrl(selectedListForShare.shareCode))}
+                      onClick={() => selectedListForShare.shareCode && copyToClipboard(getShareUrl(selectedListForShare.shareCode))}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
@@ -497,7 +497,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
 
                   <div className="flex flex-col gap-2">
                     <Button
-                      onClick={() => shareViaWhatsApp(selectedListForShare.shareCode, selectedListForShare.name)}
+                      onClick={() => selectedListForShare.shareCode && shareViaWhatsApp(selectedListForShare.shareCode, selectedListForShare.name)}
                       className="w-full"
                       variant="outline"
                     >
@@ -505,7 +505,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
                       Share via WhatsApp
                     </Button>
                     <Button
-                      onClick={() => shareViaSMS(selectedListForShare.shareCode, selectedListForShare.name)}
+                      onClick={() => selectedListForShare.shareCode && shareViaSMS(selectedListForShare.shareCode, selectedListForShare.name)}
                       className="w-full"
                       variant="outline"
                     >

@@ -147,14 +147,9 @@ export class DatabaseStorage implements IStorage {
       .where(eq(smartLists.userId, userId))
       .orderBy(desc(smartLists.updatedAt));
 
-    // Get lists where user is a collaborator
-    const collaborativeLists = await db
-      .select()
-      .from(smartLists)
-      .where(sql`jsonb_array_elements_text(${smartLists.collaborators}) = ${userId}`)
-      .orderBy(desc(smartLists.updatedAt));
-
-    const allLists = [...ownedLists, ...collaborativeLists];
+    // For now, only return owned lists to avoid JSONB query issues
+    // TODO: Add collaborative lists support when needed
+    const allLists = [...ownedLists];
 
     const listsWithItems = await Promise.all(
       allLists.map(async (list) => {
