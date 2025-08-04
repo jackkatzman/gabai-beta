@@ -1,19 +1,15 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import session from 'express-session';
-import connectPgSimple from 'connect-pg-simple';
+import MemoryStore from 'memorystore';
 import type { Express } from 'express';
 import { storage } from './storage';
-import { pool } from './db';
 
 export function setupAuth(app: Express) {
-  // Create PostgreSQL session store
-  const PgSession = connectPgSimple(session);
-  const sessionStore = new PgSession({
-    pool: pool,
-    tableName: 'session',
-    createTableIfMissing: true,
-    ttl: 24 * 60 * 60, // 24 hours in seconds
+  // Use memory store for now (works reliably with OAuth)
+  const MemStore = MemoryStore(session);
+  const sessionStore = new MemStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
   });
 
   // Session configuration
@@ -128,9 +124,10 @@ export function setupAuth(app: Express) {
   });
 
   app.get('/auth/user', (req, res) => {
-    console.log('Auth check - session:', req.session);
+    console.log('Auth check - full session:', JSON.stringify(req.session, null, 2));
     console.log('Auth check - user:', req.user);
     console.log('Auth check - isAuthenticated:', req.isAuthenticated());
+    console.log('Auth check - session.passport:', req.session?.passport);
     
     if (req.isAuthenticated()) {
       res.json(req.user);
