@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { createContext, useContext } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 
 interface UserContextType {
@@ -12,44 +11,16 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [userId, setUserId] = useState<string | null>(() => {
-    return localStorage.getItem("gabai_user_id");
-  });
+  const { user, isLoading } = useAuth();
 
-  // Load user data if we have a stored user ID
-  const { isLoading } = useQuery({
-    queryKey: ["/api/users", userId],
-    enabled: !!userId,
-    retry: false,
-    queryFn: async () => {
-      if (!userId) return null;
-      const userData = await api.getUser(userId);
-      setUser(userData);
-      return userData;
-    },
-  });
-
-  useEffect(() => {
-    if (user?.id) {
-      localStorage.setItem("gabai_user_id", user.id);
-      setUserId(user.id);
-    }
-  }, [user?.id]);
-
-  const updateUser = (newUser: User | null) => {
-    setUser(newUser);
-    if (newUser?.id) {
-      localStorage.setItem("gabai_user_id", newUser.id);
-      setUserId(newUser.id);
-    } else {
-      localStorage.removeItem("gabai_user_id");
-      setUserId(null);
-    }
+  // setUser is now handled by the auth system, but we provide a compatible interface
+  const setUser = () => {
+    // Auth mutations handle user state changes
+    console.warn("setUser is deprecated with OAuth - use login/logout instead");
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser: updateUser, isLoading }}>
+    <UserContext.Provider value={{ user: user || null, setUser, isLoading }}>
       {children}
     </UserContext.Provider>
   );

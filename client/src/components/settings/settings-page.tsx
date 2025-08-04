@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "@/context/user-context";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType } from "@/types";
 
@@ -40,6 +41,7 @@ export function SettingsPage({ user }: SettingsPageProps) {
   const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(false);
   
   const { setUser } = useUser();
+  const { logout, isLoggingOut } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -235,6 +237,45 @@ export function SettingsPage({ user }: SettingsPageProps) {
                 onCheckedChange={setCalendarSyncEnabled}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Account */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>Account</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="font-medium">Connected Account</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.email || "No email available"}
+                </p>
+              </div>
+              <Badge variant="secondary">Google</Badge>
+            </div>
+            
+            <Separator />
+            
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto p-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+              onClick={() => logout()}
+              disabled={isLoggingOut}
+            >
+              <div className="flex items-center space-x-3">
+                {isLoggingOut ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ExternalLink className="h-4 w-4" />
+                )}
+                <span>{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
+              </div>
+            </Button>
           </CardContent>
         </Card>
 

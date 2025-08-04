@@ -8,6 +8,7 @@ import { UserProvider, useUser } from "@/context/user-context";
 import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
+import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -45,11 +46,17 @@ function AppContent() {
           <Route path="/reminders" component={HomePage} />
           <Route path="/settings" component={HomePage} />
         </>
-      ) : (
+      ) : user ? (
         <>
-          {/* If no user or onboarding not complete, show onboarding */}
+          {/* User exists but needs onboarding */}
           <Route path="/" component={OnboardingPage} />
           <Route path="/onboarding" component={OnboardingPage} />
+        </>
+      ) : (
+        <>
+          {/* No user - show login */}
+          <Route path="/" component={LoginPage} />
+          <Route path="/login" component={LoginPage} />
         </>
       )}
       
