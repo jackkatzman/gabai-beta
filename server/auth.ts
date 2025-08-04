@@ -13,6 +13,7 @@ export function setupAuth(app: Express) {
     pool: pool,
     tableName: 'session',
     createTableIfMissing: true,
+    ttl: 24 * 60 * 60, // 24 hours in seconds
   });
 
   // Session configuration
@@ -21,6 +22,7 @@ export function setupAuth(app: Express) {
     secret: process.env.SESSION_SECRET || 'gabai-dev-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiration on activity
     cookie: {
       secure: true, // Always use secure cookies for OAuth
       httpOnly: true,
@@ -103,7 +105,16 @@ export function setupAuth(app: Express) {
       console.log('Google OAuth success, user:', req.user);
       console.log('Session after auth:', req.session);
       console.log('Is authenticated:', req.isAuthenticated());
-      res.redirect('/');
+      
+      // Force session save before redirect
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        } else {
+          console.log('Session saved successfully');
+        }
+        res.redirect('/');
+      });
     }
   );
 
