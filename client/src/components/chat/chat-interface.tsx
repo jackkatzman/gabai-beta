@@ -55,6 +55,12 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
         (oldMessages: Message[] = []) => [...oldMessages, response.message]
       );
 
+      // Invalidate lists and reminders cache if AI performed actions
+      if (response.actions && response.actions.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      }
+
       // Show suggestions if any
       if (response.suggestions && response.suggestions.length > 0) {
         toast({
