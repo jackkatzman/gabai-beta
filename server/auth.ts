@@ -16,9 +16,10 @@ export function setupAuth(app: Express) {
   app.use(session({
     store: sessionStore,
     secret: process.env.SESSION_SECRET || 'gabai-dev-secret-change-in-production',
-    resave: false,
+    resave: true, // Force session save to store
     saveUninitialized: false,
     rolling: true, // Reset expiration on activity
+    name: 'gabai.sid', // Custom session name
     cookie: {
       secure: true, // Always use secure cookies for OAuth
       httpOnly: true,
@@ -79,12 +80,12 @@ export function setupAuth(app: Express) {
   // Deserialize user from session
   passport.deserializeUser(async (id: string, done) => {
     try {
-      console.log('Deserializing user ID:', id);
+      console.log('🔄 Deserializing user ID:', id);
       const user = await storage.getUser(id);
-      console.log('Deserialized user:', user);
+      console.log('✅ Deserialized user:', user ? 'Found' : 'Not found');
       done(null, user);
     } catch (error) {
-      console.error('Deserialization error:', error);
+      console.error('❌ Deserialization error:', error);
       done(error, null);
     }
   });
@@ -124,10 +125,11 @@ export function setupAuth(app: Express) {
   });
 
   app.get('/auth/user', (req, res) => {
-    console.log('Auth check - full session:', JSON.stringify(req.session, null, 2));
-    console.log('Auth check - user:', req.user);
-    console.log('Auth check - isAuthenticated:', req.isAuthenticated());
-    console.log('Auth check - session.passport:', req.session?.passport);
+    console.log('🔍 SESSION ID:', req.sessionID);
+    console.log('🔍 Session exists:', !!req.session);
+    console.log('🔍 Session passport:', req.session?.passport);
+    console.log('🔍 User object:', req.user);
+    console.log('🔍 Is authenticated:', req.isAuthenticated());
     
     if (req.isAuthenticated()) {
       res.json(req.user);
