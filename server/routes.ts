@@ -220,6 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               }
               
+              // Log the appointment date for debugging
+              console.log(`Creating appointment with date: ${appointmentDate.toISOString()}`);
+              
               await storage.createReminder({
                 userId,
                 title: action.data.appointment.title,
