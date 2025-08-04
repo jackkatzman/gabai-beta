@@ -7,8 +7,8 @@ import {
   insertUserSchema, 
   insertConversationSchema, 
   insertMessageSchema,
-  insertShoppingListSchema,
-  insertShoppingItemSchema,
+  insertSmartListSchema,
+  insertListItemSchema,
   insertReminderSchema
 } from "@shared/schema";
 import multer from "multer";

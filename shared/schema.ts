@@ -41,22 +41,35 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const shoppingLists = pgTable("shopping_lists", {
+export const smartLists = pgTable("smart_lists", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
+  type: text("type").notNull().default("shopping"), // shopping, punch_list, waiting_list, todo, etc
+  description: text("description"),
+  isShared: boolean("is_shared").default(false),
+  shareCode: varchar("share_code").unique(),
+  collaborators: jsonb("collaborators").$type<string[]>().default([]),
+  sortBy: text("sort_by").default("category"), // category, priority, date_added, custom
+  categories: jsonb("categories").$type<string[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const shoppingItems = pgTable("shopping_items", {
+export const listItems = pgTable("list_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  listId: varchar("list_id").references(() => shoppingLists.id).notNull(),
+  listId: varchar("list_id").references(() => smartLists.id).notNull(),
   name: text("name").notNull(),
   category: text("category"),
+  priority: integer("priority").default(1), // 1-5 scale
   completed: boolean("completed").default(false),
   notes: text("notes"),
+  assignedTo: text("assigned_to"), // for contractor lists: "plumber", "painter", etc
+  addedBy: text("added_by"), // user who added this item
+  dueDate: timestamp("due_date"),
+  position: integer("position").default(0), // for custom ordering
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const reminders = pgTable("reminders", {
@@ -75,7 +88,7 @@ export const reminders = pgTable("reminders", {
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversations),
-  shoppingLists: many(shoppingLists),
+  smartLists: many(smartLists),
   reminders: many(reminders),
 }));
 
@@ -94,18 +107,18 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const shoppingListsRelations = relations(shoppingLists, ({ one, many }) => ({
+export const smartListsRelations = relations(smartLists, ({ one, many }) => ({
   user: one(users, {
-    fields: [shoppingLists.userId],
+    fields: [smartLists.userId],
     references: [users.id],
   }),
-  items: many(shoppingItems),
+  items: many(listItems),
 }));
 
-export const shoppingItemsRelations = relations(shoppingItems, ({ one }) => ({
-  list: one(shoppingLists, {
-    fields: [shoppingItems.listId],
-    references: [shoppingLists.id],
+export const listItemsRelations = relations(listItems, ({ one }) => ({
+  list: one(smartLists, {
+    fields: [listItems.listId],
+    references: [smartLists.id],
   }),
 }));
 
@@ -134,15 +147,16 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
-export const insertShoppingListSchema = createInsertSchema(shoppingLists).omit({
+export const insertSmartListSchema = createInsertSchema(smartLists).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({
+export const insertListItemSchema = createInsertSchema(listItems).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const insertReminderSchema = createInsertSchema(reminders).omit({
@@ -158,9 +172,15 @@ export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
-export type ShoppingList = typeof shoppingLists.$inferSelect;
-export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
-export type ShoppingItem = typeof shoppingItems.$inferSelect;
-export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
+export type SmartList = typeof smartLists.$inferSelect;
+export type InsertSmartList = z.infer<typeof insertSmartListSchema>;
+export type ListItem = typeof listItems.$inferSelect;
+export type InsertListItem = z.infer<typeof insertListItemSchema>;
+
+// Keep backward compatibility aliases
+export type ShoppingList = SmartList;
+export type InsertShoppingList = InsertSmartList;
+export type ShoppingItem = ListItem;
+export type InsertShoppingItem = InsertListItem;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;

@@ -1,5 +1,9 @@
 import { apiRequest } from "./queryClient";
-import type { User, Message, ShoppingList, ShoppingItem, Reminder } from "@shared/schema";
+import type { User, Message, SmartList, ListItem, Reminder, InsertSmartList, InsertListItem } from "@shared/schema";
+
+// Type aliases for backward compatibility
+type ShoppingList = SmartList;
+type ShoppingItem = ListItem;
 
 export interface OnboardingData {
   name: string;
@@ -97,36 +101,72 @@ export const api = {
     return response.blob();
   },
 
-  // Shopping list operations
-  async getShoppingLists(userId: string): Promise<ShoppingList[]> {
-    const response = await apiRequest("GET", `/api/shopping-lists/${userId}`);
+  // Smart list operations
+  async getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]> {
+    const response = await apiRequest("GET", `/api/smart-lists/${userId}`);
     return response.json();
   },
 
-  async createShoppingList(userId: string, name: string): Promise<ShoppingList> {
-    const response = await apiRequest("POST", "/api/shopping-lists", {
+  async createSmartList(listData: InsertSmartList): Promise<SmartList> {
+    const response = await apiRequest("POST", "/api/smart-lists", listData);
+    return response.json();
+  },
+
+  async shareList(listId: string): Promise<{ shareCode: string }> {
+    const response = await apiRequest("POST", `/api/smart-lists/${listId}/share`);
+    return response.json();
+  },
+
+  async joinSharedList(shareCode: string, userId: string): Promise<SmartList> {
+    const response = await apiRequest("POST", "/api/smart-lists/join", {
+      shareCode,
       userId,
-      name,
     });
     return response.json();
   },
 
+  async createListItem(itemData: InsertListItem): Promise<ListItem> {
+    const response = await apiRequest("POST", "/api/list-items", itemData);
+    return response.json();
+  },
+
+  async updateListItem(id: string, updates: Partial<ListItem>): Promise<ListItem> {
+    const response = await apiRequest("PATCH", `/api/list-items/${id}`, updates);
+    return response.json();
+  },
+
+  async deleteListItem(id: string): Promise<void> {
+    await apiRequest("DELETE", `/api/list-items/${id}`);
+  },
+
+  // Backward compatibility aliases
+  async getShoppingLists(userId: string): Promise<(ShoppingList & { items: ShoppingItem[] })[]> {
+    return this.getSmartLists(userId);
+  },
+
+  async createShoppingList(userId: string, name: string): Promise<ShoppingList> {
+    return this.createSmartList({
+      userId,
+      name,
+      type: "shopping",
+      categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"],
+    });
+  },
+
   async createShoppingItem(listId: string, name: string, category?: string): Promise<ShoppingItem> {
-    const response = await apiRequest("POST", "/api/shopping-items", {
+    return this.createListItem({
       listId,
       name,
       category,
     });
-    return response.json();
   },
 
   async updateShoppingItem(id: string, updates: Partial<ShoppingItem>): Promise<ShoppingItem> {
-    const response = await apiRequest("PATCH", `/api/shopping-items/${id}`, updates);
-    return response.json();
+    return this.updateListItem(id, updates);
   },
 
   async deleteShoppingItem(id: string): Promise<void> {
-    await apiRequest("DELETE", `/api/shopping-items/${id}`);
+    return this.deleteListItem(id);
   },
 
   // Reminder operations

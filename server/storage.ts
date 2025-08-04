@@ -2,8 +2,8 @@ import {
   users,
   conversations,
   messages,
-  shoppingLists,
-  shoppingItems,
+  smartLists,
+  listItems,
   reminders,
   type User,
   type InsertUser,
@@ -11,10 +11,10 @@ import {
   type InsertConversation,
   type Message,
   type InsertMessage,
-  type ShoppingList,
-  type InsertShoppingList,
-  type ShoppingItem,
-  type InsertShoppingItem,
+  type SmartList,
+  type InsertSmartList,
+  type ListItem,
+  type InsertListItem,
   type Reminder,
   type InsertReminder,
 } from "@shared/schema";
@@ -36,15 +36,18 @@ export interface IStorage {
   getMessages(conversationId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   
-  // Shopping list operations
-  getShoppingLists(userId: string): Promise<(ShoppingList & { items: ShoppingItem[] })[]>;
-  createShoppingList(list: InsertShoppingList): Promise<ShoppingList>;
-  getShoppingList(id: string): Promise<(ShoppingList & { items: ShoppingItem[] }) | undefined>;
+  // Smart list operations
+  getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]>;
+  createSmartList(list: InsertSmartList): Promise<SmartList>;
+  getSmartList(id: string): Promise<(SmartList & { items: ListItem[] }) | undefined>;
+  updateSmartList(id: string, updates: Partial<InsertSmartList>): Promise<SmartList>;
+  getSharedList(shareCode: string): Promise<(SmartList & { items: ListItem[] }) | undefined>;
+  addCollaborator(listId: string, collaboratorId: string): Promise<SmartList>;
   
-  // Shopping item operations
-  createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem>;
-  updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem>;
-  deleteShoppingItem(id: string): Promise<void>;
+  // List item operations
+  createListItem(item: InsertListItem): Promise<ListItem>;
+  updateListItem(id: string, updates: Partial<InsertListItem>): Promise<ListItem>;
+  deleteListItem(id: string): Promise<void>;
   
   // Reminder operations
   getReminders(userId: string): Promise<Reminder[]>;
@@ -126,21 +129,21 @@ export class DatabaseStorage implements IStorage {
     return message;
   }
 
-  // Shopping list operations
-  async getShoppingLists(userId: string): Promise<(ShoppingList & { items: ShoppingItem[] })[]> {
+  // Smart list operations
+  async getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]> {
     const lists = await db
       .select()
-      .from(shoppingLists)
-      .where(eq(shoppingLists.userId, userId))
-      .orderBy(desc(shoppingLists.updatedAt));
+      .from(smartLists)
+      .where(eq(smartLists.userId, userId))
+      .orderBy(desc(smartLists.updatedAt));
 
     const listsWithItems = await Promise.all(
       lists.map(async (list) => {
         const items = await db
           .select()
-          .from(shoppingItems)
-          .where(eq(shoppingItems.listId, list.id))
-          .orderBy(shoppingItems.createdAt);
+          .from(listItems)
+          .where(eq(listItems.listId, list.id))
+          .orderBy(listItems.position, listItems.createdAt);
         return { ...list, items };
       })
     );
@@ -148,45 +151,105 @@ export class DatabaseStorage implements IStorage {
     return listsWithItems;
   }
 
-  async createShoppingList(insertList: InsertShoppingList): Promise<ShoppingList> {
-    const [list] = await db.insert(shoppingLists).values(insertList).returning();
+  async createSmartList(insertList: InsertSmartList): Promise<SmartList> {
+    const listData = {
+      ...insertList,
+      shareCode: insertList.isShared ? `${Date.now()}-${Math.random().toString(36).substr(2, 9)}` : null,
+      collaborators: insertList.collaborators as any,
+      categories: insertList.categories as any
+    };
+    const [list] = await db.insert(smartLists).values([listData]).returning();
     return list;
   }
 
-  async getShoppingList(id: string): Promise<(ShoppingList & { items: ShoppingItem[] }) | undefined> {
+  async getSmartList(id: string): Promise<(SmartList & { items: ListItem[] }) | undefined> {
     const [list] = await db
       .select()
-      .from(shoppingLists)
-      .where(eq(shoppingLists.id, id));
+      .from(smartLists)
+      .where(eq(smartLists.id, id));
 
     if (!list) return undefined;
 
     const items = await db
       .select()
-      .from(shoppingItems)
-      .where(eq(shoppingItems.listId, id))
-      .orderBy(shoppingItems.createdAt);
+      .from(listItems)
+      .where(eq(listItems.listId, id))
+      .orderBy(listItems.position, listItems.createdAt);
 
     return { ...list, items };
   }
 
-  // Shopping item operations
-  async createShoppingItem(insertItem: InsertShoppingItem): Promise<ShoppingItem> {
-    const [item] = await db.insert(shoppingItems).values(insertItem).returning();
+  async updateSmartList(id: string, updates: Partial<InsertSmartList>): Promise<SmartList> {
+    const updateData = {
+      ...updates,
+      collaborators: updates.collaborators as any,
+      categories: updates.categories as any,
+      updatedAt: new Date()
+    };
+    const [list] = await db
+      .update(smartLists)
+      .set(updateData)
+      .where(eq(smartLists.id, id))
+      .returning();
+    return list;
+  }
+
+  async getSharedList(shareCode: string): Promise<(SmartList & { items: ListItem[] }) | undefined> {
+    const [list] = await db
+      .select()
+      .from(smartLists)
+      .where(eq(smartLists.shareCode, shareCode));
+
+    if (!list) return undefined;
+
+    const items = await db
+      .select()
+      .from(listItems)
+      .where(eq(listItems.listId, list.id))
+      .orderBy(listItems.position, listItems.createdAt);
+
+    return { ...list, items };
+  }
+
+  async addCollaborator(listId: string, collaboratorId: string): Promise<SmartList> {
+    const [list] = await db
+      .select()
+      .from(smartLists)
+      .where(eq(smartLists.id, listId));
+
+    if (!list) throw new Error("List not found");
+
+    const collaborators = [...(list.collaborators || []), collaboratorId];
+    
+    const [updatedList] = await db
+      .update(smartLists)
+      .set({ 
+        collaborators: collaborators as any,
+        updatedAt: new Date() 
+      })
+      .where(eq(smartLists.id, listId))
+      .returning();
+
+    return updatedList;
+  }
+
+  // List item operations
+  async createListItem(insertItem: InsertListItem): Promise<ListItem> {
+    const [item] = await db.insert(listItems).values([insertItem]).returning();
     return item;
   }
 
-  async updateShoppingItem(id: string, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem> {
+  async updateListItem(id: string, updates: Partial<InsertListItem>): Promise<ListItem> {
     const [item] = await db
-      .update(shoppingItems)
-      .set(updates)
-      .where(eq(shoppingItems.id, id))
+      .update(listItems)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(listItems.id, id))
       .returning();
     return item;
   }
 
-  async deleteShoppingItem(id: string): Promise<void> {
-    await db.delete(shoppingItems).where(eq(shoppingItems.id, id));
+  async deleteListItem(id: string): Promise<void> {
+    await db.delete(listItems).where(eq(listItems.id, id));
   }
 
   // Reminder operations
