@@ -17,6 +17,12 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **Session persistence fixed** - Google OAuth sessions now properly maintained across requests
 - ✅ **Production-ready authentication** - Memory store with proper trust proxy configuration for Replit environment
 - ✅ **Frontend integration completed** - UserProvider wrapper added to support existing components
+- ✅ **Native Calendar Sync Implemented** - Complete ICS export system for device calendar integration
+- ✅ **Full calendar export** - Download all appointments as ICS file for import into any calendar app
+- ✅ **Individual event export** - Export single appointments with download buttons on each event
+- ✅ **Calendar subscription URLs** - Live calendar feeds that update automatically
+- ✅ **Cross-platform support** - Setup instructions for iPhone, Android, Google Calendar, Outlook
+- ✅ **Calendar sync UI** - Professional interface with badges, instructions, and copy functionality
 
 # User Preferences
 
@@ -50,7 +56,9 @@ Date format: Current date (August 4, 2025) should be used for new appointments u
 - **Real-time Collaboration**: Live sharing with unique share codes for multi-user workflows
 - **Intelligent Categorization**: Auto-sorting by categories (produce/dairy for shopping, plumber/painter for contractors)
 - **Voice-First Item Management**: Voice input with auto-category detection
-- **Reminders**: Scheduled notifications with recurring options
+- **Calendar & Reminders**: Scheduled notifications with recurring options and full native calendar sync
+- **Native Calendar Integration**: ICS export for seamless sync with device calendars (iPhone, Android, web)
+- **Calendar Subscription**: Live calendar feeds with automatic updates across all devices
 - **Onboarding Flow**: Multi-step user setup to establish personalization
 
 ## Data Models

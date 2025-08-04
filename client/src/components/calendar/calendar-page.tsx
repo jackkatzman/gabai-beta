@@ -337,14 +337,26 @@ export function CalendarPage({ user }: CalendarPageProps) {
                             <span>{formatReminderTime(reminder.dueDate)}</span>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExportEvent(reminder.id)}
+                            className="text-gray-400 hover:text-blue-500"
+                            title="Export to calendar"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                            className="text-gray-400 hover:text-red-500"
+                            title="Delete appointment"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -386,14 +398,26 @@ export function CalendarPage({ user }: CalendarPageProps) {
                             {formatReminderTime(reminder.dueDate)}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExportEvent(reminder.id)}
+                            className="text-gray-400 hover:text-blue-500"
+                            title="Export to calendar"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                            className="text-gray-400 hover:text-red-500"
+                            title="Delete appointment"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -435,14 +459,26 @@ export function CalendarPage({ user }: CalendarPageProps) {
                             {formatReminderTime(reminder.dueDate)}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExportEvent(reminder.id)}
+                            className="text-gray-400 hover:text-blue-500"
+                            title="Export to calendar"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                            className="text-gray-400 hover:text-red-500"
+                            title="Delete appointment"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -485,14 +521,26 @@ export function CalendarPage({ user }: CalendarPageProps) {
                             <span>{formatReminderTime(reminder.dueDate)}</span>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExportEvent(reminder.id)}
+                            className="text-gray-400 hover:text-blue-500"
+                            title="Export to calendar"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                            className="text-gray-400 hover:text-red-500"
+                            title="Delete appointment"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
