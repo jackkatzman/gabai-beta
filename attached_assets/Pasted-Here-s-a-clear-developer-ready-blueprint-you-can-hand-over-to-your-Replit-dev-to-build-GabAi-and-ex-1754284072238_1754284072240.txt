@@ -1,0 +1,237 @@
+Here’s a clear, developer-ready blueprint you can hand over to your Replit dev to build GabAi and export it to Expo Go:
+
+
+---
+
+🧠 GabAi Blueprint for Replit Dev (Expo Go App)
+
+🔹 Overview
+
+GabAi is a voice-first smart assistant built with Flutter + Dart (or React Native if needed), exported to Expo Go for testing. Core features include:
+
+Voice input (Whisper API or speech_to_text)
+
+GPT-powered responses
+
+Real-time transcription
+
+Shared shopping lists
+
+Reminders
+
+Alarm scheduling
+
+Calendar sync
+
+Memory system (user traits/preferences)
+
+
+
+---
+
+🔧 Stack & Tools
+
+Feature	Tech
+
+App Framework	Flutter (preferred) OR React Native
+Voice Input	record + OpenAI Whisper API
+AI Brain	OpenAI GPT-4o API
+Speech Output	ElevenLabs (MP3 playback)
+State Management	Provider / Riverpod / AppState
+Storage	Firebase Firestore + Hive (offline)
+Calendar Integration	device_calendar package (Flutter)
+Alarm Feature	Local notifications + MP3 alarms
+Auth (future)	Firebase Auth or Clerk
+Deployment	Expo Go for testing, APK export for build
+
+
+
+---
+
+🗂️ Project Structure (Flutter version)
+
+lib/
+├── main.dart
+├── pages/
+│   ├── chat_page.dart
+│   ├── lists_page.dart
+│   ├── reminders_page.dart
+│   └── settings_page.dart
+├── widgets/
+│   ├── mic_button.dart
+│   ├── message_bubble.dart
+│   └── nav_bar.dart
+├── services/
+│   ├── whisper_service.dart
+│   ├── gpt_service.dart
+│   ├── calendar_service.dart
+│   └── alarm_service.dart
+├── models/
+│   ├── message.dart
+│   └── user_profile.dart
+├── utils/
+│   ├── json_parser.dart
+│   └── assistant_brain.dart
+
+
+---
+
+✅ Core Features To Build (MVP)
+
+1. Chat + Mic Page
+
+Static mic button with animated pulse
+
+Transcribe mic input via Whisper API
+
+Send to GPT-4o, display response
+
+Optional: ElevenLabs MP3 playback of response
+
+
+2. List Tab
+
+Voice + text input to add to list
+
+Shared grocery list (Firestore)
+
+Sorted by category (e.g., Produce, Dairy)
+
+
+3. Reminders / Alarms
+
+Voice-triggered reminders
+
+Save as local notifications
+
+Play MP3 (preloaded or ElevenLabs)
+
+
+4. Calendar Integration
+
+Use device_calendar
+
+Ask for permission
+
+Add/view upcoming events
+
+
+5. User Memory / Personalization
+
+Store name, preferences (e.g. religious, dietary)
+
+Load on app open and affect behavior
+
+
+
+---
+
+📦 Packages (Flutter)
+
+dependencies:
+  flutter:
+  provider:
+  http:
+  record:
+  audioplayers:
+  speech_to_text:
+  firebase_core:
+  cloud_firestore:
+  hive:
+  path_provider:
+  flutter_local_notifications:
+  device_calendar:
+  url_launcher:
+  permission_handler:
+
+
+---
+
+🧪 Testing via Expo Go
+
+If you’re building in React Native instead:
+
+Set up app via Expo CLI
+
+Use Expo Speech, Expo Audio, and Expo FileSystem
+
+Export to Expo Go for testing on Android/iOS
+
+
+
+---
+
+📤 Export Targets
+
+✅ Expo Go (for live testing)
+
+✅ APK / AAB for Android
+
+✅ iOS build (future if needed)
+
+🔜 Firebase Hosting for web (chat version)
+
+
+
+---
+
+🔐 .env Keys Needed
+
+OPENAI_API_KEY=
+ELEVENLABS_API_KEY=
+FIREBASE_API_KEY=
+FIREBASE_PROJECT_ID=
+FIREBASE_APP_ID=
+FIREBASE_STORAGE_BUCKET=
+FIREBASE_MESSAGING_SENDER_ID=
+
+
+---
+
+🧭 Future Features (Post-MVP)
+
+Language selector in onboarding
+
+Custom voice recordings for alarms
+
+Multi-user shared calendars
+
+Browser dashboard (Firebase sync)
+
+Affiliate-powered suggestions (e.g., shopping)
+
+Smart onboarding: religious traits, habits, sleep schedule
+
+
+
+---
+
+📍Instructions for Replit Dev
+
+1. Build in Flutter with voice input + GPT integration first
+
+
+2. Add Firestore storage + list features
+
+
+3. Add alarm & calendar logic
+
+
+4. Use static .env or secret storage
+
+
+5. Push to GitHub + Expo for testing
+
+
+6. Export APK for Android testing
+
+
+7. Support future iOS build if needed
+
+
+
+
+---
+
+Want me to drop this into a ready-made markdown file or ZIP with stub Dart files? Or want me to prep the React Native version too just in case?
+
