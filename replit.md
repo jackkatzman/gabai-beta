@@ -10,6 +10,7 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ Implemented proper Eastern Time (EST/EDT) timezone support
 - ✅ Food items (chocolate, Twizzlers) now correctly categorized to shopping lists
 - ✅ Appointments properly created in calendar with correct dates and times
+- ✅ **Multilingual support confirmed** - AI understands Hebrew voice commands, responds in Hebrew, and adds Hebrew items to lists
 
 # User Preferences
 
@@ -35,8 +36,8 @@ Date format: Current date (August 4, 2025) should be used for new appointments u
 - **File Upload**: Multer for handling audio file uploads
 
 ## Core Features
-- **Voice Interaction**: Speech-to-text transcription via OpenAI Whisper API
-- **AI Conversations**: GPT-4o for personalized responses based on user context
+- **Voice Interaction**: Speech-to-text transcription via OpenAI Whisper API with multilingual support (Hebrew, English, etc.)
+- **AI Conversations**: GPT-4o for personalized responses based on user context with automatic language detection
 - **Text-to-Speech**: ElevenLabs API with fallback to OpenAI TTS for natural voice synthesis
 - **User Personalization**: Comprehensive preference system storing interests, dietary restrictions, sleep schedules, and communication styles
 - **Smart Lists**: Flexible collaborative lists that adapt to any use case (shopping, contractor punch lists, waiting lists, to-do lists)
