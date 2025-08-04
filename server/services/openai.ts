@@ -77,6 +77,11 @@ Guidelines:
 7. For reminders, consider their sleep schedule and daily routine
 8. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
 9. IMPORTANT: When asked to add items, you MUST include the add_to_list action along with your response
+10. When choosing list types, consider the context:
+    - Food items (pastrami, milk, etc.) → "shopping" 
+    - Home repairs/contractor work → "punch_list"
+    - Restaurant reservations/appointments → "waiting_list"
+    - General tasks → "todo"
 
 Always respond with valid JSON in this format:
 {
@@ -86,7 +91,7 @@ Always respond with valid JSON in this format:
     {
       "type": "add_to_list",
       "data": {
-        "listType": "shopping",
+        "listType": "shopping|punch_list|waiting_list|todo",
         "items": [
           {
             "name": "item name",

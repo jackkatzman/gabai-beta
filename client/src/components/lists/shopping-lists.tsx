@@ -153,17 +153,24 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     });
   };
 
-  const handleVoiceAddItem = (listId: string) => {
-    // Stop any existing recording first
-    if (isRecording) {
-      stopRecording();
-    }
-    setSelectedListId(listId);
-    setIsVoiceAddingItem(true);
-    // Small delay to ensure previous recording is stopped
-    setTimeout(() => {
+  const handleVoiceAddItem = async (listId: string) => {
+    try {
+      // Force stop any existing recording with cleanup
+      if (isRecording || isTranscribing) {
+        stopRecording();
+        // Wait for cleanup to complete
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      setSelectedListId(listId);
+      setIsVoiceAddingItem(true);
+      
+      // Start new recording
       toggleRecording();
-    }, 100);
+    } catch (error) {
+      console.error("Voice input error:", error);
+      setIsVoiceAddingItem(false);
+    }
   };
 
   // Group items by category

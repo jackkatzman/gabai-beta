@@ -15,6 +15,49 @@ import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Helper functions for smart list management
+function isShoppingItem(itemName: string): boolean {
+  const shoppingKeywords = ['milk', 'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'grocery', 'food', 'snack', 'drink', 'pastrami', 'deli', 'produce'];
+  return shoppingKeywords.some(keyword => itemName.includes(keyword));
+}
+
+function isPunchListItem(itemName: string): boolean {
+  const punchKeywords = ['fix', 'repair', 'install', 'paint', 'replace', 'maintenance', 'contractor', 'plumber', 'electrician'];
+  return punchKeywords.some(keyword => itemName.includes(keyword));
+}
+
+function isWaitingListItem(itemName: string): boolean {
+  const waitingKeywords = ['wait', 'queue', 'reservation', 'appointment', 'table', 'restaurant'];
+  return waitingKeywords.some(keyword => itemName.includes(keyword));
+}
+
+function getListConfig(type: string) {
+  const configs = {
+    shopping: {
+      name: "Shopping List",
+      type: "shopping" as const,
+      categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
+    },
+    punch_list: {
+      name: "Punch List",
+      type: "punch_list" as const,
+      categories: ["Plumbing", "Electrical", "Painting", "Flooring", "HVAC", "General Repairs"]
+    },
+    waiting_list: {
+      name: "Waiting List",
+      type: "waiting_list" as const,
+      categories: ["Restaurant", "Appointment", "Service", "Event"]
+    },
+    todo: {
+      name: "To-Do List", 
+      type: "todo" as const,
+      categories: ["Work", "Personal", "Urgent", "Later"]
+    }
+  };
+  
+  return configs[type as keyof typeof configs] || configs.shopping;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/users", async (req, res) => {
@@ -152,24 +195,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const action of aiResponse.actions) {
           try {
             if (action.type === "add_to_list" && action.data?.items) {
-              // Find or create a shopping list for the user
               const lists = await storage.getSmartLists(userId);
-              let shoppingList = lists.find(list => list.type === "shopping");
+              let targetList;
+
+              // Smart list selection based on action data or item context
+              const requestedType = action.data.listType || "shopping";
               
-              if (!shoppingList) {
-                // Create a new shopping list if none exists
-                shoppingList = await storage.createSmartList({
+              // First try to find a list of the requested type
+              targetList = lists.find(list => list.type === requestedType);
+              
+              // If no specific type requested or found, use context clues
+              if (!targetList && action.data.items?.length > 0) {
+                const firstItem = action.data.items[0];
+                const itemName = (firstItem.name || firstItem).toLowerCase();
+                
+                // Categorize items to determine best list type
+                if (isShoppingItem(itemName)) {
+                  targetList = lists.find(list => list.type === "shopping");
+                } else if (isPunchListItem(itemName)) {
+                  targetList = lists.find(list => list.type === "punch_list");
+                } else if (isWaitingListItem(itemName)) {
+                  targetList = lists.find(list => list.type === "waiting_list");
+                } else {
+                  // Default to shopping for food items
+                  targetList = lists.find(list => list.type === "shopping");
+                }
+              }
+              
+              // Create appropriate list if none exists
+              if (!targetList) {
+                const listConfig = getListConfig(requestedType);
+                targetList = await storage.createSmartList({
                   userId,
-                  name: "Shopping List",
-                  type: "shopping",
-                  categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
+                  name: listConfig.name,
+                  type: listConfig.type,
+                  categories: listConfig.categories
                 });
               }
 
-              // Add items to the list
+              // Add items to the target list
               for (const item of action.data.items) {
                 await storage.createListItem({
-                  listId: shoppingList.id,
+                  listId: targetList.id,
                   name: item.name || item,
                   category: item.category || "Other"
                 });
