@@ -224,10 +224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Shopping list routes
+  // Backward compatibility routes (shopping lists)
   app.get("/api/shopping-lists/:userId", async (req, res) => {
     try {
-      const lists = await storage.getShoppingLists(req.params.userId);
+      const lists = await storage.getSmartLists(req.params.userId);
       res.json(lists);
     } catch (error: any) {
       console.error("Get shopping lists error:", error);
@@ -237,8 +237,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shopping-lists", async (req, res) => {
     try {
-      const listData = insertShoppingListSchema.parse(req.body);
-      const list = await storage.createShoppingList(listData);
+      const listData = {
+        ...req.body,
+        type: "shopping",
+        categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
+      };
+      const parsedData = insertSmartListSchema.parse(listData);
+      const list = await storage.createSmartList(parsedData);
       res.json(list);
     } catch (error: any) {
       console.error("Create shopping list error:", error);
@@ -248,8 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shopping-items", async (req, res) => {
     try {
-      const itemData = insertShoppingItemSchema.parse(req.body);
-      const item = await storage.createShoppingItem(itemData);
+      const itemData = insertListItemSchema.parse(req.body);
+      const item = await storage.createListItem(itemData);
       res.json(item);
     } catch (error: any) {
       console.error("Create shopping item error:", error);
@@ -259,8 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/shopping-items/:id", async (req, res) => {
     try {
-      const updates = insertShoppingItemSchema.partial().parse(req.body);
-      const item = await storage.updateShoppingItem(req.params.id, updates);
+      const item = await storage.updateListItem(req.params.id, req.body);
       res.json(item);
     } catch (error: any) {
       console.error("Update shopping item error:", error);
@@ -270,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/shopping-items/:id", async (req, res) => {
     try {
-      await storage.deleteShoppingItem(req.params.id);
+      await storage.deleteListItem(req.params.id);
       res.status(204).send();
     } catch (error: any) {
       console.error("Delete shopping item error:", error);

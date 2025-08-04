@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { User } from "@/types";
+import type { User } from "@shared/schema";
 
 interface UserContextType {
   user: User | null;

@@ -3,16 +3,22 @@ export type {
   User,
   Message,
   Conversation,
-  ShoppingList,
-  ShoppingItem,
+  SmartList,
+  ListItem,
   Reminder,
   InsertUser,
   InsertMessage,
   InsertConversation,
-  InsertShoppingList,
-  InsertShoppingItem,
+  InsertSmartList,
+  InsertListItem,
   InsertReminder,
 } from "@shared/schema";
+
+// Backward compatibility aliases
+export type ShoppingList = SmartList;
+export type ShoppingItem = ListItem;
+export type InsertShoppingList = InsertSmartList;
+export type InsertShoppingItem = InsertListItem;
 
 // Additional client-specific types
 export interface OnboardingData {
@@ -40,7 +46,7 @@ export interface VoiceSettings {
 }
 
 export interface ChatResponse {
-  message: Message;
+  message: any;
   conversationId: string;
   suggestions?: string[];
   actions?: any[];
