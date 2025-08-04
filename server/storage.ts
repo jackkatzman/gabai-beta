@@ -55,6 +55,7 @@ export interface IStorage {
   
   // Reminder operations
   getReminders(userId: string): Promise<Reminder[]>;
+  getReminder(id: string): Promise<Reminder | undefined>;
   createReminder(reminder: InsertReminder): Promise<Reminder>;
   updateReminder(id: string, updates: Partial<InsertReminder>): Promise<Reminder>;
   deleteReminder(id: string): Promise<void>;
@@ -275,6 +276,14 @@ export class DatabaseStorage implements IStorage {
       .from(reminders)
       .where(eq(reminders.userId, userId))
       .orderBy(reminders.dueDate);
+  }
+
+  async getReminder(id: string): Promise<Reminder | undefined> {
+    const [reminder] = await db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.id, id));
+    return reminder;
   }
 
   async createReminder(insertReminder: InsertReminder): Promise<Reminder> {

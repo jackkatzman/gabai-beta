@@ -12,6 +12,7 @@ import {
   insertReminderSchema
 } from "@shared/schema";
 import multer from "multer";
+import ical from "ical-generator";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -506,6 +507,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar export routes
+  app.get("/api/calendar/export/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const reminders = await storage.getReminders(userId);
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create calendar
+      const calendar = ical({
+        name: `${user.name || user.email}'s GabAi Calendar`,
+        description: "Appointments and reminders from GabAi",
+        timezone: "America/New_York", // EST/EDT
+        url: `${req.protocol}://${req.get('host')}/api/calendar/export/${userId}`,
+      });
+
+      // Add reminders as calendar events
+      reminders.forEach((reminder) => {
+        calendar.createEvent({
+          start: reminder.dueDate,
+          end: new Date(reminder.dueDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+          summary: reminder.title,
+          description: reminder.description || '',
+          location: reminder.category === 'appointment' ? user.location || '' : '',
+          categories: [{ name: reminder.category || 'reminder' }],
+          status: reminder.completed ? 'confirmed' : 'tentative',
+          created: reminder.createdAt,
+          lastModified: reminder.updatedAt,
+        });
+      });
+
+      // Set headers for ICS file download
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="gabai-calendar-${user.name || 'user'}.ics"`);
+      
+      // Send the ICS file
+      res.send(calendar.toString());
+    } catch (error: any) {
+      console.error("Calendar export error:", error);
+      res.status(500).json({ message: "Failed to export calendar" });
+    }
+  });
+
+  // Sync single reminder to calendar
+  app.get("/api/calendar/event/:reminderId", async (req, res) => {
+    try {
+      const { reminderId } = req.params;
+      const reminder = await storage.getReminder(reminderId);
+
+      if (!reminder) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+
+      const user = await storage.getUser(reminder.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create single event calendar
+      const calendar = ical({
+        name: `GabAi Event: ${reminder.title}`,
+        description: "Single event from GabAi",
+        timezone: "America/New_York",
+      });
+
+      calendar.createEvent({
+        start: reminder.dueDate,
+        end: new Date(reminder.dueDate.getTime() + 60 * 60 * 1000),
+        summary: reminder.title,
+        description: reminder.description || '',
+        location: reminder.category === 'appointment' ? user.location || '' : '',
+        categories: [{ name: reminder.category || 'reminder' }],
+        status: reminder.completed ? 'confirmed' : 'tentative',
+        created: reminder.createdAt,
+        lastModified: reminder.updatedAt,
+      });
+
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="gabai-${reminder.title.replace(/[^a-zA-Z0-9]/g, '-')}.ics"`);
+      
+      res.send(calendar.toString());
+    } catch (error: any) {
+      console.error("Single event export error:", error);
+      res.status(500).json({ message: "Failed to export event" });
+    }
+  });
+
   // Smart lists routes
   app.get("/api/smart-lists/:userId", async (req, res) => {
     try {
@@ -675,8 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        name: user.name,
       });
     } catch (error) {
       console.error("Search user error:", error);

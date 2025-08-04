@@ -8,13 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Mic, Check, Edit, Trash2, Calendar, Clock, CalendarDays } from "lucide-react";
+import { Plus, Mic, Check, Edit, Trash2, Calendar, Clock, CalendarDays, Download } from "lucide-react";
 import { api } from "@/lib/api";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User, Reminder } from "@shared/schema";
 import { format, isToday, isTomorrow, isPast, startOfDay, endOfDay, addDays } from "date-fns";
+import { CalendarSync } from "@/components/calendar-sync";
+import { calendarApi } from "@/lib/calendar";
 
 interface CalendarPageProps {
   user: User;
@@ -165,6 +167,22 @@ export function CalendarPage({ user }: CalendarPageProps) {
 
   const getCategoryInfo = (category: string) => {
     return categories.find(cat => cat.value === category) || categories[0];
+  };
+
+  const handleExportEvent = async (reminderId: string) => {
+    try {
+      await calendarApi.exportEvent(reminderId);
+      toast({
+        title: "Event Exported!",
+        description: "Calendar event file has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Unable to export event. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -498,6 +516,13 @@ export function CalendarPage({ user }: CalendarPageProps) {
               <Plus className="h-4 w-4 mr-2" />
               Create Appointment
             </Button>
+          </div>
+        )}
+
+        {/* Calendar Sync Section */}
+        {reminders.length > 0 && (
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <CalendarSync />
           </div>
         )}
       </div>
