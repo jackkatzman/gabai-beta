@@ -224,7 +224,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Available lists:`, lists.map(l => `${l.name} (${l.type})`));
               
               // First try to find a list of the requested type
-              targetList = lists.find(list => list.type === requestedType);
+              // Prioritize lists with names that match the type (avoid misnamed lists)
+              if (requestedType === "shopping") {
+                targetList = lists.find(list => 
+                  list.type === "shopping" && 
+                  (list.name.toLowerCase().includes("shop") || 
+                   list.name.toLowerCase().includes("grocery") || 
+                   list.name.toLowerCase().includes("food"))
+                ) || lists.find(list => list.type === "shopping");
+              } else {
+                targetList = lists.find(list => list.type === requestedType);
+              }
               console.log(`Found target list:`, targetList ? `${targetList.name} (${targetList.type})` : 'none');
               
               // If no specific type requested or found, use context clues
