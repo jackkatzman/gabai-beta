@@ -12,6 +12,8 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
   }));
@@ -22,10 +24,19 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Determine the callback URL based on environment
+    const getCallbackURL = () => {
+      if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
+        const domain = process.env.REPLIT_DOMAINS.split(',')[0];
+        return `https://${domain}/auth/google/callback`;
+      }
+      return "http://localhost:5000/auth/google/callback";
+    };
+
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback"
+      callbackURL: getCallbackURL()
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user exists
