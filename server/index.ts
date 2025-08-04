@@ -4,6 +4,10 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
 
 const app = express();
+
+// Trust proxy for Replit environment (must be set before session middleware)
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

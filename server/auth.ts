@@ -33,6 +33,7 @@ export function setupAuth(app: Express) {
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      domain: undefined, // Let browser determine domain
     }
   }));
 
@@ -116,7 +117,8 @@ export function setupAuth(app: Express) {
         if (err) {
           console.error('Session save error:', err);
         } else {
-          console.log('Session saved successfully');
+          console.log('✅ Session saved successfully');
+          console.log('🍪 Session ID:', req.sessionID);
         }
         res.redirect('/');
       });
