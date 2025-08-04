@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import { api } from "@/lib/api";
@@ -9,30 +9,49 @@ import type { OnboardingData } from "@/types";
 
 export default function OnboardingPage() {
   const [, setLocation] = useLocation();
-  const { setUser } = useUser();
+  const { user } = useUser();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const createUserMutation = useMutation({
-    mutationFn: (data: OnboardingData) => api.createUser(data),
-    onSuccess: (user) => {
-      setUser(user);
+  const updateUserMutation = useMutation({
+    mutationFn: (data: OnboardingData) => {
+      if (!user?.id) throw new Error("User not found");
+      return api.updateUser(user.id, {
+        name: data.name,
+        age: data.age,
+        location: data.location,
+        profession: data.profession,
+        preferences: {
+          religious: data.religious,
+          dietary: data.dietary,
+          sleepSchedule: data.sleepSchedule,
+          communicationStyle: data.communicationStyle,
+          interests: data.interests,
+          familyDetails: data.familyDetails,
+        },
+        onboardingCompleted: true,
+      });
+    },
+    onSuccess: (updatedUser) => {
+      // Invalidate and refresh the user query
+      queryClient.invalidateQueries({ queryKey: ["/auth/user"] });
       toast({
         title: "Welcome to GabAi!",
-        description: "Your profile has been created successfully.",
+        description: "Your profile has been updated successfully.",
       });
       setLocation("/");
     },
     onError: (error: any) => {
       toast({
         title: "Setup Failed",
-        description: error.message || "Failed to create your profile. Please try again.",
+        description: error.message || "Failed to update your profile. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const handleOnboardingComplete = (data: OnboardingData) => {
-    createUserMutation.mutate(data);
+    updateUserMutation.mutate(data);
   };
 
   const handleClose = () => {
@@ -43,6 +62,7 @@ export default function OnboardingPage() {
     <OnboardingFlow
       onComplete={handleOnboardingComplete}
       onClose={handleClose}
+      isLoading={updateUserMutation.isPending}
     />
   );
 }
