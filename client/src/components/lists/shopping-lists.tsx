@@ -117,10 +117,14 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   });
 
   // Voice input for adding items
-  const { isRecording, isTranscribing, toggleRecording } = useVoice({
+  const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
       setNewItemName(text);
       setIsVoiceAddingItem(false);
+    },
+    onError: (error) => {
+      setIsVoiceAddingItem(false);
+      console.error("Voice input error:", error);
     },
   });
 
@@ -150,9 +154,16 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   };
 
   const handleVoiceAddItem = (listId: string) => {
+    // Stop any existing recording first
+    if (isRecording) {
+      stopRecording();
+    }
     setSelectedListId(listId);
     setIsVoiceAddingItem(true);
-    toggleRecording();
+    // Small delay to ensure previous recording is stopped
+    setTimeout(() => {
+      toggleRecording();
+    }, 100);
   };
 
   // Group items by category

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,6 +44,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
           });
         } finally {
           setIsTranscribing(false);
+          setIsRecording(false);
           // Stop all tracks to release the microphone
           stream.getTracks().forEach(track => track.stop());
         }
@@ -66,6 +67,11 @@ export function useVoice(options: UseVoiceOptions = {}) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      
+      // Also stop all tracks to release the microphone immediately
+      if (mediaRecorderRef.current?.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
     }
   }, [isRecording]);
 
@@ -76,6 +82,18 @@ export function useVoice(options: UseVoiceOptions = {}) {
       startRecording();
     }
   }, [isRecording, startRecording, stopRecording]);
+
+  // Cleanup on unmount or when component changes
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop();
+        if (mediaRecorderRef.current?.stream) {
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+      }
+    };
+  }, [isRecording]);
 
   return {
     isRecording,
