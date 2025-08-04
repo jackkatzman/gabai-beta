@@ -633,6 +633,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add collaborator to list endpoint
+  app.post("/api/smart-lists/:id/collaborators", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Find user by email
+      const collaborator = await storage.getUserByEmail(email);
+      if (!collaborator) {
+        return res.status(404).json({ message: "User not found with this email" });
+      }
+
+      const updatedList = await storage.addCollaborator(id, collaborator.id);
+      res.json(updatedList);
+    } catch (error) {
+      console.error("Add collaborator error:", error);
+      res.status(500).json({ message: "Failed to add collaborator" });
+    }
+  });
+
+  // Search users by email endpoint
+  app.get("/api/users/search", async (req, res) => {
+    try {
+      const { email } = req.query;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email query parameter is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Return basic user info for privacy
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+    } catch (error) {
+      console.error("Search user error:", error);
+      res.status(500).json({ message: "Failed to search user" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

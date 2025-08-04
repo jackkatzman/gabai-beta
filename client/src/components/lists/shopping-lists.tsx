@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Mic, Trash2, Apple, Milk, Wheat, Share2, Copy, MessageCircle } from "lucide-react";
+import { Plus, Mic, Trash2, Apple, Milk, Wheat, Share2, Copy, MessageCircle, UserPlus, Mail } from "lucide-react";
 import { api } from "@/lib/api";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,9 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedListForShare, setSelectedListForShare] = useState<SmartList | null>(null);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [searchingUser, setSearchingUser] = useState(false);
+  const [foundUser, setFoundUser] = useState<{id: string, email: string, firstName?: string, lastName?: string} | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -132,6 +135,28 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       toast({
         title: "Sharing Failed",
         description: error.message || "Failed to share list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add collaborator mutation
+  const addCollaboratorMutation = useMutation({
+    mutationFn: ({ listId, email }: { listId: string; email: string }) => 
+      api.addCollaborator(listId, email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      setCollaboratorEmail("");
+      setFoundUser(null);
+      toast({
+        title: "Collaborator Added!",
+        description: "User has been invited to collaborate on your list.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add Collaborator",
+        description: error.message || "Could not add collaborator to the list.",
         variant: "destructive",
       });
     },
@@ -226,6 +251,43 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     const message = `Hey! I'm sharing my "${listName}" list with you via GabAi: ${url}`;
     const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
     window.open(smsUrl);
+  };
+
+  const searchUser = async () => {
+    if (!collaboratorEmail.trim()) return;
+    
+    setSearchingUser(true);
+    setFoundUser(null);
+    
+    try {
+      const user = await api.searchUserByEmail(collaboratorEmail.trim());
+      setFoundUser(user);
+    } catch (error: any) {
+      if (error.message.includes('404')) {
+        toast({
+          title: "User Not Found",
+          description: "No registered user found with this email address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Search Failed",
+          description: "Failed to search for user.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setSearchingUser(false);
+    }
+  };
+
+  const handleAddCollaborator = () => {
+    if (foundUser && selectedListForShare) {
+      addCollaboratorMutation.mutate({
+        listId: selectedListForShare.id,
+        email: foundUser.email,
+      });
+    }
   };
 
   // Group items by category
@@ -329,11 +391,95 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
           <DialogHeader>
             <DialogTitle>Share "{selectedListForShare?.name}"</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Invite App Users */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                <label className="text-sm font-medium">Invite App Users</label>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={collaboratorEmail}
+                    onChange={(e) => {
+                      setCollaboratorEmail(e.target.value);
+                      setFoundUser(null);
+                    }}
+                    placeholder="Enter email address"
+                    className="flex-1"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        searchUser();
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={searchUser}
+                    disabled={!collaboratorEmail.trim() || searchingUser}
+                    variant="outline"
+                  >
+                    {searchingUser ? "..." : "Search"}
+                  </Button>
+                </div>
+
+                {foundUser && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-3">
+                      <UserPlus className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                          {foundUser.firstName && foundUser.lastName 
+                            ? `${foundUser.firstName} ${foundUser.lastName}`
+                            : foundUser.email
+                          }
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-green-400">
+                          {foundUser.email}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleAddCollaborator}
+                      disabled={addCollaboratorMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {addCollaboratorMutation.isPending ? "Adding..." : "Add"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Registered users will get instant access to collaborate
+              </p>
+            </div>
+
+            {/* Show collaborators */}
+            {selectedListForShare?.collaborators && selectedListForShare.collaborators.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Current Collaborators</label>
+                <div className="space-y-1">
+                  {selectedListForShare.collaborators.map((collaboratorId, index) => (
+                    <div key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                      <UserPlus className="h-3 w-3" />
+                      {collaboratorId}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Public Link Sharing */}
             {selectedListForShare?.shareCode && (
               <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Share Link</label>
+                <hr className="border-gray-200 dark:border-gray-700" />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    <label className="text-sm font-medium">Public Link</label>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <Input
                       value={getShareUrl(selectedListForShare.shareCode)}
@@ -348,29 +494,29 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={() => shareViaWhatsApp(selectedListForShare.shareCode, selectedListForShare.name)}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Share via WhatsApp
-                  </Button>
-                  <Button
-                    onClick={() => shareViaSMS(selectedListForShare.shareCode, selectedListForShare.name)}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Share via Text Message
-                  </Button>
-                </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      onClick={() => shareViaWhatsApp(selectedListForShare.shareCode, selectedListForShare.name)}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Share via WhatsApp
+                    </Button>
+                    <Button
+                      onClick={() => shareViaSMS(selectedListForShare.shareCode, selectedListForShare.name)}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Share via Text Message
+                    </Button>
+                  </div>
 
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Anyone with this link can view and add items to your list.
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Anyone with this link can view and add items (no account required)
+                  </div>
                 </div>
               </>
             )}
@@ -430,11 +576,21 @@ function ShoppingListCard({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">{list.name}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {list.name}
+              {list.userId !== user.id && (
+                <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full">
+                  Shared with me
+                </span>
+              )}
+            </CardTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {completedCount} of {list.items.length} completed
               {list.isShared && (
-                <span className="ml-2 text-blue-500">• Shared</span>
+                <span className="ml-2 text-blue-500">• Public</span>
+              )}
+              {list.collaborators && list.collaborators.length > 0 && (
+                <span className="ml-2 text-green-500">• {list.collaborators.length} collaborator{list.collaborators.length === 1 ? '' : 's'}</span>
               )}
             </p>
           </div>

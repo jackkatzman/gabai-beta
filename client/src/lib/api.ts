@@ -139,6 +139,18 @@ export const api = {
     return response.json();
   },
 
+  async addCollaborator(listId: string, email: string): Promise<SmartList> {
+    const response = await apiRequest("POST", `/api/smart-lists/${listId}/collaborators`, {
+      email,
+    });
+    return response.json();
+  },
+
+  async searchUserByEmail(email: string): Promise<{id: string, email: string, firstName?: string, lastName?: string}> {
+    const response = await apiRequest("GET", `/api/users/search?email=${encodeURIComponent(email)}`);
+    return response.json();
+  },
+
   async createListItem(itemData: InsertListItem): Promise<ListItem> {
     const response = await apiRequest("POST", "/api/list-items", itemData);
     return response.json();

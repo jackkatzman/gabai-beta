@@ -19,11 +19,12 @@ import {
   type InsertReminder,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
   
@@ -63,6 +64,11 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -134,14 +140,24 @@ export class DatabaseStorage implements IStorage {
 
   // Smart list operations
   async getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]> {
-    const lists = await db
+    // Get lists owned by user + lists where user is a collaborator
+    const ownedLists = await db
       .select()
       .from(smartLists)
       .where(eq(smartLists.userId, userId))
       .orderBy(desc(smartLists.updatedAt));
 
+    // Get lists where user is a collaborator
+    const collaborativeLists = await db
+      .select()
+      .from(smartLists)
+      .where(sql`jsonb_array_elements_text(${smartLists.collaborators}) = ${userId}`)
+      .orderBy(desc(smartLists.updatedAt));
+
+    const allLists = [...ownedLists, ...collaborativeLists];
+
     const listsWithItems = await Promise.all(
-      lists.map(async (list) => {
+      allLists.map(async (list) => {
         const items = await db
           .select()
           .from(listItems)
