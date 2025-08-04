@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Mic, Trash2, Apple, Milk, Wheat } from "lucide-react";
+import { Plus, Mic, Trash2, Apple, Milk, Wheat, Share2, Copy, MessageCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +45,8 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const [newItemCategory, setNewItemCategory] = useState("");
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedListForShare, setSelectedListForShare] = useState<SmartList | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -116,6 +118,25 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     },
   });
 
+  // Share list mutation
+  const shareListMutation = useMutation({
+    mutationFn: (listId: string) => api.shareList(listId),
+    onSuccess: (shareCode) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      toast({
+        title: "List Shared!",
+        description: "Your list is now shareable via the link below.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Sharing Failed",
+        description: error.message || "Failed to share list",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Voice input for adding items
   const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
@@ -171,6 +192,40 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       console.error("Voice input error:", error);
       setIsVoiceAddingItem(false);
     }
+  };
+
+  const handleShareList = (list: SmartList & { items: ListItem[] }) => {
+    setSelectedListForShare(list);
+    setShareDialogOpen(true);
+    if (!list.shareCode) {
+      shareListMutation.mutate(list.id);
+    }
+  };
+
+  const getShareUrl = (shareCode: string) => {
+    return `${window.location.origin}/shared/${shareCode}`;
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: "Share link copied to clipboard.",
+    });
+  };
+
+  const shareViaWhatsApp = (shareCode: string, listName: string) => {
+    const url = getShareUrl(shareCode);
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here: ${url}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const shareViaSMS = (shareCode: string, listName: string) => {
+    const url = getShareUrl(shareCode);
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi: ${url}`;
+    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+    window.open(smsUrl);
   };
 
   // Group items by category
@@ -255,6 +310,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
               onToggleItem={handleToggleItem}
               onDeleteItem={(id) => deleteItemMutation.mutate(id)}
               onVoiceAdd={handleVoiceAddItem}
+              onShare={() => handleShareList(list)}
               newItemName={selectedListId === list.id ? newItemName : ""}
               setNewItemName={setNewItemName}
               newItemCategory={newItemCategory}
@@ -266,6 +322,69 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
           ))
         )}
       </div>
+
+      {/* Share Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share "{selectedListForShare?.name}"</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedListForShare?.shareCode && (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Share Link</label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={getShareUrl(selectedListForShare.shareCode)}
+                      readOnly
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(getShareUrl(selectedListForShare.shareCode))}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={() => shareViaWhatsApp(selectedListForShare.shareCode, selectedListForShare.name)}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Share via WhatsApp
+                  </Button>
+                  <Button
+                    onClick={() => shareViaSMS(selectedListForShare.shareCode, selectedListForShare.name)}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Share via Text Message
+                  </Button>
+                </div>
+
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Anyone with this link can view and add items to your list.
+                </div>
+              </>
+            )}
+
+            {shareListMutation.isPending && (
+              <div className="text-center py-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Generating share link...
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -277,6 +396,7 @@ interface ShoppingListCardProps {
   onToggleItem: (item: ListItem) => void;
   onDeleteItem: (id: string) => void;
   onVoiceAdd: (listId: string) => void;
+  onShare: () => void;
   newItemName: string;
   setNewItemName: (name: string) => void;
   newItemCategory: string;
@@ -293,6 +413,7 @@ function ShoppingListCard({
   onToggleItem,
   onDeleteItem,
   onVoiceAdd,
+  onShare,
   newItemName,
   setNewItemName,
   newItemCategory,
@@ -312,8 +433,19 @@ function ShoppingListCard({
             <CardTitle className="text-lg">{list.name}</CardTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {completedCount} of {list.items.length} completed
+              {list.isShared && (
+                <span className="ml-2 text-blue-500">• Shared</span>
+              )}
             </p>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onShare}
+            className="w-10 h-10 p-0"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
         </div>
       </CardHeader>
       

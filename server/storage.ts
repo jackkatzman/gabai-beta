@@ -290,7 +290,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(smartLists).where(eq(smartLists.id, id));
   }
 
-  async shareList(id: string): Promise<string> {
+  async shareSmartList(id: string): Promise<string> {
     const shareCode = Math.random().toString(36).substring(2, 10).toUpperCase();
     await db
       .update(smartLists)
@@ -301,6 +301,11 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(smartLists.id, id));
     return shareCode;
+  }
+
+  async shareList(id: string): Promise<string> {
+    // Alias for backward compatibility
+    return this.shareSmartList(id);
   }
 
   async joinSharedList(shareCode: string, userId: string): Promise<SmartList> {

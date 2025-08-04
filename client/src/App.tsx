@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { UserProvider, useUser } from "@/context/user-context";
 import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
+import { SharedListPage } from "@/pages/shared-list";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -51,6 +52,9 @@ function AppContent() {
           <Route path="/onboarding" component={OnboardingPage} />
         </>
       )}
+      
+      {/* Public shared list route - accessible without login */}
+      <Route path="/shared/:shareCode" component={SharedListPage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

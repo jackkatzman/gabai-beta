@@ -606,6 +606,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Share list endpoint
+  app.post("/api/smart-lists/:id/share", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shareCode = await storage.shareSmartList(id);
+      res.json({ shareCode });
+    } catch (error) {
+      console.error("Share list error:", error);
+      res.status(500).json({ message: "Failed to share list" });
+    }
+  });
+
+  // Get shared list endpoint
+  app.get("/api/shared/:shareCode", async (req, res) => {
+    try {
+      const { shareCode } = req.params;
+      const sharedList = await storage.getSharedList(shareCode);
+      if (!sharedList) {
+        return res.status(404).json({ message: "Shared list not found" });
+      }
+      res.json(sharedList);
+    } catch (error) {
+      console.error("Get shared list error:", error);
+      res.status(500).json({ message: "Failed to get shared list" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

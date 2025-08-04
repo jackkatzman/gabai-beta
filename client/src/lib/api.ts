@@ -134,6 +134,11 @@ export const api = {
     return response.json();
   },
 
+  async getSharedList(shareCode: string): Promise<SmartList & { items: ListItem[] }> {
+    const response = await apiRequest("GET", `/api/shared/${shareCode}`);
+    return response.json();
+  },
+
   async createListItem(itemData: InsertListItem): Promise<ListItem> {
     const response = await apiRequest("POST", "/api/list-items", itemData);
     return response.json();
