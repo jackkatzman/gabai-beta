@@ -2,9 +2,20 @@
 
 GabAi is a voice-first personal assistant web application built with React and Express. The application provides AI-powered conversational interactions, personalized user experiences, and collaborative smart lists that adapt to any use case. The system features real-time sharing capabilities, intelligent categorization, and high-quality voice synthesis. Users can interact through both voice input and text, with the AI learning from user preferences to provide increasingly personalized responses.
 
+## Recent Progress (August 2025)
+- ✅ Fixed AI list categorization system with proper type matching
+- ✅ Implemented automatic UI cache invalidation for real-time updates
+- ✅ Resolved time parsing issues - "1:40" now correctly interpreted as 1:40 PM EST
+- ✅ Fixed date handling to use current date (2025-08-04) instead of outdated examples
+- ✅ Implemented proper Eastern Time (EST/EDT) timezone support
+- ✅ Food items (chocolate, Twizzlers) now correctly categorized to shopping lists
+- ✅ Appointments properly created in calendar with correct dates and times
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Timezone: Eastern Time (EST/EDT) - All appointments and reminders should use EST.
+Date format: Current date (August 4, 2025) should be used for new appointments unless specified otherwise.
 
 # System Architecture
 
