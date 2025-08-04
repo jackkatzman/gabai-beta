@@ -132,10 +132,10 @@ export function RemindersPage({ user }: RemindersPageProps) {
     createReminderMutation.mutate({
       userId: user.id,
       title: newReminder.title.trim(),
-      description: newReminder.description.trim() || undefined,
-      dueDate: newReminder.dueDate,
-      category: newReminder.category || undefined,
-      recurring: newReminder.recurring || undefined,
+      description: newReminder.description.trim() || null,
+      dueDate: new Date(newReminder.dueDate),
+      category: newReminder.category || null,
+      recurring: newReminder.recurring || null,
       completed: false,
     });
   };
@@ -159,7 +159,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
   };
 
   // Group reminders by time
-  const groupedReminders = reminders.reduce((acc, reminder) => {
+  const groupedReminders = (reminders as Reminder[]).reduce((acc: Record<string, Reminder[]>, reminder: Reminder) => {
     const dueDate = new Date(reminder.dueDate);
     let group: string;
 
