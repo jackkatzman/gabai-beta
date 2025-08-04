@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { api } from "@/lib/api";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { User, ShoppingList, ShoppingItem } from "@shared/schema";
+import type { User, SmartList, ListItem } from "@shared/schema";
 
 interface ShoppingListsProps {
   user: User;
@@ -50,15 +50,20 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const { toast } = useToast();
 
   // Get shopping lists
-  const { data: lists = [], isLoading } = useQuery<(ShoppingList & { items: ShoppingItem[] })[]>({
-    queryKey: ["/api/shopping-lists", user.id],
+  const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
+    queryKey: ["/api/smart-lists", user.id],
   });
 
   // Create list mutation
   const createListMutation = useMutation({
-    mutationFn: (name: string) => api.createShoppingList(user.id, name),
+    mutationFn: (name: string) => api.createSmartList({
+      userId: user.id,
+      name,
+      type: "shopping",
+      categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewListName("");
       toast({
         title: "List Created",
@@ -70,9 +75,9 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   // Create item mutation
   const createItemMutation = useMutation({
     mutationFn: ({ listId, name, category }: { listId: string; name: string; category?: string }) =>
-      api.createShoppingItem(listId, name, category),
+      api.createListItem({ listId, name, category }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewItemName("");
       setNewItemCategory("");
       toast({
@@ -84,18 +89,18 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
 
   // Update item mutation
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<ShoppingItem> }) =>
-      api.updateShoppingItem(id, updates),
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<ListItem> }) =>
+      api.updateListItem(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
     },
   });
 
   // Delete item mutation
   const deleteItemMutation = useMutation({
-    mutationFn: (id: string) => api.deleteShoppingItem(id),
+    mutationFn: (id: string) => api.deleteListItem(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shopping-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       toast({
         title: "Item Removed",
         description: "Item has been removed from your list.",
@@ -129,7 +134,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     }
   };
 
-  const handleToggleItem = (item: ShoppingItem) => {
+  const handleToggleItem = (item: ListItem) => {
     updateItemMutation.mutate({
       id: item.id,
       updates: { completed: !item.completed },
@@ -143,13 +148,13 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   };
 
   // Group items by category
-  const groupItemsByCategory = (items: ShoppingItem[]) => {
+  const groupItemsByCategory = (items: ListItem[]) => {
     const grouped = items.reduce((acc, item) => {
       const category = item.category || "Other";
       if (!acc[category]) acc[category] = [];
       acc[category].push(item);
       return acc;
-    }, {} as Record<string, ShoppingItem[]>);
+    }, {} as Record<string, ListItem[]>);
 
     return grouped;
   };
@@ -215,7 +220,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
             </p>
           </div>
         ) : (
-          lists.map((list: ShoppingList & { items: ShoppingItem[] }) => (
+          lists.map((list: SmartList & { items: ListItem[] }) => (
             <ShoppingListCard
               key={list.id}
               list={list}
@@ -240,10 +245,10 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
 }
 
 interface ShoppingListCardProps {
-  list: ShoppingList;
+  list: SmartList & { items: ListItem[] };
   user: User;
   onAddItem: (listId: string) => void;
-  onToggleItem: (item: ShoppingItem) => void;
+  onToggleItem: (item: ListItem) => void;
   onDeleteItem: (id: string) => void;
   onVoiceAdd: (listId: string) => void;
   newItemName: string;
@@ -358,7 +363,7 @@ function ShoppingListCard({
               {items.map((item) => (
                 <div key={item.id} className="flex items-center space-x-3 group">
                   <Checkbox
-                    checked={item.completed}
+                    checked={item.completed || false}
                     onCheckedChange={() => onToggleItem(item)}
                   />
                   <span 
@@ -424,13 +429,13 @@ function categorizeItem(itemName: string, user: User): string {
   return "Other";
 }
 
-function groupItemsByCategory(items: ShoppingItem[]): Record<string, ShoppingItem[]> {
+function groupItemsByCategory(items: ListItem[]): Record<string, ListItem[]> {
   const grouped = items.reduce((acc, item) => {
     const category = item.category || "Other";
     if (!acc[category]) acc[category] = [];
     acc[category].push(item);
     return acc;
-  }, {} as Record<string, ShoppingItem[]>);
+  }, {} as Record<string, ListItem[]>);
 
   return grouped;
 }
