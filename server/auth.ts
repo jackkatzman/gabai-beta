@@ -12,6 +12,14 @@ export function setupAuth(app: Express) {
     checkPeriod: 86400000 // prune expired entries every 24h
   });
 
+  // Determine if we're in a secure environment
+  const isSecure = process.env.NODE_ENV === 'production' || 
+                   (process.env.REPLIT_DOMAINS && process.env.REPLIT_DOMAINS.includes('.replit.dev'));
+
+  console.log('🍪 Cookie secure setting:', isSecure);
+  console.log('🌐 Environment:', process.env.NODE_ENV);
+  console.log('🔗 Domains:', process.env.REPLIT_DOMAINS);
+
   // Session configuration
   app.use(session({
     store: sessionStore,
@@ -21,9 +29,9 @@ export function setupAuth(app: Express) {
     rolling: true, // Reset expiration on activity
     name: 'gabai.sid', // Custom session name
     cookie: {
-      secure: true, // Always use secure cookies for OAuth
+      secure: isSecure, // Use secure cookies only in production/Replit
       httpOnly: true,
-      sameSite: 'lax', // Changed from 'none' to 'lax' for better compatibility
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
   }));
@@ -130,6 +138,8 @@ export function setupAuth(app: Express) {
     console.log('🔍 Session passport:', req.session?.passport);
     console.log('🔍 User object:', req.user);
     console.log('🔍 Is authenticated:', req.isAuthenticated());
+    console.log('🍪 Cookie header:', req.headers.cookie);
+    console.log('🌐 User agent:', req.headers['user-agent']?.substring(0, 50));
     
     if (req.isAuthenticated()) {
       res.json(req.user);
