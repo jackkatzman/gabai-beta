@@ -10,7 +10,7 @@ export interface AIResponse {
   content: string;
   suggestions?: string[];
   actions?: Array<{
-    type: "add_to_list" | "create_reminder" | "schedule_event";
+    type: "add_to_list" | "create_appointment" | "create_reminder" | "schedule_event";
     data: any;
   }>;
 }
@@ -77,16 +77,18 @@ Guidelines:
 7. For reminders, consider their sleep schedule and daily routine
 8. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
 9. IMPORTANT: When asked to add items, you MUST include the add_to_list action along with your response
-10. When choosing list types, consider the context:
-    - Food items (pastrami, milk, etc.) → "shopping" 
-    - Home repairs/contractor work → "punch_list"
-    - Restaurant reservations/appointments → "waiting_list"
-    - General tasks → "todo"
+10. When choosing actions, consider the context:
+    - Food items (pastrami, milk, etc.) → "add_to_list" with "shopping" type
+    - Home repairs/contractor work → "add_to_list" with "punch_list" type  
+    - Restaurant reservations/waiting → "add_to_list" with "waiting_list" type
+    - Appointments, meetings, doctor visits → "create_appointment" action
+    - General tasks → "add_to_list" with "todo" type
 
 Always respond with valid JSON in this format:
+
+For list items:
 {
   "content": "Your main response text",
-  "suggestions": ["Optional suggestion 1", "Optional suggestion 2"],
   "actions": [
     {
       "type": "add_to_list",
@@ -98,6 +100,23 @@ Always respond with valid JSON in this format:
             "category": "category"
           }
         ]
+      }
+    }
+  ]
+}
+
+For appointments:
+{
+  "content": "Your main response text", 
+  "actions": [
+    {
+      "type": "create_appointment",
+      "data": {
+        "appointment": {
+          "title": "appointment title",
+          "description": "optional description",
+          "date": "2024-01-15T14:30:00Z"
+        }
       }
     }
   ]

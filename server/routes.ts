@@ -27,8 +27,13 @@ function isPunchListItem(itemName: string): boolean {
 }
 
 function isWaitingListItem(itemName: string): boolean {
-  const waitingKeywords = ['wait', 'queue', 'reservation', 'appointment', 'table', 'restaurant'];
+  const waitingKeywords = ['wait', 'queue', 'table', 'restaurant'];
   return waitingKeywords.some(keyword => itemName.includes(keyword));
+}
+
+function isAppointmentItem(itemName: string): boolean {
+  const appointmentKeywords = ['appointment', 'meeting', 'call', 'visit', 'consultation', 'dentist', 'doctor', 'interview'];
+  return appointmentKeywords.some(keyword => itemName.includes(keyword));
 }
 
 function getListConfig(type: string) {
@@ -194,7 +199,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (aiResponse.actions && aiResponse.actions.length > 0) {
         for (const action of aiResponse.actions) {
           try {
-            if (action.type === "add_to_list" && action.data?.items) {
+            if (action.type === "create_appointment" && action.data?.appointment) {
+              // Handle appointment creation
+              await storage.createReminder({
+                userId,
+                title: action.data.appointment.title,
+                description: action.data.appointment.description || `Appointment: ${action.data.appointment.title}`,
+                dueDate: action.data.appointment.date ? new Date(action.data.appointment.date) : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                category: "Appointment"
+              });
+            } else if (action.type === "add_to_list" && action.data?.items) {
               const lists = await storage.getSmartLists(userId);
               let targetList;
 
@@ -210,7 +224,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const itemName = (firstItem.name || firstItem).toLowerCase();
                 
                 // Categorize items to determine best list type
-                if (isShoppingItem(itemName)) {
+                if (isAppointmentItem(itemName)) {
+                  // Handle appointments as reminders/calendar events
+                  for (const item of action.data.items) {
+                    await storage.createReminder({
+                      userId,
+                      title: item.name || item,
+                      description: `Appointment: ${item.name || item}`,
+                      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to tomorrow
+                      category: "Appointment"
+                    });
+                  }
+                  continue; // Skip adding to lists, added to calendar instead
+                } else if (isShoppingItem(itemName)) {
                   targetList = lists.find(list => list.type === "shopping");
                 } else if (isPunchListItem(itemName)) {
                   targetList = lists.find(list => list.type === "punch_list");
