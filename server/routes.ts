@@ -195,6 +195,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available ElevenLabs voices
+  app.get("/api/voices", async (req, res) => {
+    try {
+      if (!process.env.ELEVENLABS_API_KEY) {
+        return res.json({ voices: [], provider: "openai" });
+      }
+
+      const response = await fetch("https://api.elevenlabs.io/v1/voices", {
+        headers: {
+          "xi-api-key": process.env.ELEVENLABS_API_KEY,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch voices: ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json({ 
+        voices: data.voices || [], 
+        provider: "elevenlabs",
+        default: "21m00Tcm4TlvDq8ikWAM" // Rachel voice
+      });
+    } catch (error: any) {
+      console.error("Failed to fetch voices:", error);
+      res.json({ voices: [], provider: "openai", error: error.message });
+    }
+  });
+
   // Shopping list routes
   app.get("/api/shopping-lists/:userId", async (req, res) => {
     try {

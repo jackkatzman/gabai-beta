@@ -101,6 +101,15 @@ export const api = {
     return response.blob();
   },
 
+  // Get available voices
+  async getVoices(): Promise<{ voices: any[], provider: string, default?: string }> {
+    const response = await fetch("/api/voices");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch voices: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
   // Smart list operations
   async getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]> {
     const response = await apiRequest("GET", `/api/smart-lists/${userId}`);

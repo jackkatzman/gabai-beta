@@ -1,6 +1,6 @@
 # Overview
 
-GabAi is a voice-first personal assistant web application built with React and Express. The application provides AI-powered conversational interactions, personalized user experiences, and productivity features including shopping lists, reminders, and calendar integration. Users can interact through both voice input and text, with the AI learning from user preferences to provide increasingly personalized responses.
+GabAi is a voice-first personal assistant web application built with React and Express. The application provides AI-powered conversational interactions, personalized user experiences, and collaborative smart lists that adapt to any use case. The system features real-time sharing capabilities, intelligent categorization, and high-quality voice synthesis. Users can interact through both voice input and text, with the AI learning from user preferences to provide increasingly personalized responses.
 
 # User Preferences
 
@@ -26,9 +26,12 @@ Preferred communication style: Simple, everyday language.
 ## Core Features
 - **Voice Interaction**: Speech-to-text transcription via OpenAI Whisper API
 - **AI Conversations**: GPT-4o for personalized responses based on user context
-- **Text-to-Speech**: ElevenLabs API with fallback to OpenAI TTS
+- **Text-to-Speech**: ElevenLabs API with fallback to OpenAI TTS for natural voice synthesis
 - **User Personalization**: Comprehensive preference system storing interests, dietary restrictions, sleep schedules, and communication styles
-- **Shopping Lists**: Categorized item management with voice input support
+- **Smart Lists**: Flexible collaborative lists that adapt to any use case (shopping, contractor punch lists, waiting lists, to-do lists)
+- **Real-time Collaboration**: Live sharing with unique share codes for multi-user workflows
+- **Intelligent Categorization**: Auto-sorting by categories (produce/dairy for shopping, plumber/painter for contractors)
+- **Voice-First Item Management**: Voice input with auto-category detection
 - **Reminders**: Scheduled notifications with recurring options
 - **Onboarding Flow**: Multi-step user setup to establish personalization
 
@@ -36,7 +39,8 @@ Preferred communication style: Simple, everyday language.
 - **Users**: Profile information, preferences, and onboarding status
 - **Conversations**: Chat sessions with title and metadata
 - **Messages**: Individual chat messages with role (user/assistant) and optional audio
-- **Shopping Lists**: Named lists containing categorized items
+- **Smart Lists**: Flexible lists with type (shopping/punch_list/waiting_list/todo), sharing capabilities, and custom categories
+- **List Items**: Items with priority levels, assignments, categories, and completion status
 - **Reminders**: Scheduled tasks with categories and recurrence patterns
 
 ## Authentication & Security
