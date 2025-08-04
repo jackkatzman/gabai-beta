@@ -1,12 +1,23 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import type { Express } from 'express';
 import { storage } from './storage';
+import { pool } from './db';
 
 export function setupAuth(app: Express) {
+  // Create PostgreSQL session store
+  const PgSession = connectPgSimple(session);
+  const sessionStore = new PgSession({
+    pool: pool,
+    tableName: 'session',
+    createTableIfMissing: true,
+  });
+
   // Session configuration
   app.use(session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || 'gabai-dev-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
@@ -100,6 +111,10 @@ export function setupAuth(app: Express) {
   });
 
   app.get('/auth/user', (req, res) => {
+    console.log('Auth check - session:', req.session);
+    console.log('Auth check - user:', req.user);
+    console.log('Auth check - isAuthenticated:', req.isAuthenticated());
+    
     if (req.isAuthenticated()) {
       res.json(req.user);
     } else {

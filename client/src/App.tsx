@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
-import { UserProvider, useUser } from "@/context/user-context";
+import { useAuth } from "@/hooks/useAuth";
 import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
@@ -13,7 +13,7 @@ import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function AppContent() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useAuth();
 
   // Show loading while checking user state
   if (isLoading) {
@@ -73,14 +73,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <UserProvider>
-          <TooltipProvider>
-            <div className="h-full font-sans antialiased bg-background text-foreground">
-              <Toaster />
-              <AppContent />
-            </div>
-          </TooltipProvider>
-        </UserProvider>
+        <TooltipProvider>
+          <div className="h-full font-sans antialiased bg-background text-foreground">
+            <Toaster />
+            <AppContent />
+          </div>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
