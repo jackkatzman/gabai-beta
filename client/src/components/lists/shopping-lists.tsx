@@ -85,6 +85,14 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
         description: "Item has been added to your list.",
       });
     },
+    onError: (error: any) => {
+      console.error("Create item error:", error);
+      toast({
+        title: "Error Adding Item",
+        description: error.message || "Failed to add item to list",
+        variant: "destructive",
+      });
+    },
   });
 
   // Update item mutation
