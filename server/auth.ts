@@ -74,15 +74,19 @@ export function setupAuth(app: Express) {
 
   // Serialize user for session
   passport.serializeUser((user: any, done) => {
+    console.log('Serializing user:', user.id);
     done(null, user.id);
   });
 
   // Deserialize user from session
   passport.deserializeUser(async (id: string, done) => {
     try {
+      console.log('Deserializing user ID:', id);
       const user = await storage.getUser(id);
+      console.log('Deserialized user:', user);
       done(null, user);
     } catch (error) {
+      console.error('Deserialization error:', error);
       done(error, null);
     }
   });
@@ -97,6 +101,8 @@ export function setupAuth(app: Express) {
     (req, res) => {
       // Successful authentication
       console.log('Google OAuth success, user:', req.user);
+      console.log('Session after auth:', req.session);
+      console.log('Is authenticated:', req.isAuthenticated());
       res.redirect('/');
     }
   );
