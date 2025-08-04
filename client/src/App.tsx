@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/useAuth";
+import { UserProvider } from "@/context/user-context";
 import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
@@ -74,10 +75,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
-          <div className="h-full font-sans antialiased bg-background text-foreground">
-            <Toaster />
-            <AppContent />
-          </div>
+          <UserProvider>
+            <div className="h-full font-sans antialiased bg-background text-foreground">
+              <Toaster />
+              <AppContent />
+            </div>
+          </UserProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
