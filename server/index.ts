@@ -7,6 +7,14 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add security headers for OAuth
+app.use((req, res, next) => {
+  res.header('X-Frame-Options', 'DENY');
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 // Setup authentication before routes
 setupAuth(app);
 

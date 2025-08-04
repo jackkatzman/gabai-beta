@@ -11,9 +11,9 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: true, // Always use secure cookies for OAuth
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'lax', // Changed from 'none' to 'lax' for better compatibility
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
   }));
