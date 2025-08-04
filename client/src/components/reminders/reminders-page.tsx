@@ -448,7 +448,15 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
             <div className="flex items-center space-x-2 mb-2">
               <Clock className="h-3 w-3 text-gray-400" />
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {format(dueDate, "MMM d, yyyy 'at' h:mm a")}
+                {dueDate.toLocaleString('en-US', { 
+                  timeZone: 'America/New_York',
+                  month: 'short',
+                  day: 'numeric', 
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
               </span>
               {reminder.recurring && (
                 <Badge variant="outline" className="text-xs">

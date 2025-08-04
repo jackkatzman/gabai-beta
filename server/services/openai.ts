@@ -88,13 +88,14 @@ Guidelines:
 11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
 
 CURRENT DATE: ${new Date().toISOString().split('T')[0]} (TODAY)
+TIMEZONE: Eastern Time (EST/EDT) - Use -05:00 or -04:00 offset
 
 TIME PARSING RULES:
 - When user says time like "1:40", "2:30", etc. without AM/PM, interpret as PM if between 1:00-11:59
 - For times like "8:00", "9:15", "10:30", interpret as AM if between 6:00-11:59 AM
-- Always format appointment dates as ISO strings with proper timezone
+- IMPORTANT: Convert times to Eastern Time Zone (EST/EDT) when creating appointments
 - ALWAYS use TODAY'S DATE (${new Date().toISOString().split('T')[0]}) when creating appointments unless user specifies otherwise
-- Example: "remind me at 1:40" should become "${new Date().toISOString().split('T')[0]}T13:40:00.000Z" (1:40 PM TODAY)
+- Example: "remind me at 1:40" should become "${new Date().toISOString().split('T')[0]}T18:40:00.000Z" (1:40 PM EST converted to UTC)
 
 Always respond with valid JSON in this format:
 
@@ -127,7 +128,7 @@ For appointments:
         "appointment": {
           "title": "appointment title",
           "description": "optional description",
-          "date": "${new Date().toISOString().split('T')[0]}T14:30:00Z"
+          "date": "${new Date().toISOString().split('T')[0]}T19:30:00.000Z"
         }
       }
     }

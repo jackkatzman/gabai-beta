@@ -145,12 +145,22 @@ export function CalendarPage({ user }: CalendarPageProps) {
 
   const formatReminderTime = (dueDate: string | Date) => {
     const date = new Date(dueDate);
-    return format(date, "h:mm a");
+    return date.toLocaleString('en-US', { 
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const formatReminderDate = (dueDate: string | Date) => {
     const date = new Date(dueDate);
-    return format(date, "MMM d, yyyy");
+    return date.toLocaleString('en-US', { 
+      timeZone: 'America/New_York',
+      month: 'short',
+      day: 'numeric', 
+      year: 'numeric'
+    });
   };
 
   const getCategoryInfo = (category: string) => {

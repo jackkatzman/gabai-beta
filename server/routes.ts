@@ -222,6 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Log the appointment date for debugging
               console.log(`Creating appointment with date: ${appointmentDate.toISOString()}`);
+              console.log(`Appointment date in EST: ${appointmentDate.toLocaleString('en-US', { timeZone: 'America/New_York' })}`);
               
               await storage.createReminder({
                 userId,
