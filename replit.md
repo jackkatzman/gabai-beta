@@ -1,0 +1,71 @@
+# Overview
+
+GabAi is a voice-first personal assistant web application built with React and Express. The application provides AI-powered conversational interactions, personalized user experiences, and productivity features including shopping lists, reminders, and calendar integration. Users can interact through both voice input and text, with the AI learning from user preferences to provide increasingly personalized responses.
+
+# User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+# System Architecture
+
+## Frontend Architecture
+- **Framework**: React with TypeScript using Vite as the build tool
+- **UI Library**: Radix UI components with shadcn/ui styling system
+- **Styling**: Tailwind CSS with CSS variables for theming (light/dark mode support)
+- **State Management**: TanStack Query for server state, React Context for user state
+- **Routing**: Wouter for client-side routing
+- **Voice Features**: Web APIs for speech recognition and audio playback
+
+## Backend Architecture
+- **Runtime**: Node.js with Express.js framework
+- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
+- **Database Provider**: Neon serverless PostgreSQL
+- **API Design**: RESTful endpoints with structured error handling
+- **File Upload**: Multer for handling audio file uploads
+
+## Core Features
+- **Voice Interaction**: Speech-to-text transcription via OpenAI Whisper API
+- **AI Conversations**: GPT-4o for personalized responses based on user context
+- **Text-to-Speech**: ElevenLabs API with fallback to OpenAI TTS
+- **User Personalization**: Comprehensive preference system storing interests, dietary restrictions, sleep schedules, and communication styles
+- **Shopping Lists**: Categorized item management with voice input support
+- **Reminders**: Scheduled notifications with recurring options
+- **Onboarding Flow**: Multi-step user setup to establish personalization
+
+## Data Models
+- **Users**: Profile information, preferences, and onboarding status
+- **Conversations**: Chat sessions with title and metadata
+- **Messages**: Individual chat messages with role (user/assistant) and optional audio
+- **Shopping Lists**: Named lists containing categorized items
+- **Reminders**: Scheduled tasks with categories and recurrence patterns
+
+## Authentication & Security
+- **User Management**: UUID-based user identification stored in localStorage
+- **Session Handling**: Client-side user state management
+- **Input Validation**: Zod schemas for type-safe data validation
+
+# External Dependencies
+
+## AI & Voice Services
+- **OpenAI**: GPT-4o for conversational AI and Whisper for speech transcription
+- **ElevenLabs**: Primary text-to-speech service with natural voice synthesis
+
+## Database & Infrastructure
+- **Neon Database**: Serverless PostgreSQL hosting
+- **Drizzle ORM**: Type-safe database queries and migrations
+
+## Development & Deployment
+- **Replit**: Development environment with integrated deployment
+- **Vite**: Fast build tool with hot module replacement
+- **ESBuild**: Production bundling for server code
+
+## UI & Styling
+- **Radix UI**: Accessible component primitives
+- **Tailwind CSS**: Utility-first CSS framework
+- **Lucide React**: Icon library
+- **React Hook Form**: Form validation and management
+
+## Additional Services
+- **TanStack Query**: Server state management and caching
+- **date-fns**: Date manipulation and formatting
+- **Wouter**: Lightweight client-side routing
