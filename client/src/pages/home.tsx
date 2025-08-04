@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { useLocation } from "wouter";
 import { Mic, Moon, Sun, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
 export default function HomePage() {
   const { user } = useUser();
@@ -20,8 +21,12 @@ export default function HomePage() {
     return (
       <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mic className="h-8 w-8 text-white" />
+          <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+            <img 
+              src={gabaiLogo} 
+              alt="GabAi" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Welcome to GabAi
@@ -69,9 +74,11 @@ export default function HomePage() {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <Mic className="h-4 w-4 text-white" />
-          </div>
+          <img 
+            src={gabaiLogo} 
+            alt="GabAi" 
+            className="w-8 h-8 object-contain"
+          />
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
             {getPageTitle()}
           </h1>

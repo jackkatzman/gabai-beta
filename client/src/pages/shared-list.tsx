@@ -7,9 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Share2, ExternalLink } from "lucide-react";
+import { LogoBubble } from "@/components/ui/logo-spinner";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { SmartList, ListItem } from "@shared/schema";
+import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
 export function SharedListPage() {
   const [, params] = useRoute("/shared/:shareCode");
@@ -116,7 +118,7 @@ export function SharedListPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <Share2 className="h-5 w-5 text-blue-500" />
+          <LogoBubble size="sm" />
           <span className="text-sm font-medium text-blue-500">Shared List</span>
         </div>
         <h1 className="text-2xl font-bold">{sharedList.name}</h1>
@@ -199,6 +201,16 @@ export function SharedListPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
           Powered by GabAi
         </p>
+        <div className="flex items-center gap-2 justify-center mb-3">
+          <img 
+            src={gabaiLogo} 
+            alt="GabAi" 
+            className="w-6 h-6 object-contain"
+          />
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            Powered by GabAi
+          </span>
+        </div>
         <Button variant="outline" size="sm" onClick={() => window.location.href = "/"}>
           <ExternalLink className="h-4 w-4 mr-2" />
           Get Your Own Smart Lists

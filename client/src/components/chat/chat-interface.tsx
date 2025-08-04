@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageBubble } from "./message-bubble";
 import { VoiceInput } from "./voice-input";
+import { TypingIndicator } from "./typing-indicator";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -95,19 +96,18 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {showWelcome && (
-          <div className="flex items-start space-x-3 animate-fadeIn">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-xs">AI</span>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
-              <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
-                Hi {user.name}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?
-              </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                Just now
-              </span>
-            </div>
-          </div>
+          <MessageBubble
+            message={{
+              id: 'welcome',
+              content: `Hi ${user.name}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?`,
+              role: 'assistant',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              conversationId: '',
+              userId: ''
+            }}
+            isUser={false}
+          />
         )}
 
         {isLoading && (
@@ -131,6 +131,8 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
             isUser={message.role === "user"}
           />
         ))}
+
+        {sendMessageMutation.isPending && <TypingIndicator />}
 
         <div ref={messagesEndRef} />
       </div>

@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
+import { LogoBubble } from "@/components/ui/logo-spinner";
 import type { Message } from "@/types";
 
 interface MessageBubbleProps {
@@ -47,11 +48,7 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
 
   return (
     <div className="flex items-start space-x-3 animate-slideUp">
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600">
-          <span className="text-white text-xs">AI</span>
-        </AvatarFallback>
-      </Avatar>
+      <LogoBubble size="sm" />
       <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
         <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
           {message.content}
