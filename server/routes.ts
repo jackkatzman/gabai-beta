@@ -147,6 +147,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: aiResponse.content
       });
 
+      // Process any actions from the AI response
+      if (aiResponse.actions && aiResponse.actions.length > 0) {
+        for (const action of aiResponse.actions) {
+          try {
+            if (action.type === "add_to_list" && action.data?.items) {
+              // Find or create a shopping list for the user
+              const lists = await storage.getSmartLists(userId);
+              let shoppingList = lists.find(list => list.type === "shopping");
+              
+              if (!shoppingList) {
+                // Create a new shopping list if none exists
+                shoppingList = await storage.createSmartList({
+                  userId,
+                  name: "Shopping List",
+                  type: "shopping",
+                  categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
+                });
+              }
+
+              // Add items to the list
+              for (const item of action.data.items) {
+                await storage.createListItem({
+                  listId: shoppingList.id,
+                  name: item.name || item,
+                  category: item.category || "Other"
+                });
+              }
+            }
+          } catch (actionError: any) {
+            console.error("Error processing action:", actionError);
+            // Don't fail the whole response if action processing fails
+          }
+        }
+      }
+
       res.json({
         message: assistantMessage,
         conversationId: currentConversationId,

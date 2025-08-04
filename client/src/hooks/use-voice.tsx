@@ -11,12 +11,30 @@ export function useVoice(options: UseVoiceOptions = {}) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
 
+  const cleanup = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current = null;
+    }
+    setIsRecording(false);
+    setIsTranscribing(false);
+  }, []);
+
   const startRecording = useCallback(async () => {
     try {
+      // Clean up any existing recording first
+      cleanup();
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -29,7 +47,9 @@ export function useVoice(options: UseVoiceOptions = {}) {
 
       mediaRecorder.addEventListener("stop", async () => {
         try {
+          setIsRecording(false);
           setIsTranscribing(true);
+          
           const audioBlob = new Blob(chunksRef.current, { type: "audio/wav" });
           const { text } = await api.transcribeAudio(audioBlob);
           
@@ -43,10 +63,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
             variant: "destructive",
           });
         } finally {
-          setIsTranscribing(false);
-          setIsRecording(false);
-          // Stop all tracks to release the microphone
-          stream.getTracks().forEach(track => track.stop());
+          cleanup();
         }
       });
 
@@ -60,40 +77,28 @@ export function useVoice(options: UseVoiceOptions = {}) {
         description: errorMessage,
         variant: "destructive",
       });
+      cleanup();
     }
-  }, [options, toast]);
+  }, [options, toast, cleanup]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      
-      // Also stop all tracks to release the microphone immediately
-      if (mediaRecorderRef.current?.stream) {
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      }
     }
   }, [isRecording]);
 
   const toggleRecording = useCallback(() => {
-    if (isRecording) {
+    if (isRecording || isTranscribing) {
       stopRecording();
     } else {
       startRecording();
     }
-  }, [isRecording, startRecording, stopRecording]);
+  }, [isRecording, isTranscribing, startRecording, stopRecording]);
 
-  // Cleanup on unmount or when component changes
+  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stop();
-        if (mediaRecorderRef.current?.stream) {
-          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-        }
-      }
-    };
-  }, [isRecording]);
+    return cleanup;
+  }, [cleanup]);
 
   return {
     isRecording,

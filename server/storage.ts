@@ -41,7 +41,10 @@ export interface IStorage {
   createSmartList(list: InsertSmartList): Promise<SmartList>;
   getSmartList(id: string): Promise<(SmartList & { items: ListItem[] }) | undefined>;
   updateSmartList(id: string, updates: Partial<InsertSmartList>): Promise<SmartList>;
+  deleteSmartList(id: string): Promise<void>;
   getSharedList(shareCode: string): Promise<(SmartList & { items: ListItem[] }) | undefined>;
+  shareList(id: string): Promise<string>; // Returns share code
+  joinSharedList(shareCode: string, userId: string): Promise<SmartList>;
   addCollaborator(listId: string, collaboratorId: string): Promise<SmartList>;
   
   // List item operations
@@ -277,6 +280,50 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReminder(id: string): Promise<void> {
     await db.delete(reminders).where(eq(reminders.id, id));
+  }
+
+  // Additional smart list methods
+  async deleteSmartList(id: string): Promise<void> {
+    // Delete all items first
+    await db.delete(listItems).where(eq(listItems.listId, id));
+    // Then delete the list
+    await db.delete(smartLists).where(eq(smartLists.id, id));
+  }
+
+  async shareList(id: string): Promise<string> {
+    const shareCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    await db
+      .update(smartLists)
+      .set({ 
+        shareCode,
+        isShared: true,
+        updatedAt: new Date() 
+      })
+      .where(eq(smartLists.id, id));
+    return shareCode;
+  }
+
+  async joinSharedList(shareCode: string, userId: string): Promise<SmartList> {
+    const [list] = await db
+      .select()
+      .from(smartLists)
+      .where(eq(smartLists.shareCode, shareCode));
+
+    if (!list) throw new Error("List not found with this share code");
+
+    // Add user as collaborator
+    const collaborators = [...(list.collaborators || []), userId];
+    
+    const [updatedList] = await db
+      .update(smartLists)
+      .set({ 
+        collaborators: collaborators as any,
+        updatedAt: new Date() 
+      })
+      .where(eq(smartLists.id, list.id))
+      .returning();
+
+    return updatedList;
   }
 }
 
