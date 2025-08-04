@@ -78,11 +78,14 @@ Guidelines:
 8. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
 9. IMPORTANT: When asked to add items, you MUST include the add_to_list action along with your response
 10. When choosing actions, consider the context:
-    - Food items (pastrami, milk, etc.) → "add_to_list" with "shopping" type
+    - Food items (chocolate, milk, bread, etc.) → "add_to_list" with "shopping" type
+    - Shopping/buying items (buy chocolate, get milk, etc.) → "add_to_list" with "shopping" type
     - Home repairs/contractor work → "add_to_list" with "punch_list" type  
     - Restaurant reservations/waiting → "add_to_list" with "waiting_list" type
     - Appointments, meetings, doctor visits → "create_appointment" action
-    - General tasks → "add_to_list" with "todo" type
+    - General tasks (call mom, finish report, etc.) → "add_to_list" with "todo" type
+    
+11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
 
 Always respond with valid JSON in this format:
 

@@ -17,8 +17,14 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper functions for smart list management
 function isShoppingItem(itemName: string): boolean {
-  const shoppingKeywords = ['milk', 'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'grocery', 'food', 'snack', 'drink', 'pastrami', 'deli', 'produce'];
-  return shoppingKeywords.some(keyword => itemName.includes(keyword));
+  const shoppingKeywords = [
+    'milk', 'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'grocery', 'food', 'snack', 'drink', 
+    'pastrami', 'deli', 'produce', 'chocolate', 'candy', 'sugar', 'flour', 'eggs', 'butter',
+    'coffee', 'tea', 'juice', 'soda', 'water', 'beer', 'wine', 'alcohol', 'cereal', 'pasta',
+    'rice', 'beans', 'nuts', 'oil', 'spice', 'sauce', 'condiment', 'frozen', 'canned', 'fresh',
+    'organic', 'buy', 'purchase', 'get', 'need', 'want', 'shop', 'store'
+  ];
+  return shoppingKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
 }
 
 function isPunchListItem(itemName: string): boolean {
@@ -214,9 +220,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               // Smart list selection based on action data or item context
               const requestedType = action.data.listType || "shopping";
+              console.log(`AI requested list type: ${requestedType}`);
+              console.log(`Available lists:`, lists.map(l => `${l.name} (${l.type})`));
               
               // First try to find a list of the requested type
               targetList = lists.find(list => list.type === requestedType);
+              console.log(`Found target list:`, targetList ? `${targetList.name} (${targetList.type})` : 'none');
               
               // If no specific type requested or found, use context clues
               if (!targetList && action.data.items?.length > 0) {
@@ -243,8 +252,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else if (isWaitingListItem(itemName)) {
                   targetList = lists.find(list => list.type === "waiting_list");
                 } else {
-                  // Default to shopping for food items
-                  targetList = lists.find(list => list.type === "shopping");
+                  // Default to todo for general tasks, or shopping if it seems like a shopping item
+                  if (itemName.includes('buy') || itemName.includes('get') || itemName.includes('purchase')) {
+                    targetList = lists.find(list => list.type === "shopping");
+                  } else {
+                    targetList = lists.find(list => list.type === "todo");
+                  }
                 }
               }
               
@@ -261,6 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               // Add items to the target list
               for (const item of action.data.items) {
+                console.log(`Adding item "${item.name || item}" to list "${targetList.name}"`);
                 await storage.createListItem({
                   listId: targetList.id,
                   name: item.name || item,
