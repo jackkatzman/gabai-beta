@@ -33,7 +33,7 @@ export function setupAuth(app: Express) {
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      domain: undefined, // Let browser determine domain
+      domain: isSecure ? '.replit.app' : undefined, // Share cookies across replit subdomains
     }
   }));
 
@@ -118,6 +118,9 @@ export function setupAuth(app: Express) {
           console.log('✅ Session saved successfully');
           console.log('🍪 Session ID:', req.sessionID);
         }
+        
+        // Always redirect to home - let the client handle the flow
+        console.log('🔄 Redirecting to home after OAuth success');
         res.redirect('/');
       });
     }
