@@ -15,8 +15,13 @@ export default function OnboardingPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: (data: OnboardingData) => {
-      if (!user?.id) throw new Error("User not found");
-      return api.updateUser(user.id, {
+      console.log("Starting onboarding submission for user:", user);
+      if (!user?.id) {
+        console.error("No user found for onboarding");
+        throw new Error("User not found. Please try logging in again.");
+      }
+      
+      const updateData = {
         name: data.name,
         age: data.age,
         location: data.location,
@@ -30,7 +35,10 @@ export default function OnboardingPage() {
           familyDetails: data.familyDetails,
         },
         onboardingCompleted: true,
-      });
+      };
+      
+      console.log("Submitting update data:", updateData);
+      return api.updateUser(user.id, updateData);
     },
     onSuccess: (updatedUser) => {
       // Invalidate and refresh the user query

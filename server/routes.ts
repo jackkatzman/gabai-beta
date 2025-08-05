@@ -118,9 +118,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 Auth check - Is authenticated:", req.isAuthenticated());
       console.log("🔍 Auth check - User:", req.user ? "exists" : "none");
       console.log("🔍 Auth check - Session ID:", req.sessionID);
+      console.log("🔍 Auth check - Session data:", req.session);
       
       if (req.isAuthenticated() && req.user) {
-        res.json(req.user);
+        // Ensure we have the latest user data from database
+        const currentUser = req.user as any;
+        const freshUser = await storage.getUser(currentUser.id);
+        
+        if (freshUser) {
+          res.json(freshUser);
+        } else {
+          console.error("User not found in database:", currentUser.id);
+          res.status(404).json({ message: "User not found" });
+        }
       } else {
         res.status(401).json({ message: "Not authenticated" });
       }
