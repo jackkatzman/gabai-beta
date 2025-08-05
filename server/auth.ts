@@ -29,7 +29,7 @@ export function setupAuth(app: Express) {
     rolling: true, // Reset expiration on activity
     name: 'gabai.sid', // Custom session name
     cookie: {
-      secure: isSecure, // Use secure cookies only in production/Replit
+      secure: isSecure || false, // Use secure cookies only in production/Replit
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -137,7 +137,7 @@ export function setupAuth(app: Express) {
   app.get('/auth/user', (req, res) => {
     console.log('🔍 SESSION ID:', req.sessionID);
     console.log('🔍 Session exists:', !!req.session);
-    console.log('🔍 Session passport:', req.session?.passport);
+    console.log('🔍 Session passport:', (req.session as any)?.passport);
     console.log('🔍 User object:', req.user);
     console.log('🔍 Is authenticated:', req.isAuthenticated());
     console.log('🍪 Cookie header:', req.headers.cookie);

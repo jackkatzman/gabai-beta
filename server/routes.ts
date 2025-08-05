@@ -641,7 +641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: reminder.description || '',
           location: reminder.category === 'appointment' ? user.location || '' : '',
           categories: [{ name: reminder.category || 'reminder' }],
-          status: reminder.completed ? 'confirmed' : 'tentative',
+          // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
           created: reminder.createdAt,
           lastModified: reminder.updatedAt,
           timezone: 'America/New_York', // Explicit timezone per event
@@ -695,7 +695,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: reminder.description || '',
         location: reminder.category === 'appointment' ? user.location || '' : '',
         categories: [{ name: reminder.category || 'reminder' }],
-        status: reminder.completed ? 'confirmed' : 'tentative',
+        // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
         created: reminder.createdAt,
         lastModified: reminder.updatedAt,
         timezone: 'America/New_York', // Explicit timezone per event
