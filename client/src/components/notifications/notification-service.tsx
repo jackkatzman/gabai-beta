@@ -36,9 +36,10 @@ export function NotificationService({ user }: NotificationServiceProps) {
       const timeDiff = dueDate.getTime() - now.getTime();
       const reminderKey = `${reminder.id}-${dueDate.getTime()}`;
       
-      // Check if reminder is due (within 1 minute) and not already checked
-      if (timeDiff <= 60000 && timeDiff >= -60000 && !checkedReminders.current.has(reminderKey)) {
+      // Check if reminder is due (within 2 minutes) and not already checked
+      if (timeDiff <= 120000 && timeDiff >= -60000 && !checkedReminders.current.has(reminderKey)) {
         checkedReminders.current.add(reminderKey);
+        console.log(`Triggering notification for: ${reminder.title} (due: ${dueDate.toLocaleString()})`);
         sendNotification(reminder);
       }
     });
@@ -46,6 +47,7 @@ export function NotificationService({ user }: NotificationServiceProps) {
 
   const sendNotification = (reminder: Reminder) => {
     const notificationMethod = user.preferences?.notificationMethod || "browser";
+    console.log(`Sending ${notificationMethod} notification for: ${reminder.title}`);
     
     switch (notificationMethod) {
       case "browser":
@@ -62,7 +64,7 @@ export function NotificationService({ user }: NotificationServiceProps) {
         // No notification
         break;
       default:
-        sendToastNotification(reminder);
+        sendBrowserNotification(reminder); // Default to browser notifications
     }
   };
 

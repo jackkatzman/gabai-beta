@@ -1,4 +1,5 @@
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { TestNotification } from "@/components/notifications/test-notification";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Settings as SettingsIcon, User, Bell } from "lucide-react";
@@ -61,6 +62,9 @@ export function SettingsPage({ user }: SettingsPageProps) {
 
           {/* Notification Settings */}
           <NotificationSettings user={user} />
+
+          {/* Test Notifications */}
+          <TestNotification user={user} />
 
           {/* Additional Settings Placeholder */}
           <Card>
