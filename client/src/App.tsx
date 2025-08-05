@@ -19,6 +19,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 function AppContent() {
   const { user, isLoading } = useAuth();
 
+  // Debug logging
+  console.log("🔍 AppContent - User:", user);
+  console.log("🔍 AppContent - isLoading:", isLoading);
+  console.log("🔍 AppContent - onboardingCompleted:", user?.onboardingCompleted);
+
   // Show loading while checking user state
   if (isLoading) {
     return (
@@ -39,23 +44,30 @@ function AppContent() {
     );
   }
 
+  // Force show main app if user has completed onboarding
+  if (user && user.onboardingCompleted) {
+    console.log("✅ Showing main app for authenticated user");
+    return (
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/lists" component={HomePage} />
+        <Route path="/calendar" component={HomePage} />
+        <Route path="/reminders" component={HomePage} />
+        <Route path="/settings">
+          {user && <SettingsPage user={user} />}
+        </Route>
+        <Route path="/ocr" component={OCRPage} />
+        <Route path="/shared/:shareCode" component={SharedListPage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
   return (
     <Switch>
-      {/* If user exists and onboarding is complete, show main app */}
-      {user && user.onboardingCompleted ? (
+      {/* User exists but needs onboarding */}
+      {user ? (
         <>
-          <Route path="/" component={HomePage} />
-          <Route path="/lists" component={HomePage} />
-          <Route path="/calendar" component={HomePage} />
-          <Route path="/reminders" component={HomePage} />
-          <Route path="/settings">
-            {user && <SettingsPage user={user} />}
-          </Route>
-          <Route path="/ocr" component={OCRPage} />
-        </>
-      ) : user ? (
-        <>
-          {/* User exists but needs onboarding */}
           <Route path="/" component={OnboardingPage} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>
