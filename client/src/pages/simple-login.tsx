@@ -16,7 +16,21 @@ export default function SimpleLoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async ({ name, email }: { name: string; email: string }) => {
-      return apiRequest("/api/simple-login", "POST", { name, email });
+      const response = await fetch("/api/simple-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email }),
+        credentials: "include", // Important for session cookies
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Login failed" }));
+        throw new Error(error.message || "Login failed");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
