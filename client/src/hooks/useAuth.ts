@@ -5,10 +5,10 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ["/auth/user"],
+    queryKey: ["/api/auth/user"],
     retry: false,
     queryFn: async () => {
-      const response = await fetch("/auth/user");
+      const response = await fetch("/api/auth/user");
       if (!response.ok) {
         if (response.status === 401) {
           return null; // Not authenticated
@@ -28,13 +28,15 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/auth/logout");
+      const response = await fetch("/api/auth/logout", {
+        method: "POST"
+      });
       if (!response.ok) {
         throw new Error("Logout failed");
       }
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/auth/user"], null);
+      queryClient.setQueryData(["/api/auth/user"], null);
       window.location.href = "/";
     },
   });

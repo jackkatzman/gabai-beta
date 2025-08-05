@@ -71,6 +71,79 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Simple login endpoint (fallback when OAuth is not configured)
+  app.post("/api/simple-login", async (req, res) => {
+    try {
+      const { name, email } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ message: "Name and email are required" });
+      }
+
+      // Check if user exists
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Create new user
+        user = await storage.createUser({
+          name: name.trim(),
+          email: email.trim(),
+          preferences: {},
+          onboardingCompleted: false
+        });
+      }
+
+      // Create a simple session (store user ID)
+      (req.session as any).userId = user.id;
+      (req.session as any).user = user;
+
+      res.json({ user, message: "Login successful" });
+    } catch (error: any) {
+      console.error("Simple login error:", error);
+      res.status(500).json({ message: "Login failed", error: error.message });
+    }
+  });
+
+  // Get current authenticated user (works with both OAuth and simple login)
+  app.get("/api/auth/user", async (req, res) => {
+    try {
+      // Check OAuth user first
+      let user = (req as any).user;
+      
+      // If no OAuth user, check session for simple login
+      if (!user && (req.session as any)?.userId) {
+        user = await storage.getUser((req.session as any).userId);
+      }
+      
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(401).json({ message: "Not authenticated" });
+      }
+    } catch (error: any) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      // Also clear simple login session
+      (req.session as any).userId = null;
+      (req.session as any).user = null;
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Session destroy failed" });
+        }
+        res.json({ message: "Logged out successfully" });
+      });
+    });
+  });
+
   // User routes
   app.post("/api/users", async (req, res) => {
     try {

@@ -10,6 +10,7 @@ import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
 import LoginPage from "@/pages/login";
+import SimpleLoginPage from "@/pages/simple-login";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -55,9 +56,10 @@ function AppContent() {
         </>
       ) : (
         <>
-          {/* No user - show login */}
-          <Route path="/" component={LoginPage} />
-          <Route path="/login" component={LoginPage} />
+          {/* No user - show simple login */}
+          <Route path="/" component={SimpleLoginPage} />
+          <Route path="/login" component={SimpleLoginPage} />
+          <Route path="/oauth-login" component={LoginPage} />
         </>
       )}
       
