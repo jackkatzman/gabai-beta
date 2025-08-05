@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generatePersonalizedResponse, transcribeAudio } from "./services/openai";
+import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
 import { speechService } from "./services/speech";
 import { 
   insertUserSchema, 
@@ -340,6 +340,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ text: transcription });
     } catch (error: any) {
       console.error("Transcription error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // OCR endpoint for extracting text from images
+  app.post("/api/ocr", upload.single("image"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+
+      // Convert image buffer to base64
+      const base64Image = req.file.buffer.toString('base64');
+      
+      // Use OpenAI's vision API to extract text
+      const extractedText = await extractTextFromImage(base64Image);
+      res.json({ text: extractedText });
+    } catch (error: any) {
+      console.error("OCR error:", error);
       res.status(500).json({ message: error.message });
     }
   });

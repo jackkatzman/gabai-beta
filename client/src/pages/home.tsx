@@ -4,6 +4,7 @@ import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
 import { CalendarPage } from "@/components/calendar/calendar-page";
 import { SettingsPage } from "@/components/settings/settings-page";
+import { OCRPage } from "@/pages/ocr";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -49,6 +50,9 @@ export default function HomePage() {
         return <RemindersPage user={user} />;
       case "/settings":
         return <SettingsPage user={user} />;
+      case "/ocr":
+      case "/text-extractor":
+        return <OCRPage />;
       default:
         return <ChatInterface user={user} />;
     }
@@ -64,6 +68,9 @@ export default function HomePage() {
         return "Reminders";
       case "/settings":
         return "Settings";
+      case "/ocr":
+      case "/text-extractor":
+        return "Text Extractor";
       default:
         return "GabAi";
     }

@@ -171,6 +171,37 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   }
 }
 
+export async function extractTextFromImage(base64Image: string): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Please extract all text content from this image. Return only the text you can read, maintaining the original structure and formatting as much as possible. If you see lists, handwriting, invitations, receipts, business cards, or any other text-based content, transcribe it accurately."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ],
+        },
+      ],
+      max_tokens: 1000,
+    });
+
+    return response.choices[0].message.content || "No text found in image";
+  } catch (error: any) {
+    console.error("OCR error:", error);
+    throw new Error(`Failed to extract text from image: ${error.message}`);
+  }
+}
+
 export async function generateSpeech(text: string): Promise<Buffer> {
   try {
     const response = await openai.audio.speech.create({
