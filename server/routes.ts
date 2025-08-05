@@ -268,13 +268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentConversationId = conversation.id;
       }
 
-      // Save user message
-      await storage.createMessage({
-        conversationId: currentConversationId,
-        role: "user",
-        content: message
-      });
-
       // Save assistant message
       const assistantMessage = await storage.createMessage({
         conversationId: currentConversationId,
@@ -397,8 +390,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Save user message for response
+      const userMessage = await storage.createMessage({
+        conversationId: currentConversationId,
+        role: "user",
+        content: message
+      });
+
       res.json({
-        message: assistantMessage,
+        userMessage,
+        assistantMessage,
         conversationId: currentConversationId,
         suggestions: aiResponse.suggestions,
         actions: aiResponse.actions

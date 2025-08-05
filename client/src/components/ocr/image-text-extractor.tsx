@@ -143,6 +143,15 @@ export function ImageTextExtractor() {
   const addTextToChat = async () => {
     if (!extractedText.trim()) return;
     
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to send text to GabAi.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const messageText = `Please process this text I extracted from an image:\n\n${extractedText}`;
       sendMessageMutation.mutate(messageText);

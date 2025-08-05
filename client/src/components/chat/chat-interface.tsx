@@ -39,6 +39,10 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/messages", currentConversationId],
     enabled: !!currentConversationId,
+    queryFn: async () => {
+      if (!currentConversationId) return [];
+      return api.getMessages(currentConversationId);
+    },
   });
 
   // Send message mutation
@@ -50,10 +54,10 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       // Save conversation ID to localStorage
       localStorage.setItem(`gabai_conversation_${user.id}`, response.conversationId);
       
-      // Update messages cache
+      // Update messages cache with both user and assistant messages
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: Message[] = []) => [...oldMessages, response.message]
+        (oldMessages: Message[] = []) => [...oldMessages, response.userMessage, response.assistantMessage]
       );
 
       // Invalidate lists and reminders cache if AI performed actions
