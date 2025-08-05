@@ -14,11 +14,47 @@ export default function OnboardingPage() {
   const queryClient = useQueryClient();
 
   const updateUserMutation = useMutation({
-    mutationFn: (data: OnboardingData) => {
+    mutationFn: async (data: OnboardingData) => {
       console.log("Starting onboarding submission for user:", user);
+      
+      // If no user in context, try to fetch current authenticated user
       if (!user?.id) {
-        console.error("No user found for onboarding");
-        throw new Error("User not found. Please try logging in again.");
+        console.log("No user in context, fetching current user...");
+        try {
+          const response = await fetch("/api/auth/user");
+          if (!response.ok) {
+            throw new Error("Not authenticated. Please sign in again.");
+          }
+          const currentUser = await response.json();
+          console.log("Found current user:", currentUser);
+          
+          if (!currentUser?.id) {
+            throw new Error("No authenticated user found. Please sign in again.");
+          }
+          
+          // Use the fetched user ID
+          const updateData = {
+            name: data.name,
+            age: data.age,
+            location: data.location,
+            profession: data.profession,
+            preferences: {
+              religious: data.religious,
+              dietary: data.dietary,
+              sleepSchedule: data.sleepSchedule,
+              communicationStyle: data.communicationStyle,
+              interests: data.interests,
+              familyDetails: data.familyDetails,
+            },
+            onboardingCompleted: true,
+          };
+          
+          console.log("Submitting update data:", updateData);
+          return api.updateUser(currentUser.id, updateData);
+        } catch (error) {
+          console.error("Failed to fetch current user:", error);
+          throw new Error("Authentication required. Please sign in again.");
+        }
       }
       
       const updateData = {
@@ -41,13 +77,14 @@ export default function OnboardingPage() {
       return api.updateUser(user.id, updateData);
     },
     onSuccess: (updatedUser) => {
-      // Invalidate and refresh the user query
-      queryClient.invalidateQueries({ queryKey: ["/auth/user"] });
+      // Invalidate and refresh the user query with correct key
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Welcome to GabAi!",
         description: "Your profile has been updated successfully.",
       });
-      setLocation("/");
+      // Small delay to ensure query updates
+      setTimeout(() => setLocation("/"), 500);
     },
     onError: (error: any) => {
       console.error("Onboarding error:", error);
