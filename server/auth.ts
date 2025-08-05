@@ -43,19 +43,18 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Determine the callback URL based on the actual request host
-    const getCallbackURL = (req?: any) => {
-      // Always use gabai.ai for the callback to avoid domain switching
-      return "https://gabai.ai/auth/google/callback";
-    };
-
-    const callbackURL = getCallbackURL();
-    console.log('OAuth callback URL:', callbackURL);
+    // Support both production and development callback URLs
+    const productionCallbackURL = "https://gabai.ai/auth/google/callback";
+    const developmentCallbackURL = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
+    
+    console.log('OAuth callback URLs configured for:');
+    console.log('  Production:', productionCallbackURL);
+    console.log('  Development:', developmentCallbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: callbackURL
+      callbackURL: productionCallbackURL // Use production URL for now
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user exists
@@ -106,23 +105,20 @@ export function setupAuth(app: Express) {
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
       // Successful authentication
-      console.log('Google OAuth success, user:', req.user);
-      console.log('Session after auth:', req.session);
-      console.log('Is authenticated:', req.isAuthenticated());
+      console.log('✅ Google OAuth success, user:', req.user);
+      console.log('✅ Session after auth:', req.session);
+      console.log('✅ Session ID:', req.sessionID);
+      console.log('✅ Is authenticated:', req.isAuthenticated());
       
-      // Force session save before redirect
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-        } else {
-          console.log('✅ Session saved successfully');
-          console.log('🍪 Session ID:', req.sessionID);
-        }
-        
-        // Always redirect to home - let the client handle the flow
-        console.log('🔄 Redirecting to home after OAuth success');
+      // Check if user needs onboarding
+      const user = req.user as any;
+      if (user && !user.onboardingCompleted) {
+        console.log('🔄 User needs onboarding, redirecting...');
+        res.redirect('/onboarding');
+      } else {
+        console.log('🏠 User completed onboarding, redirecting to home...');
         res.redirect('/');
-      });
+      }
     }
   );
 

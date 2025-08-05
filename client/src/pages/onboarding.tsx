@@ -15,92 +15,62 @@ export default function OnboardingPage() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
-      console.log("Starting onboarding submission for user:", user);
+      console.log("🚀 Starting onboarding submission");
       
-      // If no user in context, try to fetch current authenticated user
-      if (!user?.id) {
-        console.log("No user in context, fetching current user...");
-        try {
-          const response = await fetch("/api/auth/user", {
-            credentials: 'include' // Ensure cookies are sent
-          });
-          console.log("Auth response status:", response.status);
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Auth check failed:", errorText);
-            throw new Error("Not authenticated. Please sign in again.");
+      try {
+        // Always fetch the current authenticated user to ensure we have the latest info
+        const response = await fetch("/api/auth/user", {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
           }
+        });
+        
+        console.log("📡 Auth check response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ Auth check failed:", response.status, errorText);
           
-          const currentUser = await response.json();
-          console.log("Found current user:", currentUser);
-          
-          if (!currentUser?.id) {
-            throw new Error("No authenticated user found. Please sign in again.");
+          if (response.status === 401) {
+            throw new Error("Please sign in again to complete your profile setup.");
           }
-          
-          // Use the fetched user ID - make the API call with credentials
-          const updateData = {
-            name: data.name,
-            age: data.age,
-            location: data.location,
-            profession: data.profession,
-            preferences: {
-              religious: data.religious,
-              dietary: data.dietary,
-              sleepSchedule: data.sleepSchedule,
-              communicationStyle: data.communicationStyle,
-              interests: data.interests,
-              familyDetails: data.familyDetails,
-            },
-            onboardingCompleted: true,
-          };
-          
-          console.log("Submitting update data for user:", currentUser.id, updateData);
-          
-          // Make the update API call directly with fetch to ensure credentials
-          const updateResponse = await fetch(`/api/users/${currentUser.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(updateData)
-          });
-          
-          console.log("Update response status:", updateResponse.status);
-          
-          if (!updateResponse.ok) {
-            const errorText = await updateResponse.text();
-            console.error("Update failed:", errorText);
-            throw new Error(`Update failed: ${errorText}`);
-          }
-          
-          return updateResponse.json();
-        } catch (error) {
-          console.error("Failed to update user:", error);
-          throw error;
+          throw new Error(`Authentication error: ${errorText}`);
         }
+        
+        const currentUser = await response.json();
+        console.log("✅ Current authenticated user:", currentUser?.id);
+        
+        if (!currentUser?.id) {
+          throw new Error("No user found. Please sign in again.");
+        }
+        
+        // Prepare the update data
+        const updateData = {
+          name: data.name,
+          age: data.age,
+          location: data.location,
+          profession: data.profession,
+          preferences: {
+            religious: data.religious,
+            dietary: data.dietary,
+            sleepSchedule: data.sleepSchedule,
+            communicationStyle: data.communicationStyle,
+            interests: data.interests,
+            familyDetails: data.familyDetails,
+          },
+          onboardingCompleted: true,
+        };
+        
+        console.log("📝 Submitting profile update for user:", currentUser.id);
+        
+        // Use the API helper which already includes credentials
+        return await api.updateUser(currentUser.id, updateData);
+        
+      } catch (error: any) {
+        console.error("💥 Onboarding submission failed:", error);
+        throw error;
       }
-      
-      const updateData = {
-        name: data.name,
-        age: data.age,
-        location: data.location,
-        profession: data.profession,
-        preferences: {
-          religious: data.religious,
-          dietary: data.dietary,
-          sleepSchedule: data.sleepSchedule,
-          communicationStyle: data.communicationStyle,
-          interests: data.interests,
-          familyDetails: data.familyDetails,
-        },
-        onboardingCompleted: true,
-      };
-      
-      console.log("Submitting update data:", updateData);
-      return api.updateUser(user.id, updateData);
     },
     onSuccess: (updatedUser) => {
       // Invalidate and refresh the user query with correct key
