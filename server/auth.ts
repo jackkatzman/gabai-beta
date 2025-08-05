@@ -47,6 +47,7 @@ export function setupAuth(app: Express) {
     const getCallbackURL = () => {
       if (process.env.REPLIT_DOMAINS) {
         const domain = process.env.REPLIT_DOMAINS.split(',')[0];
+        // Use the correct domain format for Replit
         return `https://${domain}/auth/google/callback`;
       }
       return "http://localhost:5000/auth/google/callback";
