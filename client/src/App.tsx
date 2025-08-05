@@ -47,20 +47,8 @@ function AppContent() {
   // Force show main app if user has completed onboarding
   if (user && user.onboardingCompleted) {
     console.log("✅ Showing main app for authenticated user");
-    return (
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/lists" component={HomePage} />
-        <Route path="/calendar" component={HomePage} />
-        <Route path="/reminders" component={HomePage} />
-        <Route path="/settings">
-          {user && <SettingsPage user={user} />}
-        </Route>
-        <Route path="/ocr" component={OCRPage} />
-        <Route path="/shared/:shareCode" component={SharedListPage} />
-        <Route component={NotFound} />
-      </Switch>
-    );
+    console.log("🏠 Rendering HomePage component");
+    return <HomePage />;
   }
 
   return (
