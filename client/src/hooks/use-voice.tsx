@@ -21,8 +21,12 @@ export function useVoice(options: UseVoiceOptions = {}) {
       streamRef.current = null;
     }
     if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
       mediaRecorderRef.current = null;
     }
+    chunksRef.current = [];
     setIsRecording(false);
     setIsTranscribing(false);
   }, []);
@@ -82,18 +86,18 @@ export function useVoice(options: UseVoiceOptions = {}) {
   }, [options, toast, cleanup]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
-  }, [isRecording]);
+  }, []);
 
   const toggleRecording = useCallback(() => {
     if (isRecording || isTranscribing) {
-      stopRecording();
+      cleanup(); // Force cleanup when toggling off
     } else {
       startRecording();
     }
-  }, [isRecording, isTranscribing, startRecording, stopRecording]);
+  }, [isRecording, isTranscribing, startRecording, cleanup]);
 
   // Cleanup on unmount
   useEffect(() => {

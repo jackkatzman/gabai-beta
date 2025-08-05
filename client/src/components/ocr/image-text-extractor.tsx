@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, Camera, FileText, Copy, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 export function ImageTextExtractor() {
   const [extractedText, setExtractedText] = useState<string>("");
@@ -14,6 +17,9 @@ export function ImageTextExtractor() {
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -103,19 +109,55 @@ export function ImageTextExtractor() {
     }
   };
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await apiRequest("/api/messages", {
+        method: "POST",
+        body: JSON.stringify({ content: message }),
+      });
+      return response;
+    },
+    onSuccess: (response) => {
+      // Update messages cache
+      queryClient.setQueryData(
+        ["/api/messages", response.conversationId],
+        (oldMessages: any[] = []) => [...oldMessages, response.message]
+      );
+
+      // Invalidate lists and reminders cache if AI performed actions
+      if (response.actions && response.actions.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user?.id] });
+        queryClient.invalidateQueries({ queryKey: ["/api/reminders", user?.id] });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send to GabAi",
+        description: error.message || "Could not send the text to GabAi.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const addTextToChat = async () => {
     if (!extractedText.trim()) return;
     
     try {
-      // This would integrate with the chat system
+      const messageText = `Please process this text I extracted from an image:\n\n${extractedText}`;
+      sendMessageMutation.mutate(messageText);
+      
       toast({
-        title: "Added to chat",
+        title: "Sent to GabAi",
         description: "The extracted text has been sent to GabAi for processing.",
       });
-      // TODO: Integrate with chat system to send extracted text
+      
+      // Navigate to chat to see the response
+      setTimeout(() => {
+        setLocation("/");
+      }, 1000);
     } catch (error) {
       toast({
-        title: "Failed to add to chat",
+        title: "Failed to send to GabAi",
         description: "Could not send the text to GabAi.",
         variant: "destructive",
       });
