@@ -21,10 +21,17 @@ export default function OnboardingPage() {
       if (!user?.id) {
         console.log("No user in context, fetching current user...");
         try {
-          const response = await fetch("/api/auth/user");
+          const response = await fetch("/api/auth/user", {
+            credentials: 'include' // Ensure cookies are sent
+          });
+          console.log("Auth response status:", response.status);
+          
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Auth check failed:", errorText);
             throw new Error("Not authenticated. Please sign in again.");
           }
+          
           const currentUser = await response.json();
           console.log("Found current user:", currentUser);
           
@@ -32,7 +39,7 @@ export default function OnboardingPage() {
             throw new Error("No authenticated user found. Please sign in again.");
           }
           
-          // Use the fetched user ID
+          // Use the fetched user ID - make the API call with credentials
           const updateData = {
             name: data.name,
             age: data.age,
@@ -49,11 +56,30 @@ export default function OnboardingPage() {
             onboardingCompleted: true,
           };
           
-          console.log("Submitting update data:", updateData);
-          return api.updateUser(currentUser.id, updateData);
+          console.log("Submitting update data for user:", currentUser.id, updateData);
+          
+          // Make the update API call directly with fetch to ensure credentials
+          const updateResponse = await fetch(`/api/users/${currentUser.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(updateData)
+          });
+          
+          console.log("Update response status:", updateResponse.status);
+          
+          if (!updateResponse.ok) {
+            const errorText = await updateResponse.text();
+            console.error("Update failed:", errorText);
+            throw new Error(`Update failed: ${errorText}`);
+          }
+          
+          return updateResponse.json();
         } catch (error) {
-          console.error("Failed to fetch current user:", error);
-          throw new Error("Authentication required. Please sign in again.");
+          console.error("Failed to update user:", error);
+          throw error;
         }
       }
       

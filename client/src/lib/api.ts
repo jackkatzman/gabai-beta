@@ -46,7 +46,20 @@ export const api = {
   },
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const response = await apiRequest(`/api/users/${id}`, "PATCH", updates);
+    const response = await fetch(`/api/users/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Ensure cookies are sent
+      body: JSON.stringify(updates)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`${response.status}: ${errorText}`);
+    }
+    
     return response.json();
   },
 
