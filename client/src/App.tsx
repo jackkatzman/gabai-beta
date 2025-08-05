@@ -44,10 +44,22 @@ function AppContent() {
     );
   }
 
-  // CRITICAL: Never show onboarding if user has completed it
-  if (user?.onboardingCompleted) {
-    console.log("✅ User has completed onboarding - showing main app");
-    return <HomePage />;
+  // Force clear any onboarding cache
+  if (user?.onboardingCompleted === true) {
+    console.log("✅ FORCING main app - onboarding completed");
+    console.log("🚀 User email:", user.email);
+    console.log("🔥 Bypassing all onboarding logic");
+    
+    // Return a simple div to test if this is even being rendered
+    return (
+      <div className="h-full bg-green-500 flex items-center justify-center text-white text-2xl">
+        <div className="text-center">
+          <h1>SUCCESS! Main App Loading...</h1>
+          <p>User: {user.email}</p>
+          <p>Onboarding: {user.onboardingCompleted ? 'COMPLETE' : 'INCOMPLETE'}</p>
+        </div>
+      </div>
+    );
   }
 
   // If user exists but hasn't completed onboarding
