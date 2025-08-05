@@ -68,6 +68,9 @@ function AppContent() {
       {/* Public shared list route - accessible without login */}
       <Route path="/shared/:shareCode" component={SharedListPage} />
       
+      {/* OCR route accessible even without full authentication */}
+      <Route path="/ocr" component={OCRPage} />
+      
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
