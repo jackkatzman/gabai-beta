@@ -626,11 +626,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url: `${req.protocol}://${req.get('host')}/api/calendar/export/${userId}`,
       });
 
-      // Add reminders as calendar events
+      // Add reminders as calendar events with proper timezone handling
       reminders.forEach((reminder) => {
+        // Create proper Date objects ensuring timezone consistency
+        const startTime = new Date(reminder.dueDate);
+        const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000); // 1 hour duration
+        
+        console.log(`Calendar export: ${reminder.title} at ${startTime.toISOString()} (EST: ${startTime.toLocaleString('en-US', { timeZone: 'America/New_York' })})`);
+        
         calendar.createEvent({
-          start: reminder.dueDate,
-          end: new Date(reminder.dueDate.getTime() + 60 * 60 * 1000), // 1 hour duration
+          start: startTime,
+          end: endTime,
           summary: reminder.title,
           description: reminder.description || '',
           location: reminder.category === 'appointment' ? user.location || '' : '',
@@ -638,6 +644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: reminder.completed ? 'confirmed' : 'tentative',
           created: reminder.createdAt,
           lastModified: reminder.updatedAt,
+          timezone: 'America/New_York', // Explicit timezone per event
         });
       });
 
@@ -675,9 +682,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timezone: "America/New_York",
       });
 
+      // Create proper Date objects with timezone handling
+      const startTime = new Date(reminder.dueDate);
+      const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000);
+      
+      console.log(`Single event export: ${reminder.title} at ${startTime.toISOString()} (EST: ${startTime.toLocaleString('en-US', { timeZone: 'America/New_York' })})`);
+      
       calendar.createEvent({
-        start: reminder.dueDate,
-        end: new Date(reminder.dueDate.getTime() + 60 * 60 * 1000),
+        start: startTime,
+        end: endTime,
         summary: reminder.title,
         description: reminder.description || '',
         location: reminder.category === 'appointment' ? user.location || '' : '',
@@ -685,6 +698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: reminder.completed ? 'confirmed' : 'tentative',
         created: reminder.createdAt,
         lastModified: reminder.updatedAt,
+        timezone: 'America/New_York', // Explicit timezone per event
       });
 
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
