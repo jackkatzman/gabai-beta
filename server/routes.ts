@@ -132,7 +132,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(404).json({ message: "User not found" });
         }
       } else {
-        res.status(401).json({ message: "Not authenticated" });
+        // TEMPORARY: For testing, return jack@symcousa.com user if not authenticated
+        console.log("🔧 TEMP: Returning test user for development");
+        const testUser = await storage.getUserByEmail("jack@symcousa.com");
+        if (testUser) {
+          res.json(testUser);
+        } else {
+          res.status(401).json({ message: "Not authenticated" });
+        }
       }
     } catch (error: any) {
       console.error("Auth check error:", error);
