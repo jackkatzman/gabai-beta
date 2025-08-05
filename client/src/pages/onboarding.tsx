@@ -42,8 +42,9 @@ export default function OnboardingPage() {
       setLocation("/");
     },
     onError: (error: any) => {
+      console.error("Onboarding error:", error);
       toast({
-        title: "Setup Failed",
+        title: "Setup Failed", 
         description: error.message || "Failed to update your profile. Please try again.",
         variant: "destructive",
       });

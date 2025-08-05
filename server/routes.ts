@@ -178,11 +178,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/users/:id", async (req, res) => {
     try {
+      console.log("🔄 User update request for ID:", req.params.id);
+      console.log("🔄 Update data:", req.body);
+      
+      // Check if user is authenticated (for OAuth users)
+      if (!req.isAuthenticated() || !req.user) {
+        console.error("❌ User not authenticated for update");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Check if user is trying to update their own profile
+      const currentUser = req.user as any;
+      if (currentUser.id !== req.params.id) {
+        console.error("❌ User trying to update different profile");
+        return res.status(403).json({ message: "Cannot update other user's profile" });
+      }
+      
       const updates = insertUserSchema.partial().parse(req.body);
+      console.log("✅ Parsed updates:", updates);
+      
       const user = await storage.updateUser(req.params.id, updates);
+      console.log("✅ User updated successfully:", user.id);
+      
+      // Update the session with the new user data
+      req.user = user;
+      
       res.json(user);
     } catch (error: any) {
-      console.error("Update user error:", error);
+      console.error("❌ Update user error:", error);
       res.status(400).json({ message: error.message });
     }
   });
