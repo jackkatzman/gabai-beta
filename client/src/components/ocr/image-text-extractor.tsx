@@ -111,17 +111,18 @@ export function ImageTextExtractor() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("/api/messages", {
-        method: "POST",
-        body: JSON.stringify({ content: message }),
+      const response = await apiRequest("POST", "/api/chat", { 
+        message: message,
+        userId: user?.id,
+        conversationId: null
       });
-      return response;
+      return response.json();
     },
     onSuccess: (response) => {
       // Update messages cache
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: any[] = []) => [...oldMessages, response.message]
+        (oldMessages: any[] = []) => [...oldMessages, response.userMessage, response.assistantMessage]
       );
 
       // Invalidate lists and reminders cache if AI performed actions

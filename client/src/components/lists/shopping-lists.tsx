@@ -165,11 +165,22 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   // Voice input for adding items
   const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
-      setNewItemName(text);
+      if (selectedListId && text.trim()) {
+        // Automatically add the item to the selected list
+        const category = categorizeItem(text, user);
+        createItemMutation.mutate({
+          listId: selectedListId,
+          name: text.trim(),
+          category: category,
+        });
+      }
+      setNewItemName("");
       setIsVoiceAddingItem(false);
+      setSelectedListId(null);
     },
     onError: (error) => {
       setIsVoiceAddingItem(false);
+      setSelectedListId(null);
       console.error("Voice input error:", error);
     },
   });
