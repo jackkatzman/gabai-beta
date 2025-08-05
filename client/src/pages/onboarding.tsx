@@ -62,7 +62,6 @@ export default function OnboardingPage() {
     <OnboardingFlow
       onComplete={handleOnboardingComplete}
       onClose={handleClose}
-      isLoading={updateUserMutation.isPending}
     />
   );
 }

@@ -93,11 +93,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create a simple session (store user ID)
+      // Create a simple session (store user ID) and force save
       (req.session as any).userId = user.id;
       (req.session as any).user = user;
-
-      res.json({ user, message: "Login successful" });
+      
+      // Force session save
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Session save failed" });
+        }
+        res.json({ user, message: "Login successful" });
+      });
     } catch (error: any) {
       console.error("Simple login error:", error);
       res.status(500).json({ message: "Login failed", error: error.message });

@@ -25,7 +25,7 @@ export interface OnboardingData {
 export const api = {
   // User operations
   async createUser(userData: OnboardingData): Promise<User> {
-    const response = await apiRequest("POST", "/api/users", {
+    const response = await apiRequest("/api/users", "POST", {
       ...userData,
       preferences: {
         religious: userData.religious,
@@ -41,12 +41,12 @@ export const api = {
   },
 
   async getUser(id: string): Promise<User> {
-    const response = await apiRequest("GET", `/api/users/${id}`);
+    const response = await apiRequest(`/api/users/${id}`, "GET");
     return response.json();
   },
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const response = await apiRequest("PATCH", `/api/users/${id}`, updates);
+    const response = await apiRequest(`/api/users/${id}`, "PATCH", updates);
     return response.json();
   },
 
