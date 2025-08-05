@@ -33,7 +33,7 @@ export function setupAuth(app: Express) {
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      domain: isSecure ? '.replit.app' : undefined, // Share cookies across replit subdomains
+      domain: undefined, // Let browser determine domain automatically
     }
   }));
 
@@ -45,8 +45,8 @@ export function setupAuth(app: Express) {
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     // Determine the callback URL based on the actual request host
     const getCallbackURL = (req?: any) => {
-      // Use the actual Replit domain that gabai.ai proxies to
-      return "https://gab-ai-jack741.replit.app/auth/google/callback";
+      // Always use gabai.ai for the callback to avoid domain switching
+      return "https://gabai.ai/auth/google/callback";
     };
 
     const callbackURL = getCallbackURL();
