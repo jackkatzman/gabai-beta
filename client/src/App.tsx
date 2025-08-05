@@ -19,10 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 function AppContent() {
   const { user, isLoading } = useAuth();
 
-  // Debug logging
-  console.log("🔍 AppContent - User:", user);
-  console.log("🔍 AppContent - isLoading:", isLoading);
-  console.log("🔍 AppContent - onboardingCompleted:", user?.onboardingCompleted);
+  // Debug logging (remove in production)
+  console.log("🔍 Auth state:", { email: user?.email, isLoading, onboardingCompleted: user?.onboardingCompleted });
 
   // Show loading while checking user state
   if (isLoading) {
@@ -44,22 +42,9 @@ function AppContent() {
     );
   }
 
-  // Force clear any onboarding cache
+  // Show main app for users who completed onboarding
   if (user?.onboardingCompleted === true) {
-    console.log("✅ FORCING main app - onboarding completed");
-    console.log("🚀 User email:", user.email);
-    console.log("🔥 Bypassing all onboarding logic");
-    
-    // Return a simple div to test if this is even being rendered
-    return (
-      <div className="h-full bg-green-500 flex items-center justify-center text-white text-2xl">
-        <div className="text-center">
-          <h1>SUCCESS! Main App Loading...</h1>
-          <p>User: {user.email}</p>
-          <p>Onboarding: {user.onboardingCompleted ? 'COMPLETE' : 'INCOMPLETE'}</p>
-        </div>
-      </div>
-    );
+    return <HomePage />;
   }
 
   // If user exists but hasn't completed onboarding

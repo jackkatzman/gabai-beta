@@ -18,12 +18,7 @@ export default function HomePage() {
   const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
 
-  console.log("🏠 HomePage - User from context:", user);
-  console.log("🏠 HomePage - User email:", user?.email);
-  console.log("🏠 HomePage - Onboarding completed:", user?.onboardingCompleted);
-
   if (!user) {
-    console.log("❌ HomePage - No user found, showing welcome screen");
     return (
       <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-6">
@@ -44,8 +39,6 @@ export default function HomePage() {
       </div>
     );
   }
-
-  console.log("✅ HomePage - User found, rendering main interface");
 
   const getCurrentPageComponent = () => {
     switch (location) {
