@@ -26,7 +26,7 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **OCR Text Extraction** - AI-powered image text extraction using OpenAI vision API for digitizing handwritten lists, invitations, receipts, and documents
 - ✅ **Notification Preferences System** - Complete user control over reminder notifications with browser, in-app, calendar-only, or disabled options
 - ✅ **Timezone-Accurate Calendar Export** - Fixed ICS export to properly handle Eastern Time for accurate device calendar imports
-- 🔧 **Google OAuth Configuration** - Updated redirect URI for production domain gabai.ai
+- 🔧 **Google OAuth Configuration** - Fixed redirect URI to use actual Replit app domain gab-ai-jack741.replit.app
 
 # User Preferences
 
