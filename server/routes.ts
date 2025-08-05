@@ -13,6 +13,7 @@ import {
 } from "@shared/schema";
 import multer from "multer";
 import ical from "ical-generator";
+import passport from "passport";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -71,6 +72,20 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Google OAuth routes
+  app.get("/auth/google", passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+  }));
+
+  app.get("/auth/google/callback", 
+    passport.authenticate('google', { failureRedirect: "/" }),
+    (req, res) => {
+      // Successful authentication, redirect to home
+      console.log("✅ Google OAuth successful, redirecting to app");
+      res.redirect("/");
+    }
+  );
+
   // Simple login endpoint (dev/testing only)
   app.post("/api/simple-login", async (req, res) => {
     // Only allow in development
@@ -132,14 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(404).json({ message: "User not found" });
         }
       } else {
-        // TEMPORARY: For testing, return jack@symcousa.com user if not authenticated
-        console.log("🔧 TEMP: Returning test user for development");
-        const testUser = await storage.getUserByEmail("jack@symcousa.com");
-        if (testUser) {
-          res.json(testUser);
-        } else {
-          res.status(401).json({ message: "Not authenticated" });
-        }
+        // User not authenticated
+        res.status(401).json({ message: "Not authenticated" });
       }
     } catch (error: any) {
       console.error("Auth check error:", error);
