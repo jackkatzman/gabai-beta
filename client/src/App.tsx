@@ -61,10 +61,10 @@ function AppContent() {
         </>
       ) : (
         <>
-          {/* No user - show simple login */}
-          <Route path="/" component={SimpleLoginPage} />
-          <Route path="/login" component={SimpleLoginPage} />
-          <Route path="/oauth-login" component={LoginPage} />
+          {/* No user - show Google OAuth login */}
+          <Route path="/" component={LoginPage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/simple-login" component={SimpleLoginPage} />
         </>
       )}
       

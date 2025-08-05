@@ -71,8 +71,13 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Simple login endpoint (fallback when OAuth is not configured)
+  // Simple login endpoint (dev/testing only)
   app.post("/api/simple-login", async (req, res) => {
+    // Only allow in development
+    if (process.env.NODE_ENV === "production") {
+      return res.status(404).json({ message: "Not available in production" });
+    }
+    
     try {
       const { name, email } = req.body;
       
@@ -93,15 +98,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create a simple session (store user ID) and force save
-      (req.session as any).userId = user.id;
-      (req.session as any).user = user;
-      
-      // Force session save
-      req.session.save((err) => {
+      // Login user using Passport (simulate OAuth)
+      req.logIn(user, (err) => {
         if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ message: "Session save failed" });
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "Login failed" });
         }
         res.json({ user, message: "Login successful" });
       });
@@ -111,19 +112,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get current authenticated user (works with both OAuth and simple login)
+  // Get current authenticated user (OAuth only)
   app.get("/api/auth/user", async (req, res) => {
     try {
-      // Check OAuth user first
-      let user = (req as any).user;
+      console.log("🔍 Auth check - Is authenticated:", req.isAuthenticated());
+      console.log("🔍 Auth check - User:", req.user ? "exists" : "none");
+      console.log("🔍 Auth check - Session ID:", req.sessionID);
       
-      // If no OAuth user, check session for simple login
-      if (!user && (req.session as any)?.userId) {
-        user = await storage.getUser((req.session as any).userId);
-      }
-      
-      if (user) {
-        res.json(user);
+      if (req.isAuthenticated() && req.user) {
+        res.json(req.user);
       } else {
         res.status(401).json({ message: "Not authenticated" });
       }
@@ -135,17 +132,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
+    console.log("🚪 Logout request received");
     req.logout((err) => {
       if (err) {
+        console.error("Logout error:", err);
         return res.status(500).json({ message: "Logout failed" });
       }
-      // Also clear simple login session
-      (req.session as any).userId = null;
-      (req.session as any).user = null;
+      
+      // Destroy session completely
       req.session.destroy((err) => {
         if (err) {
+          console.error("Session destroy error:", err);
           return res.status(500).json({ message: "Session destroy failed" });
         }
+        console.log("✅ User logged out successfully");
         res.json({ message: "Logged out successfully" });
       });
     });
