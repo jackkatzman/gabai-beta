@@ -44,40 +44,21 @@ function AppContent() {
     );
   }
 
-  // Force show main app if user has completed onboarding
-  if (user && user.onboardingCompleted) {
-    console.log("✅ Showing main app for authenticated user");
-    console.log("🏠 Rendering HomePage component");
+  // CRITICAL: Never show onboarding if user has completed it
+  if (user?.onboardingCompleted) {
+    console.log("✅ User has completed onboarding - showing main app");
     return <HomePage />;
   }
 
-  return (
-    <Switch>
-      {/* User exists but needs onboarding */}
-      {user ? (
-        <>
-          <Route path="/" component={OnboardingPage} />
-          <Route path="/onboarding" component={OnboardingPage} />
-        </>
-      ) : (
-        <>
-          {/* No user - show Google OAuth login */}
-          <Route path="/" component={LoginPage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/simple-login" component={SimpleLoginPage} />
-        </>
-      )}
-      
-      {/* Public shared list route - accessible without login */}
-      <Route path="/shared/:shareCode" component={SharedListPage} />
-      
-      {/* OCR route accessible even without full authentication */}
-      <Route path="/ocr" component={OCRPage} />
-      
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
-  );
+  // If user exists but hasn't completed onboarding
+  if (user && !user.onboardingCompleted) {
+    console.log("📝 User needs onboarding");
+    return <OnboardingPage />;
+  }
+
+  // No user - show login
+  console.log("🔐 No user - showing login");
+  return <LoginPage />;
 }
 
 function App() {
