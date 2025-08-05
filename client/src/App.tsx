@@ -11,6 +11,7 @@ import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
 import LoginPage from "@/pages/login";
 import SimpleLoginPage from "@/pages/simple-login";
+import { OCRPage } from "@/pages/ocr";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -47,6 +48,7 @@ function AppContent() {
           <Route path="/calendar" component={HomePage} />
           <Route path="/reminders" component={HomePage} />
           <Route path="/settings" component={HomePage} />
+          <Route path="/ocr" component={OCRPage} />
         </>
       ) : user ? (
         <>
