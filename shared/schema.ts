@@ -18,6 +18,9 @@ export const users = pgTable("users", {
     communicationStyle?: string;
     interests?: string[];
     familyDetails?: string;
+    notificationMethod?: "browser" | "toast" | "calendar" | "none";
+    notificationSound?: boolean;
+    notificationAdvance?: number; // minutes before due date
   }>().default({}),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),

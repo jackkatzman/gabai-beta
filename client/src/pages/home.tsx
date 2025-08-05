@@ -3,7 +3,7 @@ import { ChatInterface } from "@/components/chat/chat-interface";
 import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
 import { CalendarPage } from "@/components/calendar/calendar-page";
-import { SettingsPage } from "@/components/settings/settings-page";
+import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,8 @@ export default function HomePage() {
       case "/reminders":
         return <RemindersPage user={user} />;
       case "/settings":
-        return <SettingsPage user={user} />;
+        // Settings is handled by a separate route in App.tsx
+        return <ChatInterface user={user} />;
       case "/ocr":
       case "/text-extractor":
         return <OCRPage />;
@@ -78,6 +79,9 @@ export default function HomePage() {
 
   return (
     <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Notification Service - runs in background */}
+      <NotificationService user={user} />
+      
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">

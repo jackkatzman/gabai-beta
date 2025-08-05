@@ -12,6 +12,7 @@ import { SharedListPage } from "@/pages/shared-list";
 import LoginPage from "@/pages/login";
 import SimpleLoginPage from "@/pages/simple-login";
 import { OCRPage } from "@/pages/ocr";
+import { SettingsPage } from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -47,7 +48,9 @@ function AppContent() {
           <Route path="/lists" component={HomePage} />
           <Route path="/calendar" component={HomePage} />
           <Route path="/reminders" component={HomePage} />
-          <Route path="/settings" component={HomePage} />
+          <Route path="/settings">
+            {user && <SettingsPage user={user} />}
+          </Route>
           <Route path="/ocr" component={OCRPage} />
         </>
       ) : user ? (
