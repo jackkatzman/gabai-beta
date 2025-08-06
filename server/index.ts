@@ -133,8 +133,13 @@ app.use((req, res, next) => {
   
   server.listen(port, "0.0.0.0", (error?: Error) => {
     if (error) {
-      console.error('❌ Failed to start server:', error);
-      process.exit(1);
+      if (error.message.includes('EADDRINUSE')) {
+        console.error(`❌ Port ${port} is already in use. Trying to kill existing process...`);
+        process.exit(1);
+      } else {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+      }
     }
     log(`serving on port ${port}`);
     
