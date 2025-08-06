@@ -54,6 +54,12 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
+    // Add a test route to verify OAuth routes are working
+    app.get('/api/test-route', (req, res) => {
+      console.log('✅ Test route accessed successfully!');
+      res.json({ message: 'Express routes are working', timestamp: new Date().toISOString() });
+    });
+
     const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -129,8 +135,7 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // For Autoscale compatibility, use standard listen call without reusePort
   // Autoscale sets PORT env var automatically for proper routing
-  // Use a random available port to avoid conflicts
-  const port = parseInt(process.env.PORT || Math.floor(Math.random() * (9999 - 3000) + 3000).toString(), 10);
+  const port = parseInt(process.env.PORT || '4000', 10);
   
   server.listen(port, "0.0.0.0", (error?: Error) => {
     if (error) {

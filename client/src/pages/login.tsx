@@ -12,7 +12,8 @@ export default function LoginPage() {
     sessionStorage.clear();
     localStorage.clear();
     const timestamp = Date.now();
-    window.location.href = `/api/auth/google?fresh=${timestamp}`;
+    // Use the full external URL to bypass Vite middleware
+    window.location.href = `https://gab-ai-jack741.replit.app/api/auth/google?fresh=${timestamp}`;
   };
   const isLoggingIn = false;
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
