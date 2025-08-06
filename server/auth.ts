@@ -61,21 +61,36 @@ export function setupAuth(app: Express) {
       callbackURL: callbackURL
     }, async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log('🔥 GOOGLE OAUTH CALLBACK TRIGGERED!');
+        console.log('👤 Google profile:', JSON.stringify(profile, null, 2));
+        console.log('📧 Email:', profile.emails?.[0]?.value);
+        console.log('👨‍💻 Display name:', profile.displayName);
+        
         // Check if user exists
-        let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
+        const email = profile.emails?.[0]?.value || '';
+        console.log('🔍 Looking for user with email:', email);
+        
+        let user = await storage.getUserByEmail(email);
+        console.log('🔍 Existing user found:', !!user);
         
         if (!user) {
+          console.log('➕ Creating new user...');
           // Create new user
           user = await storage.createUser({
             name: profile.displayName || 'User',
-            email: profile.emails?.[0]?.value || '',
+            email: email,
             preferences: {},
             onboardingCompleted: false
           });
+          console.log('✅ New user created:', user.id);
+        } else {
+          console.log('✅ Existing user logged in:', user.id);
         }
 
+        console.log('🎯 Returning user to passport:', user.id);
         return done(null, user);
       } catch (error) {
+        console.error('❌ OAuth strategy error:', error);
         return done(error, undefined);
       }
     }));
@@ -118,9 +133,26 @@ export function setupAuth(app: Express) {
     authenticator(req, res, next);
   });
 
-  app.get('/api/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
+  app.get('/api/auth/google/callback', (req, res, next) => {
+    console.log('🔄 OAuth callback route hit!');
+    console.log('🌐 Callback URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log('🔍 Query params:', req.query);
+    console.log('🔍 Has authorization code:', !!req.query.code);
+    console.log('🔍 Has error:', !!req.query.error);
+    
+    if (req.query.error) {
+      console.error('❌ OAuth error from Google:', req.query.error);
+      return res.redirect('/?error=oauth_error');
+    }
+    
+    passport.authenticate('google', {
+      failureRedirect: '/?error=auth_failed'
+    })(req, res, (err) => {
+      if (err) {
+        console.error('❌ Passport authentication error:', err);
+        return res.redirect('/?error=auth_error');
+      }
+      
       // Successful authentication
       console.log('✅ Google OAuth success, user:', req.user);
       console.log('✅ Session after auth:', req.session);
@@ -136,8 +168,8 @@ export function setupAuth(app: Express) {
         console.log('🏠 User completed onboarding, redirecting to home...');
         res.redirect('/');
       }
-    }
-  );
+    });
+  });
 
   app.get('/auth/logout', (req, res) => {
     req.logout((err) => {
