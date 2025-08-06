@@ -189,6 +189,9 @@ app.use((req, res, next) => {
         } else {
           console.log('⚠️  OAuth not configured - Google login will not work');
         }
+        
+        // Prevent duplicate server instances
+        return;
       }
     });
     
