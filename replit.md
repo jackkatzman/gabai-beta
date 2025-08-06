@@ -75,6 +75,8 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **List API Endpoints Fixed** - Added missing `/api/list-items` routes for proper frontend integration
 - ✅ **Voice Recording Loop Fixed** - Proper MediaStream cleanup prevents infinite recording loops
 - ✅ **App Accessibility Confirmed** - Deployment at gab-ai-jack741.replit.app remains active and accessible
+- ✅ **Contacts Navigation Added** - Contacts section now visible in bottom navigation, Settings moved to header
+- ✅ **Professional List Intelligence** - AI now recognizes user profession and creates specialized lists (punch lists for contractors, closing lists for realtors, patient lists for medical, case lists for lawyers, lesson lists for teachers, menu lists for food service)
 - → **Mobile App Reinstall** - User needs to re-add app to phone home screen after development changes
 - → **Custom Domain Setup** - Ready to configure gabai.ai domain for professional appearance
 

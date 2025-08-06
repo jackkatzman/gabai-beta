@@ -55,7 +55,7 @@ function getListConfig(type: string) {
     punch_list: {
       name: "Punch List",
       type: "punch_list" as const,
-      categories: ["Plumbing", "Electrical", "Painting", "Flooring", "HVAC", "General Repairs"]
+      categories: ["Plumbing", "Electrical", "Painting", "Flooring", "HVAC", "Roofing", "General"]
     },
     waiting_list: {
       name: "Waiting List",
@@ -66,6 +66,31 @@ function getListConfig(type: string) {
       name: "To-Do List", 
       type: "todo" as const,
       categories: ["Work", "Personal", "Urgent", "Later"]
+    },
+    closing_list: {
+      name: "Closing List",
+      type: "closing_list" as const,
+      categories: ["Inspection", "Financing", "Legal", "Insurance", "Documentation", "Final Walkthrough"]
+    },
+    patient_list: {
+      name: "Patient Care List",
+      type: "patient_list" as const,
+      categories: ["Appointments", "Follow-ups", "Prescriptions", "Tests", "Consultations"]
+    },
+    case_list: {
+      name: "Case Management",
+      type: "case_list" as const,
+      categories: ["Research", "Documentation", "Court Dates", "Client Meetings", "Filing"]
+    },
+    lesson_list: {
+      name: "Teaching Tasks",
+      type: "lesson_list" as const,
+      categories: ["Lesson Plans", "Grading", "Parent Meetings", "Supplies", "Field Trips"]
+    },
+    menu_list: {
+      name: "Kitchen/Menu Tasks",
+      type: "menu_list" as const,
+      categories: ["Ingredients", "Equipment", "Staff", "Menu Items", "Supplies", "Vendors"]
     }
   };
   

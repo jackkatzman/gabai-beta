@@ -10,7 +10,7 @@ export interface AIResponse {
   content: string;
   suggestions?: string[];
   actions?: Array<{
-    type: "add_to_list" | "create_appointment" | "create_reminder" | "schedule_event";
+    type: "add_to_list" | "create_appointment" | "create_reminder" | "schedule_event" | "create_contact";
     data: any;
   }>;
 }
@@ -52,6 +52,10 @@ export async function generatePersonalizedResponse(
 
 function createPersonalizedSystemPrompt(user: User): string {
   const preferences = user.preferences || {};
+  const profession = user.profession?.toLowerCase() || "";
+  
+  // Determine profession-specific list capabilities
+  const professionContext = getProfessionContext(profession);
   
   return `You are GabAi, a personal voice assistant for ${user.name || "the user"}. You have a warm, helpful personality and remember the user's preferences.
 
@@ -67,12 +71,15 @@ User Profile:
 - Interests: ${preferences.interests?.join(", ") || "Not specified"}
 - Family details: ${preferences.familyDetails || "Not specified"}
 
+${professionContext}
+
 Guidelines:
 1. Always respond in a conversational, friendly tone
 2. Reference the user's preferences when relevant (e.g., suggest lactose-free alternatives if they're lactose intolerant)
 3. Consider their location for local recommendations
 4. Respect their religious beliefs and dietary restrictions
 5. Adapt your communication style to match their preferences
+6. Create profession-specific lists when users mention work-related tasks
 6. When helping with shopping lists, categorize items appropriately and suggest alternatives based on their dietary needs
 7. For reminders, consider their sleep schedule and daily routine
 8. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
@@ -106,7 +113,7 @@ For list items:
     {
       "type": "add_to_list",
       "data": {
-        "listType": "shopping|punch_list|waiting_list|todo",
+        "listType": "shopping|punch_list|waiting_list|todo|closing_list|patient_list|case_list|lesson_list|menu_list",
         "items": [
           {
             "name": "item name",
@@ -155,6 +162,70 @@ Example for "add almonds to the list":
 }
 
 Be proactive in offering help and remember context from previous conversations.`;
+}
+
+function getProfessionContext(profession: string): string {
+  const prof = profession.toLowerCase();
+  
+  if (prof.includes('contractor') || prof.includes('construction') || prof.includes('builder') || prof.includes('electrician') || prof.includes('plumber')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR CONTRACTORS:
+- Use "punch_list" type for construction/repair tasks
+- Categories for punch lists: "Electrical", "Plumbing", "Painting", "Flooring", "HVAC", "Roofing", "General"
+- When user mentions repairs, fixes, installations, or construction work, automatically use punch_list type
+- Example contractor keywords: fix, repair, install, paint, wire, pipe, drywall, flooring, roof, etc.`;
+  }
+  
+  if (prof.includes('realtor') || prof.includes('real estate') || prof.includes('broker')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR REAL ESTATE:
+- Use "closing_list" type for property closing tasks
+- Categories for closing lists: "Inspection", "Financing", "Legal", "Insurance", "Documentation", "Final Walkthrough"
+- When user mentions closing tasks, property inspections, mortgage items, use closing_list type
+- Example realtor keywords: closing, inspection, appraisal, mortgage, title, walkthrough, listing, etc.`;
+  }
+  
+  if (prof.includes('doctor') || prof.includes('physician') || prof.includes('nurse') || prof.includes('medical')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR MEDICAL:
+- Use "patient_list" type for patient care tasks
+- Categories for patient lists: "Appointments", "Follow-ups", "Prescriptions", "Tests", "Consultations"
+- When user mentions patient care, medical appointments, prescriptions, use patient_list type
+- Example medical keywords: patient, appointment, prescription, test results, follow-up, consultation, etc.`;
+  }
+  
+  if (prof.includes('lawyer') || prof.includes('attorney') || prof.includes('legal')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR LEGAL:
+- Use "case_list" type for legal case management
+- Categories for case lists: "Research", "Documentation", "Court Dates", "Client Meetings", "Filing"
+- When user mentions legal work, cases, court dates, use case_list type
+- Example legal keywords: case, court, filing, brief, deposition, client meeting, research, etc.`;
+  }
+  
+  if (prof.includes('teacher') || prof.includes('educator') || prof.includes('professor')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR EDUCATORS:
+- Use "lesson_list" type for teaching tasks
+- Categories for lesson lists: "Lesson Plans", "Grading", "Parent Meetings", "Supplies", "Field Trips"
+- When user mentions teaching tasks, lesson plans, grading, use lesson_list type
+- Example educator keywords: lesson, grade, parent meeting, supplies, field trip, curriculum, etc.`;
+  }
+  
+  if (prof.includes('restaurant') || prof.includes('chef') || prof.includes('cook') || prof.includes('food service')) {
+    return `
+PROFESSION-SPECIFIC LISTS FOR FOOD SERVICE:
+- Use "menu_list" type for restaurant/kitchen tasks
+- Categories for menu lists: "Ingredients", "Equipment", "Staff", "Menu Items", "Supplies", "Vendors"
+- When user mentions kitchen tasks, ingredients, menu items, use menu_list type
+- Example food service keywords: ingredients, menu, prep, vendors, kitchen, equipment, staff, etc.`;
+  }
+  
+  return `
+GENERAL PROFESSION SUPPORT:
+- Detect work-related tasks and create appropriate specialized lists
+- Use context clues from user's language to determine list type
+- Always consider their profession when categorizing tasks`;
 }
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
