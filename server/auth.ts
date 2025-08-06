@@ -54,18 +54,10 @@ export function setupAuth(app: Express) {
     // The error shows it's trying to use multiple domains in the callback URL
     // We need to use the actual deployed domain, not multiple domains
     
-    // Check if we have the newer .replit.app domain
-    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-      callbackURL = `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.replit.app/auth/google/callback`;
-      console.log('🎯 Using .replit.app domain for OAuth');
-    } else if (process.env.REPLIT_DOMAINS) {
-      const primaryDomain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
-      callbackURL = `https://${primaryDomain}/auth/google/callback`;
-      console.log('🎯 Using REPLIT_DOMAINS for OAuth');
-    } else {
-      callbackURL = productionCallbackURL; // Fallback to production
-      console.log('🎯 Using production callback URL');
-    }
+    // The error shows the browser is using gab-ai-jack741.replit.app
+    // Let's configure for the actual domain the browser sees
+    callbackURL = `https://gab-ai-jack741.replit.app/auth/google/callback`;
+    console.log('🎯 Using actual browser domain for OAuth');
     
     console.log('✅ Final OAuth callback URL:', callbackURL);
     
