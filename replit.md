@@ -39,6 +39,10 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **Mobile Layout Improvements** - Both OCR and Settings pages properly fit within app layout
 - ✅ **PWA Install Prompt Added** - Landing page now shows install button when PWA is available
 - ✅ **Camera OCR Support** - OCR page now includes camera capture option alongside file upload
+- ✅ **Autoscale Deployment Fixes Applied** - Removed reusePort for better Autoscale compatibility, added health check endpoint, fixed React hooks import
+- ✅ **Health Check Endpoint** - Added `/health` endpoint for Autoscale deployment monitoring
+- ✅ **Server Binding Updated** - Changed from reusePort to standard listen call for Autoscale compatibility
+- ✅ **React Hooks Fixed** - Resolved invalid hook call errors by properly importing React in ThemeProvider
 - 🔧 **Google Cloud Console Update Required** - Need to update OAuth redirect URI to https://gabai.ai/auth/google/callback
 
 # User Preferences
