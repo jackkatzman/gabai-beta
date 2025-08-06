@@ -3,6 +3,7 @@ import { ChatInterface } from "@/components/chat/chat-interface";
 import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
 import { CalendarPage } from "@/components/calendar/calendar-page";
+import { ContactsPage } from "@/components/contacts/contacts-page";
 import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
@@ -10,14 +11,14 @@ import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useLocation } from "wouter";
-import { Mic, Moon, Sun, User } from "lucide-react";
+import { Mic, Moon, Sun, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
 export default function HomePage() {
   const { user } = useUser();
   const { theme, toggleTheme } = useTheme();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   if (!user) {
     return (
@@ -47,6 +48,8 @@ export default function HomePage() {
         return <ShoppingLists user={user} />;
       case "/calendar":
         return <CalendarPage user={user} />;
+      case "/contacts":
+        return <ContactsPage />;
       case "/reminders":
         return <RemindersPage user={user} />;
       case "/settings":
@@ -65,6 +68,8 @@ export default function HomePage() {
         return "Shopping Lists";
       case "/calendar":
         return "Calendar";
+      case "/contacts":
+        return "Contacts";
       case "/reminders":
         return "Reminders";
       case "/settings":
@@ -96,6 +101,16 @@ export default function HomePage() {
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* Settings Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/settings")}
+            className="w-9 h-9 p-0"
+          >
+            <Settings className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          </Button>
+          
           {/* Theme Toggle */}
           <Button
             variant="ghost"
