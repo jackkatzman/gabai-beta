@@ -8,7 +8,9 @@ import { useState, useEffect } from "react";
 
 export default function LoginPage() {
   const login = () => {
-    window.location.href = "/api/auth/google";
+    // Add cache-busting parameter to force fresh OAuth request
+    const timestamp = Date.now();
+    window.location.href = `/api/auth/google?t=${timestamp}`;
   };
   const isLoggingIn = false;
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
