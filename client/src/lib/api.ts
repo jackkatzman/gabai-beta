@@ -79,7 +79,7 @@ export const api = {
   },
 
   async getMessages(conversationId: string): Promise<Message[]> {
-    const response = await apiRequest("GET", `/api/messages/${conversationId}`);
+    const response = await apiRequest(`/api/messages/${conversationId}`, "GET");
     return response.json();
   },
 
@@ -125,22 +125,22 @@ export const api = {
 
   // Smart list operations
   async getSmartLists(userId: string): Promise<(SmartList & { items: ListItem[] })[]> {
-    const response = await apiRequest("GET", `/api/smart-lists/${userId}`);
+    const response = await apiRequest(`/api/smart-lists/${userId}`, "GET");
     return response.json();
   },
 
   async createSmartList(listData: InsertSmartList): Promise<SmartList> {
-    const response = await apiRequest("POST", "/api/smart-lists", listData);
+    const response = await apiRequest("/api/smart-lists", "POST", listData);
     return response.json();
   },
 
   async shareList(listId: string): Promise<{ shareCode: string }> {
-    const response = await apiRequest("POST", `/api/smart-lists/${listId}/share`);
+    const response = await apiRequest(`/api/smart-lists/${listId}/share`, "POST");
     return response.json();
   },
 
   async joinSharedList(shareCode: string, userId: string): Promise<SmartList> {
-    const response = await apiRequest("POST", "/api/smart-lists/join", {
+    const response = await apiRequest("/api/smart-lists/join", "POST", {
       shareCode,
       userId,
     });
@@ -148,34 +148,34 @@ export const api = {
   },
 
   async getSharedList(shareCode: string): Promise<SmartList & { items: ListItem[] }> {
-    const response = await apiRequest("GET", `/api/shared/${shareCode}`);
+    const response = await apiRequest(`/api/shared/${shareCode}`, "GET");
     return response.json();
   },
 
   async addCollaborator(listId: string, email: string): Promise<SmartList> {
-    const response = await apiRequest("POST", `/api/smart-lists/${listId}/collaborators`, {
+    const response = await apiRequest(`/api/smart-lists/${listId}/collaborators`, "POST", {
       email,
     });
     return response.json();
   },
 
   async searchUserByEmail(email: string): Promise<{id: string, email: string, firstName?: string, lastName?: string}> {
-    const response = await apiRequest("GET", `/api/users/search?email=${encodeURIComponent(email)}`);
+    const response = await apiRequest(`/api/users/search?email=${encodeURIComponent(email)}`, "GET");
     return response.json();
   },
 
   async createListItem(itemData: InsertListItem): Promise<ListItem> {
-    const response = await apiRequest("POST", "/api/list-items", itemData);
+    const response = await apiRequest("/api/list-items", "POST", itemData);
     return response.json();
   },
 
   async updateListItem(id: string, updates: Partial<ListItem>): Promise<ListItem> {
-    const response = await apiRequest("PATCH", `/api/list-items/${id}`, updates);
+    const response = await apiRequest(`/api/list-items/${id}`, "PATCH", updates);
     return response.json();
   },
 
   async deleteListItem(id: string): Promise<void> {
-    await apiRequest("DELETE", `/api/list-items/${id}`);
+    await apiRequest(`/api/list-items/${id}`, "DELETE");
   },
 
   // Backward compatibility aliases
@@ -210,21 +210,21 @@ export const api = {
 
   // Reminder operations
   async getReminders(userId: string): Promise<Reminder[]> {
-    const response = await apiRequest("GET", `/api/reminders/${userId}`);
+    const response = await apiRequest(`/api/reminders/${userId}`, "GET");
     return response.json();
   },
 
   async createReminder(reminderData: Omit<Reminder, "id" | "createdAt" | "updatedAt">): Promise<Reminder> {
-    const response = await apiRequest("POST", "/api/reminders", reminderData);
+    const response = await apiRequest("/api/reminders", "POST", reminderData);
     return response.json();
   },
 
   async updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder> {
-    const response = await apiRequest("PATCH", `/api/reminders/${id}`, updates);
+    const response = await apiRequest(`/api/reminders/${id}`, "PATCH", updates);
     return response.json();
   },
 
   async deleteReminder(id: string): Promise<void> {
-    await apiRequest("DELETE", `/api/reminders/${id}`);
+    await apiRequest(`/api/reminders/${id}`, "DELETE");
   },
 };

@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Simple login error:", error);
       res.status(500).json({ message: "Login failed", error: error.message });
     }
-
+  });
 
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {

@@ -262,7 +262,14 @@ export function ImageTextExtractor() {
                   variant="outline"
                   onClick={() => {
                     console.log('📸 Camera button clicked');
-                    cameraInputRef.current?.click();
+                    // Force trigger the camera input immediately
+                    if (cameraInputRef.current) {
+                      cameraInputRef.current.click();
+                      // Small delay to ensure the input is triggered
+                      setTimeout(() => {
+                        cameraInputRef.current?.click();
+                      }, 100);
+                    }
                   }}
                   className="flex-1 h-12"
                 >
