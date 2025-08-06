@@ -22,18 +22,7 @@ app.use((req, res, next) => {
 // Setup authentication before routes
 setupAuth(app);
 
-// CRITICAL: Add OAuth routes immediately after auth setup, before any other middleware
-console.log('🔧 Adding OAuth routes BEFORE all other middleware...');
-app.get('/api/auth/google', (req, res) => {
-  console.log('🚀🚀🚀 OAUTH ROUTE HIT DIRECTLY IN INDEX.TS!');
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const callbackUrl = encodeURIComponent('https://gab-ai-jack741.replit.app/api/auth/google/callback');
-  const scope = encodeURIComponent('profile email');
-  const googleAuthUrl = `https://accounts.google.com/oauth/authorize?client_id=${clientId}&redirect_uri=${callbackUrl}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
-  
-  console.log('🔗 Redirecting to Google:', googleAuthUrl);
-  res.redirect(googleAuthUrl);
-});
+// OAuth routes are handled by Passport.js in setupAuth() - no manual routes needed
 
 app.use((req, res, next) => {
   const start = Date.now();

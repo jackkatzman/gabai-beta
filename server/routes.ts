@@ -79,23 +79,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth check endpoint (using Passport.js session data)
   app.get("/api/auth/user", async (req, res) => {
     try {
-      const session = (req as any).session;
-      console.log('🔍 Auth check - Session exists:', !!session);
-      console.log('🔍 Auth check - Session ID:', (req as any).sessionID);
-      console.log('🔍 Auth check - User ID:', session?.userId);
-      console.log('🔍 Auth check - Authenticated:', session?.authenticated);
-      console.log('🔍 Auth check - Full session:', Object.keys(session || {}));
+      console.log('🔍 Auth check - Is authenticated:', req.isAuthenticated?.());
+      console.log('🔍 Auth check - User exists:', !!req.user);
+      console.log('🔍 Auth check - Session ID:', req.sessionID);
+      console.log('🔍 Auth check - Session passport:', (req.session as any)?.passport);
       
-      if (!session?.authenticated || !session?.userId) {
+      if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const user = await storage.getUser(session.userId);
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-
-      console.log('✅ User authenticated:', user.email);
+      // Passport.js stores the user in req.user after deserialization
+      const user = req.user as any;
+      console.log('✅ User authenticated via Passport:', user.email);
       res.json(user);
     } catch (error) {
       console.error("Auth check error:", error);
@@ -103,14 +98,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logout endpoint
+  // Logout endpoint (using Passport.js)
   app.post("/api/auth/logout", (req, res) => {
-    (req as any).session.destroy((err: any) => {
+    req.logout((err) => {
       if (err) {
         console.error('Logout error:', err);
         return res.status(500).json({ message: 'Logout failed' });
       }
-      res.json({ message: 'Logged out successfully' });
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error('Session destroy error:', sessionErr);
+        }
+        res.json({ message: 'Logged out successfully' });
+      });
     });
   });
 
