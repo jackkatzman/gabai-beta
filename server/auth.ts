@@ -50,20 +50,24 @@ export function setupAuth(app: Express) {
     // Determine the correct callback URL based on environment
     let callbackURL;
     
-    // Use the current Replit domain for testing
-    if (process.env.REPLIT_DOMAINS) {
+    // Fix: Use only ONE domain for OAuth callback
+    // The error shows it's trying to use multiple domains in the callback URL
+    // We need to use the actual deployed domain, not multiple domains
+    
+    // Check if we have the newer .replit.app domain
+    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+      callbackURL = `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.replit.app/auth/google/callback`;
+      console.log('🎯 Using .replit.app domain for OAuth');
+    } else if (process.env.REPLIT_DOMAINS) {
       const primaryDomain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
       callbackURL = `https://${primaryDomain}/auth/google/callback`;
-      console.log('🎯 Using Replit domain for OAuth:', primaryDomain);
+      console.log('🎯 Using REPLIT_DOMAINS for OAuth');
     } else {
       callbackURL = productionCallbackURL; // Fallback to production
       console.log('🎯 Using production callback URL');
     }
     
-    console.log('OAuth callback URLs configured for:');
-    console.log('  Production:', productionCallbackURL);
-    console.log('  Development:', developmentCallbackURL);
-    console.log('  Current callback URL:', callbackURL);
+    console.log('✅ Final OAuth callback URL:', callbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
