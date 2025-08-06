@@ -21,8 +21,8 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      // Redirect to Google OAuth
-      window.location.href = "/auth/google";
+      // Redirect to Google OAuth (correct API path)
+      window.location.href = "/api/auth/google";
     },
   });
 

@@ -61,7 +61,8 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **OAuth Route Conflicts Resolved** - Removed duplicate OAuth handlers, now using only Passport.js implementation
 - ✅ **Passport.js Integration Complete** - Auth endpoints now use proper Passport.js session handling
 - ✅ **Session Persistence Fixed** - Improved session configuration with forced save and longer cookie duration
-- → **Production Authentication Ready** - OAuth flow with proper session handling for blank screen fix
+- ✅ **Login Button Fixed** - Updated OAuth redirect path from /auth/google to /api/auth/google
+- → **Production Authentication Complete** - Full OAuth implementation with login page functionality
 
 # User Preferences
 

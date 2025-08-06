@@ -7,18 +7,7 @@ import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { useState, useEffect } from "react";
 
 export default function LoginPage() {
-  const login = () => {
-    // Clear any cached OAuth data and force fresh request
-    sessionStorage.clear();
-    localStorage.clear();
-    const timestamp = Date.now();
-    
-    console.log('🚀 Initiating OAuth flow...');
-    
-    // Try direct OAuth flow to test if routes work
-    window.location.href = `/api/auth/google?fresh=${timestamp}`;
-  };
-  const isLoggingIn = false;
+  const { login, isLoggingIn } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
