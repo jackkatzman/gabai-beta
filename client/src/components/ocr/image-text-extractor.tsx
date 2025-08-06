@@ -331,7 +331,7 @@ export function ImageTextExtractor() {
               <Textarea
                 value={extractedText}
                 onChange={(e) => setExtractedText(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
+                className="min-h-[200px] max-h-[400px] font-mono text-sm resize-y overflow-y-auto"
                 placeholder="Extracted text will appear here..."
               />
               <p className="text-xs text-gray-500">
