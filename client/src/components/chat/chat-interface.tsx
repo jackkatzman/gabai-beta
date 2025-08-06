@@ -54,10 +54,10 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       // Save conversation ID to localStorage
       localStorage.setItem(`gabai_conversation_${user.id}`, response.conversationId);
       
-      // Update messages cache with the new message
+      // Update messages cache with both user and assistant messages
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: Message[] = []) => [...oldMessages, response.message]
+        (oldMessages: Message[] = []) => [...oldMessages, response.userMessage, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions

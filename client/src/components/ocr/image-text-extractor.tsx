@@ -127,10 +127,10 @@ export function ImageTextExtractor() {
       return response.json();
     },
     onSuccess: (response) => {
-      // Update messages cache
+      // Update messages cache with both user and assistant messages
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: any[] = []) => [...oldMessages, response.message]
+        (oldMessages: any[] = []) => [...oldMessages, response.userMessage, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions
@@ -235,6 +235,7 @@ export function ImageTextExtractor() {
               capture="environment"
               onChange={handleCameraUpload}
               className="hidden"
+              style={{ display: 'none' }}
             />
             <div className="flex flex-col items-center space-y-4">
               <div className="flex space-x-4">
@@ -260,15 +261,13 @@ export function ImageTextExtractor() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     console.log('📸 Camera button clicked');
-                    // Force trigger the camera input immediately
+                    // Force focus and trigger camera immediately
                     if (cameraInputRef.current) {
+                      cameraInputRef.current.focus();
                       cameraInputRef.current.click();
-                      // Small delay to ensure the input is triggered
-                      setTimeout(() => {
-                        cameraInputRef.current?.click();
-                      }, 100);
                     }
                   }}
                   className="flex-1 h-12"

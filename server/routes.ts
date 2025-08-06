@@ -303,9 +303,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: msg.content
       }));
 
-      // Generate AI response
-      const aiResponse = await generatePersonalizedResponse(message, user, historyForAI);
-
       // Create conversation if needed
       let currentConversationId = conversationId;
       if (!currentConversationId) {
@@ -315,6 +312,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         currentConversationId = conversation.id;
       }
+
+      // Save user message FIRST
+      const userMessage = await storage.createMessage({
+        conversationId: currentConversationId,
+        role: "user", 
+        content: message
+      });
+
+      // Generate AI response
+      const aiResponse = await generatePersonalizedResponse(message, user, historyForAI);
 
       // Save assistant message
       const assistantMessage = await storage.createMessage({
@@ -438,16 +445,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Save user message for response
-      const userMessage = await storage.createMessage({
-        conversationId: currentConversationId,
-        role: "user",
-        content: message
-      });
-
       res.json({
         userMessage,
-        assistantMessage,
+        message: assistantMessage,
         conversationId: currentConversationId,
         suggestions: aiResponse.suggestions,
         actions: aiResponse.actions
