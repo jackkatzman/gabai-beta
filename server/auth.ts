@@ -51,6 +51,10 @@ export function setupAuth(app: Express) {
     console.log('🔒 Client Secret length:', process.env.GOOGLE_CLIENT_SECRET?.length);
     console.log('🚫 IGNORING REPLIT_DOMAINS to prevent domain concatenation');
     
+    console.log('🔧 Configuring GoogleStrategy with:');
+    console.log('   - clientID:', process.env.GOOGLE_CLIENT_ID);
+    console.log('   - callbackURL:', callbackURL);
+    
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -103,7 +107,15 @@ export function setupAuth(app: Express) {
     console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
     console.log('🔑 Using Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
     console.log('📍 Callback URL configured:', 'https://gab-ai-jack741.replit.app/api/auth/google/callback');
-    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+    
+    const authenticator = passport.authenticate('google', { 
+      scope: ['profile', 'email'],
+      accessType: 'offline',
+      prompt: 'consent'
+    });
+    
+    console.log('🔄 Calling passport.authenticate...');
+    authenticator(req, res, next);
   });
 
   app.get('/api/auth/google/callback',
