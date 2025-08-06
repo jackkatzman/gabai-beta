@@ -72,102 +72,11 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // CRITICAL: Register OAuth routes BEFORE any other middleware to prevent Vite interception
-  console.log('🔧 Registering OAuth routes at the TOP of route stack...');
+  console.log('🔧 Registering application routes...');
   
-  app.get('/api/auth/google', (req, res, next) => {
-    console.log('🚀🚀🚀 GOOGLE AUTH ROUTE HIT IN ROUTES.TS!');
-    console.log('🌐 Request URL:', req.originalUrl);
-    console.log('🔑 Client ID available:', !!process.env.GOOGLE_CLIENT_ID);
-    
-    // Redirect directly to Google OAuth with proper parameters
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const callbackUrl = encodeURIComponent('https://gab-ai-jack741.replit.app/api/auth/google/callback');
-    const scope = encodeURIComponent('profile email');
-    const googleAuthUrl = `https://accounts.google.com/oauth/authorize?client_id=${clientId}&redirect_uri=${callbackUrl}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
-    
-    console.log('🔗 Redirecting to Google:', googleAuthUrl);
-    res.redirect(googleAuthUrl);
-  });
+  // NOTE: OAuth routes are handled in auth.ts via Passport.js - no duplicate routes here
 
-  app.get('/api/auth/google/callback', async (req, res) => {
-    console.log('🎯 OAUTH CALLBACK HIT! This proves the route is working');
-    console.log('🔑 Code:', !!req.query.code);
-    console.log('📝 Query params:', req.query);
-    console.log('🍪 Session ID before auth:', (req as any).sessionID);
-    
-    try {
-      const { code } = req.query;
-      if (!code) {
-        throw new Error('No authorization code received');
-      }
-
-      // Exchange code for tokens
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: process.env.GOOGLE_CLIENT_ID!,
-          client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-          code: code as string,
-          grant_type: 'authorization_code',
-          redirect_uri: 'https://gab-ai-jack741.replit.app/api/auth/google/callback',
-        }),
-      });
-
-      const tokens = await tokenResponse.json();
-      console.log('🎫 Tokens received:', !!tokens.access_token);
-
-      // Get user profile
-      const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${tokens.access_token}` },
-      });
-      const profile = await profileResponse.json();
-      console.log('👤 Profile received:', profile.email);
-
-      // Create or get user
-      let user = await storage.getUserByEmail(profile.email);
-      if (!user) {
-        user = await storage.createUser({
-          name: profile.name || 'User',
-          email: profile.email,
-          preferences: {},
-          onboardingCompleted: false
-        });
-        console.log('✨ New user created:', user.id);
-      } else {
-        console.log('👋 Existing user found:', user.id);
-      }
-
-      // Set session data
-      console.log('🔧 Setting session for user:', user.id);
-      (req as any).session.userId = user.id;
-      (req as any).session.authenticated = true;
-      (req as any).session.user = user; // Store full user object
-      
-      console.log('📝 Session data set:', {
-        userId: (req as any).session.userId,
-        authenticated: (req as any).session.authenticated,
-        sessionID: (req as any).sessionID
-      });
-      
-      // Force session save before redirect
-      (req as any).session.save((err: any) => {
-        if (err) {
-          console.error('❌ Session save error:', err);
-          return res.redirect('/login?error=session_failed');
-        }
-        console.log('✅ Session saved successfully for user:', user.id);
-        console.log('🔄 Redirecting to home page');
-        res.redirect('/');
-      });
-    } catch (error) {
-      console.error('❌ OAuth callback error:', error);
-      res.redirect('/login?error=auth_failed');
-    }
-  });
-
-  // Auth check endpoint
+  // Auth check endpoint (using Passport.js session data)
   app.get("/api/auth/user", async (req, res) => {
     try {
       const session = (req as any).session;
