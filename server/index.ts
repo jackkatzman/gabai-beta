@@ -129,7 +129,8 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // For Autoscale compatibility, use standard listen call without reusePort
   // Autoscale sets PORT env var automatically for proper routing
-  const port = parseInt(process.env.PORT || '3000', 10);
+  // Use a random available port to avoid conflicts
+  const port = parseInt(process.env.PORT || Math.floor(Math.random() * (9999 - 3000) + 3000).toString(), 10);
   
   server.listen(port, "0.0.0.0", (error?: Error) => {
     if (error) {
