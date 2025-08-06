@@ -15,12 +15,62 @@ import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Component, type ReactNode } from "react";
+
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('React Error Boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full flex items-center justify-center p-4">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold text-red-600">Something went wrong</h1>
+            <p className="text-gray-600">The application encountered an error.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Reload Page
+            </button>
+            {this.state.error && (
+              <details className="text-left text-sm text-gray-500 mt-4">
+                <summary>Error Details</summary>
+                <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto">
+                  {this.state.error.message}
+                  {this.state.error.stack}
+                </pre>
+              </details>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 function AppContent() {
   const { user, isLoading } = useAuth();
 
   // Debug logging (remove in production)
   console.log("🔍 Auth state:", { email: user?.email, isLoading, onboardingCompleted: user?.onboardingCompleted });
+  console.log("🔍 App content rendering, user:", user, "isLoading:", isLoading);
 
   // Show loading while checking user state
   if (isLoading) {
@@ -55,23 +105,41 @@ function AppContent() {
 
   // No user - show login
   console.log("🔐 No user - showing login");
-  return <LoginPage />;
+  
+  // Temporary simplified login for debugging
+  return (
+    <div className="h-full flex items-center justify-center bg-gray-50 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center space-y-4">
+        <h1 className="text-2xl font-bold text-gray-900">Welcome to GabAi</h1>
+        <p className="text-gray-600">Your voice-first smart assistant</p>
+        <button 
+          onClick={() => window.location.href = "/auth/google"}
+          className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+        >
+          Sign in with Google
+        </button>
+        <p className="text-sm text-gray-500">Debugging: Simplified login page</p>
+      </div>
+    </div>
+  );
 }
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <UserProvider>
-            <div className="h-full font-sans antialiased bg-background text-foreground">
-              <Toaster />
-              <AppContent />
-            </div>
-          </UserProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <UserProvider>
+              <div className="h-full font-sans antialiased bg-background text-foreground">
+                <Toaster />
+                <AppContent />
+              </div>
+            </UserProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
