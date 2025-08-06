@@ -7,7 +7,10 @@ import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { useState, useEffect } from "react";
 
 export default function LoginPage() {
-  const { login, isLoggingIn } = useAuth();
+  const login = () => {
+    window.location.href = "/auth/google";
+  };
+  const isLoggingIn = false;
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
