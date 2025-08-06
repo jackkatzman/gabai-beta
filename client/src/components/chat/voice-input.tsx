@@ -45,13 +45,13 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             className="pr-12"
           />
           <Button
-            size="sm"
+            size="default"
             variant="ghost"
             onClick={handleSend}
             disabled={!message.trim() || disabled}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           </Button>
         </div>
 

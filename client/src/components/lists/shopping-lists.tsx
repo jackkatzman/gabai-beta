@@ -165,13 +165,17 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   // Voice input for adding items
   const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
-      if (selectedListId && text.trim()) {
-        // Automatically add the item to the selected list
+      console.log("Voice transcription complete:", text);
+      if (isVoiceAddingItem && selectedListId && text.trim()) {
         const category = categorizeItem(text, user);
         createItemMutation.mutate({
           listId: selectedListId,
           name: text.trim(),
-          category: category,
+          category,
+        });
+        toast({
+          title: "Item Added",
+          description: `Added "${text}" to your list`,
         });
       }
       setNewItemName("");
@@ -182,6 +186,11 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       setIsVoiceAddingItem(false);
       setSelectedListId(null);
       console.error("Voice input error:", error);
+      toast({
+        title: "Voice Error",
+        description: "Failed to record voice input. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
