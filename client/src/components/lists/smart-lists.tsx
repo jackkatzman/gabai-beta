@@ -109,7 +109,23 @@ export function SmartLists({ user }: SmartListsProps) {
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { isRecording, startRecording, stopRecording, isTranscribing } = useVoice();
+  const { isRecording, startRecording, stopRecording, isTranscribing } = useVoice({
+    onTranscriptionComplete: (text) => {
+      if (selectedListId && text.trim()) {
+        setNewItemName(text);
+        handleAddItem(selectedListId);
+      }
+      setIsVoiceAddingItem(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Voice Error", 
+        description: error,
+        variant: "destructive",
+      });
+      setIsVoiceAddingItem(false);
+    },
+  });
 
   // Get smart lists
   const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
@@ -148,12 +164,17 @@ export function SmartLists({ user }: SmartListsProps) {
 
   // Create item mutation
   const createItemMutation = useMutation({
-    mutationFn: (listId: string) => api.createListItem({
+    mutationFn: ({ listId, name, category, assignedTo }: {
+      listId: string;
+      name: string;
+      category: string;
+      assignedTo?: string;
+    }) => api.createListItem({
       listId,
-      name: newItemName,
-      category: newItemCategory,
-      priority: newItemPriority,
-      assignedTo: newItemAssignedTo || undefined,
+      name,
+      category,
+      priority: 1,
+      assignedTo: assignedTo || undefined,
       addedBy: user.name || user.id,
     }),
     onSuccess: () => {
@@ -258,14 +279,15 @@ export function SmartLists({ user }: SmartListsProps) {
       }
     }
 
-    // Set the selected list and category, then trigger mutation
+    // Set the selected list and trigger mutation directly with data
     setSelectedListId(listId);
-    setNewItemCategory(category);
     
-    // Small delay to ensure state is set
-    setTimeout(() => {
-      createItemMutation.mutate(listId);
-    }, 10);
+    createItemMutation.mutate({
+      listId,
+      name: newItemName,
+      category,
+      assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined
+    });
   };
 
   const handleVoiceAddItem = async (listId: string) => {
