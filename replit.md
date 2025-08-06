@@ -34,6 +34,9 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **Capacitor Integration** - Native mobile app framework ready for iOS/Android app stores
 - ✅ **Enhanced UI Components** - Larger send button, improved voice input with toast notifications
 - ✅ **Settings Page Authentication** - Fixed settings page with proper auth checks and loading states
+- ✅ **OCR Scrolling Fixed** - OCR page now has proper vertical scrolling for long content
+- ✅ **Settings Routing Fixed** - Settings page now loads correctly from bottom navigation
+- ✅ **Mobile Layout Improvements** - Both OCR and Settings pages properly fit within app layout
 - 🔧 **Google Cloud Console Update Required** - Need to update OAuth redirect URI to https://gabai.ai/auth/google/callback
 
 # User Preferences
