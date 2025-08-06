@@ -1,15 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Download, Smartphone } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Download, Smartphone, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { useState, useEffect } from "react";
 
 export default function LoginPage() {
-  const { login, isLoggingIn } = useAuth();
+  const { login, devLogin, isLoggingIn, isDevLoggingIn } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showDevLogin, setShowDevLogin] = useState(false);
+  const [devName, setDevName] = useState("");
+  const [devEmail, setDevEmail] = useState("");
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -43,6 +48,12 @@ export default function LoginPage() {
     } else {
       // Show Android-specific install instructions
       alert('To install GabAi on Android:\n\n1. Chrome: Tap the three dots menu (⋮) → "Add to Home screen"\n2. Edge: Tap the three dots menu → "Apps" → "Install this site as an app"\n3. Samsung Internet: Tap the menu → "Add page to" → "Home screen"\n\nThis will add GabAi as an app icon on your home screen!');
+    }
+  };
+
+  const handleDevLogin = () => {
+    if (devName.trim() && devEmail.trim()) {
+      devLogin({ name: devName.trim(), email: devEmail.trim() });
     }
   };
 
@@ -96,6 +107,62 @@ export default function LoginPage() {
               </div>
             )}
           </Button>
+
+          {/* Development login fallback */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="space-y-3">
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowDevLogin(!showDevLogin)}
+                  className="text-xs"
+                >
+                  <UserCheck className="h-3 w-3 mr-1" />
+                  Development Login
+                </Button>
+              </div>
+              
+              {showDevLogin && (
+                <div className="space-y-3 p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+                  <div className="text-xs text-yellow-700 dark:text-yellow-300 text-center">
+                    Development only - bypasses OAuth
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <Label htmlFor="dev-name" className="text-xs">Name</Label>
+                      <Input
+                        id="dev-name"
+                        value={devName}
+                        onChange={(e) => setDevName(e.target.value)}
+                        placeholder="Your name"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dev-email" className="text-xs">Email</Label>
+                      <Input
+                        id="dev-email"
+                        type="email"
+                        value={devEmail}
+                        onChange={(e) => setDevEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleDevLogin}
+                      disabled={!devName.trim() || !devEmail.trim() || isDevLoggingIn}
+                      className="w-full h-8 text-xs"
+                      size="sm"
+                    >
+                      {isDevLoggingIn ? "Signing in..." : "Sign In (Dev)"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Always show install button for debugging */}
           <div className="space-y-3">

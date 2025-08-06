@@ -21,8 +21,27 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      // Redirect to Google OAuth (correct API path)
-      window.location.href = "/api/auth/google";
+      // Use the correct OAuth endpoint that the server expects
+      window.location.href = "/api/login";
+    },
+  });
+
+  // Development fallback login
+  const devLoginMutation = useMutation({
+    mutationFn: async (credentials: { name: string; email: string }) => {
+      const response = await fetch("/api/simple-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refresh user data after successful login
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
   });
 
@@ -46,8 +65,10 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user,
     login: loginMutation.mutate,
+    devLogin: devLoginMutation.mutate,
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
+    isDevLoggingIn: devLoginMutation.isPending,
   };
 }
