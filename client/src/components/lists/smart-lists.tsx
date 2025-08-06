@@ -170,7 +170,6 @@ export function SmartLists({ user }: SmartListsProps) {
       category: string;
       assignedTo?: string;
     }) => {
-      console.log("🔄 Mutation function called with:", { listId, name, category, assignedTo });
       return api.createListItem({
         listId,
         name,
@@ -181,7 +180,6 @@ export function SmartLists({ user }: SmartListsProps) {
       });
     },
     onSuccess: () => {
-      console.log("✅ Item creation successful");
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewItemName("");
       setNewItemCategory("");
@@ -193,7 +191,6 @@ export function SmartLists({ user }: SmartListsProps) {
       });
     },
     onError: (error) => {
-      console.error("❌ Item creation failed:", error);
       toast({
         title: "Error adding item",
         description: error.message || "Failed to add item to list",
@@ -250,21 +247,10 @@ export function SmartLists({ user }: SmartListsProps) {
   };
 
   const handleAddItem = (listId: string) => {
-    console.log("🔧 handleAddItem called:", { listId, newItemName, selectedListId });
+    if (!newItemName.trim()) return;
     
-    if (!newItemName.trim()) {
-      console.log("❌ No item name provided");
-      return;
-    }
-    
-    // Set category first before mutation
     const selectedList = lists.find(list => list.id === listId);
-    if (!selectedList) {
-      console.log("❌ Selected list not found");
-      return;
-    }
-
-    console.log("✅ Selected list found:", selectedList.name, selectedList.type);
+    if (!selectedList) return;
 
     // Determine category based on item name and list type
     let category = "Other";
@@ -301,21 +287,14 @@ export function SmartLists({ user }: SmartListsProps) {
       }
     }
 
-    console.log("🏷️ Category determined:", category);
-
-    // Set the selected list and trigger mutation directly with data
     setSelectedListId(listId);
     
-    const itemData = {
+    createItemMutation.mutate({
       listId,
       name: newItemName,
       category,
       assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined
-    };
-    
-    console.log("🚀 Triggering mutation with data:", itemData);
-    
-    createItemMutation.mutate(itemData);
+    });
   };
 
   const handleVoiceAddItem = async (listId: string) => {

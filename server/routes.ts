@@ -591,6 +591,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generic list item routes (used by frontend)
+  app.post("/api/list-items", async (req, res) => {
+    try {
+      const itemData = insertListItemSchema.parse(req.body);
+      const item = await storage.createListItem(itemData);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Create list item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/list-items/:id", async (req, res) => {
+    try {
+      console.log("📝 Updating list item:", req.params.id, req.body);
+      const item = await storage.updateListItem(req.params.id, req.body);
+      console.log("✅ List item updated:", item);
+      res.json(item);
+    } catch (error: any) {
+      console.error("❌ Update list item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/list-items/:id", async (req, res) => {
+    try {
+      console.log("🗑️ Deleting list item:", req.params.id);
+      await storage.deleteListItem(req.params.id);
+      console.log("✅ List item deleted");
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("❌ Delete list item error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/shopping-items", async (req, res) => {
     try {
       const itemData = insertListItemSchema.parse(req.body);
@@ -598,6 +634,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(item);
     } catch (error: any) {
       console.error("Create shopping item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Toggle list item completion
+  app.patch("/api/list-items/:id/toggle", async (req, res) => {
+    try {
+      console.log("🔄 Toggling list item:", req.params.id);
+      const item = await storage.toggleListItem(req.params.id);
+      console.log("✅ List item toggled:", item);
+      res.json(item);
+    } catch (error: any) {
+      console.error("❌ Toggle list item error:", error);
       res.status(400).json({ message: error.message });
     }
   });
