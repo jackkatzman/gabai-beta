@@ -24,13 +24,11 @@ export default function LoginPage() {
 
     window.addEventListener('beforeinstallprompt', handler);
     
-    // For debugging - always show install option for now
+    // Always show install option for Android and other devices
     setTimeout(() => {
-      if (!showInstallPrompt) {
-        console.log('📱 PWA prompt not triggered, showing manual install option');
-        setShowInstallPrompt(true);
-      }
-    }, 2000);
+      console.log('📱 Showing install option for all devices');
+      setShowInstallPrompt(true);
+    }, 1000);
     
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -45,8 +43,8 @@ export default function LoginPage() {
       }
       setDeferredPrompt(null);
     } else {
-      // Show manual install instructions
-      alert('To install GabAi:\n\nChrome/Edge: Click the three dots menu → "Install GabAi..."\nSafari: Click Share → "Add to Home Screen"\nFirefox: Address bar → Install icon');
+      // Show Android-specific install instructions
+      alert('To install GabAi on Android:\n\n1. Chrome: Tap the three dots menu (⋮) → "Add to Home screen"\n2. Edge: Tap the three dots menu → "Apps" → "Install this site as an app"\n3. Samsung Internet: Tap the menu → "Add page to" → "Home screen"\n\nThis will add GabAi as an app icon on your home screen!');
     }
   };
 
