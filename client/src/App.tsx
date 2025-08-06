@@ -70,25 +70,14 @@ class ErrorBoundary extends Component<
 function AppContent() {
   const { user, isLoading } = useAuth();
 
-  // Debug logging (remove in production)
-  console.log("🔍 Auth state:", { email: user?.email, isLoading, onboardingCompleted: user?.onboardingCompleted });
-  console.log("🔍 App content rendering, user:", user, "isLoading:", isLoading);
+  console.log("Auth state:", { user: !!user, isLoading, onboarded: user?.onboardingCompleted });
 
-  // Show loading while checking user state
   if (isLoading) {
     return (
-      <div className="h-full flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center space-x-3">
-            <Skeleton className="w-8 h-8 rounded-full" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <Skeleton className="w-8 h-8 rounded-full" />
-        </div>
-        <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Loading...</p>
         </div>
       </div>
     );
@@ -99,14 +88,10 @@ function AppContent() {
     return <HomePage />;
   }
 
-  // If user exists but hasn't completed onboarding
   if (user && !user.onboardingCompleted) {
-    console.log("📝 User needs onboarding");
     return <OnboardingPage />;
   }
 
-  // No user - show login
-  console.log("🔐 No user - showing login");
   return <LoginPage />;
 }
 
