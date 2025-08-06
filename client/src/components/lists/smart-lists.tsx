@@ -218,7 +218,54 @@ export function SmartLists({ user }: SmartListsProps) {
 
   const handleAddItem = (listId: string) => {
     if (!newItemName.trim()) return;
-    createItemMutation.mutate(listId);
+    
+    // Set category first before mutation
+    const selectedList = lists.find(list => list.id === listId);
+    if (!selectedList) return;
+
+    // Determine category based on item name and list type
+    let category = "Other";
+    const itemName = newItemName.toLowerCase();
+    
+    if (selectedList.type === "shopping") {
+      const foodCategories = {
+        "Produce": ["apple", "banana", "orange", "lettuce", "tomato", "potato", "onion", "carrot", "spinach", "broccoli", "cucumber", "bell pepper", "mushroom", "avocado", "strawberry", "grape", "lemon", "lime", "garlic", "ginger"],
+        "Dairy": ["milk", "cheese", "yogurt", "butter", "cream", "egg", "sour cream", "cottage cheese"],
+        "Meat": ["chicken", "beef", "pork", "turkey", "fish", "salmon", "ground beef", "bacon", "sausage", "pastrami"],
+        "Pantry": ["bread", "pasta", "rice", "flour", "sugar", "oil", "salt", "pepper", "sauce", "cereal"],
+        "Snacks": ["chocolate", "twizzlers", "chips", "crackers", "nuts", "candy", "cookies"]
+      };
+      
+      for (const [cat, items] of Object.entries(foodCategories)) {
+        if (items.some(food => itemName.includes(food))) {
+          category = cat;
+          break;
+        }
+      }
+    } else if (selectedList.type === "punch_list") {
+      const punchCategories = {
+        "Plumbing": ["plumb", "pipe", "drain", "faucet", "toilet", "shower", "sink"],
+        "Electrical": ["electric", "wire", "outlet", "switch", "light", "circuit"],
+        "Painting": ["paint", "brush", "roller", "primer", "wall"],
+        "General": ["fix", "repair", "install", "replace"]
+      };
+      
+      for (const [cat, items] of Object.entries(punchCategories)) {
+        if (items.some(work => itemName.includes(work))) {
+          category = cat;
+          break;
+        }
+      }
+    }
+
+    // Set the selected list and category, then trigger mutation
+    setSelectedListId(listId);
+    setNewItemCategory(category);
+    
+    // Small delay to ensure state is set
+    setTimeout(() => {
+      createItemMutation.mutate(listId);
+    }, 10);
   };
 
   const handleVoiceAddItem = async (listId: string) => {

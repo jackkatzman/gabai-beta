@@ -89,6 +89,10 @@ export function useVoice(options: UseVoiceOptions = {}) {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
+    // Also cleanup streams immediately
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
   }, []);
 
   const toggleRecording = useCallback(() => {
