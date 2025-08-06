@@ -41,12 +41,10 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure Google OAuth strategy
+  // Configure Google OAuth strategy with ONLY the working Replit domain
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Use ONLY the actual browser domain - no fallbacks or multiple URLs
     const callbackURL = `https://gab-ai-jack741.replit.app/auth/google/callback`;
-    
-    console.log('🎯 OAuth callback URL:', callbackURL);
+    console.log('🎯 Single OAuth callback URL:', callbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
