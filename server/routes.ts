@@ -72,19 +72,7 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Google OAuth routes
-  app.get("/auth/google", passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
-  }));
-
-  app.get("/auth/google/callback", 
-    passport.authenticate('google', { failureRedirect: "/" }),
-    (req, res) => {
-      // Successful authentication, redirect to home
-      console.log("✅ Google OAuth successful, redirecting to app");
-      res.redirect("/");
-    }
-  );
+  // OAuth routes are handled in auth.ts - no duplicates needed here
 
   // Simple login endpoint (dev/testing only)
   app.post("/api/simple-login", async (req, res) => {
