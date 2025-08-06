@@ -27,7 +27,7 @@ export function setupAuth(app: Express) {
     resave: true, // Force session save to store
     saveUninitialized: false,
     rolling: true, // Reset expiration on activity
-    name: 'gabai.sid', // Custom session name
+    name: 'gabai.session', // Custom session name - force new sessions
     cookie: {
       secure: isSecure || false, // Use secure cookies only in production/Replit
       httpOnly: true,
