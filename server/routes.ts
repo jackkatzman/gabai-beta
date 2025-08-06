@@ -99,22 +99,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logout endpoint (using Passport.js)
-  app.post("/api/auth/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        console.error('Logout error:', err);
-        return res.status(500).json({ message: 'Logout failed' });
-      }
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error('Session destroy error:', sessionErr);
-        }
-        res.json({ message: 'Logged out successfully' });
-      });
-    });
-  });
-
   // Simple login endpoint (dev/testing only)
   app.post("/api/simple-login", async (req, res) => {
     // Only allow in development
@@ -158,20 +142,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
-    console.log("🚪 Logout request received");
     req.logout((err) => {
       if (err) {
         console.error("Logout error:", err);
         return res.status(500).json({ message: "Logout failed" });
       }
       
-      // Destroy session completely
       req.session.destroy((err) => {
         if (err) {
           console.error("Session destroy error:", err);
           return res.status(500).json({ message: "Session destroy failed" });
         }
-        console.log("✅ User logged out successfully");
         res.json({ message: "Logged out successfully" });
       });
     });
