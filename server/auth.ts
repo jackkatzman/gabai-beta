@@ -48,15 +48,12 @@ export function setupAuth(app: Express) {
     const developmentCallbackURL = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
     
     // Determine the correct callback URL based on environment
-    let callbackURL = productionCallbackURL;
+    let callbackURL = productionCallbackURL; // Use production URL for now to test with existing OAuth setup
     
-    // Check if we're on Replit deployment (has REPLIT_DOMAINS)
-    if (process.env.REPLIT_DOMAINS) {
-      callbackURL = `https://${process.env.REPLIT_DOMAINS}/auth/google/callback`;
-    } else if (process.env.NODE_ENV !== 'production') {
-      // Use development URL for local development
-      callbackURL = developmentCallbackURL;
-    }
+    // For deployment, you would switch to:
+    // if (process.env.REPLIT_DOMAINS) {
+    //   callbackURL = `https://${process.env.REPLIT_DOMAINS}/auth/google/callback`;
+    // }
     
     console.log('OAuth callback URLs configured for:');
     console.log('  Production:', productionCallbackURL);
