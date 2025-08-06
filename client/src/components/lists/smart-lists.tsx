@@ -195,6 +195,22 @@ export function SmartLists({ user }: SmartListsProps) {
     },
   });
 
+  // Toggle item completion mutation
+  const toggleItemMutation = useMutation({
+    mutationFn: (itemId: string) => api.toggleListItem(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+    },
+  });
+
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: (itemId: string) => api.deleteListItem(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+    },
+  });
+
   const handleCreateList = () => {
     if (!newListName.trim()) return;
     createListMutation.mutate();
@@ -210,16 +226,19 @@ export function SmartLists({ user }: SmartListsProps) {
     setSelectedListId(listId);
     
     try {
-      startRecording();
-      // Voice recording handled by useVoice hook
-      // Transcript will be available via onTranscriptionComplete callback
+      if (isRecording) {
+        // Stop recording if already recording
+        stopRecording();
+      } else {
+        // Start recording
+        startRecording();
+      }
     } catch (error) {
       toast({
         title: "Voice Error",
         description: "Failed to record voice input",
         variant: "destructive",
       });
-    } finally {
       setIsVoiceAddingItem(false);
     }
   };
@@ -470,7 +489,13 @@ export function SmartLists({ user }: SmartListsProps) {
                           setNewItemName(e.target.value);
                         }}
                         placeholder="Add new item..."
-                        className="flex-1"
+                        className="flex-1 text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && newItemName.trim()) {
+                            e.preventDefault();
+                            handleAddItem(list.id);
+                          }
+                        }}
                       />
                       <Select 
                         value={selectedListId === list.id ? newItemCategory : ""} 
@@ -544,7 +569,7 @@ export function SmartLists({ user }: SmartListsProps) {
                                 <Checkbox
                                   checked={item.completed ?? false}
                                   onCheckedChange={(checked) => {
-                                    // TODO: Implement toggle item
+                                    toggleItemMutation.mutate(item.id);
                                   }}
                                 />
                                 <div className="flex-1">
@@ -571,7 +596,7 @@ export function SmartLists({ user }: SmartListsProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    // TODO: Implement delete item
+                                    deleteItemMutation.mutate(item.id);
                                   }}
                                 >
                                   <Trash2 className="h-4 w-4" />

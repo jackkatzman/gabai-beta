@@ -269,6 +269,30 @@ export class DatabaseStorage implements IStorage {
     await db.delete(listItems).where(eq(listItems.id, id));
   }
 
+  async toggleListItem(id: string): Promise<ListItem> {
+    // Get the current item
+    const [currentItem] = await db
+      .select()
+      .from(listItems)
+      .where(eq(listItems.id, id));
+    
+    if (!currentItem) {
+      throw new Error("List item not found");
+    }
+
+    // Toggle completed status
+    const [item] = await db
+      .update(listItems)
+      .set({ 
+        completed: !currentItem.completed,
+        updatedAt: new Date() 
+      })
+      .where(eq(listItems.id, id))
+      .returning();
+    
+    return item;
+  }
+
   // Reminder operations
   async getReminders(userId: string): Promise<Reminder[]> {
     return await db

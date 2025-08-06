@@ -178,6 +178,11 @@ export const api = {
     await apiRequest(`/api/list-items/${id}`, "DELETE");
   },
 
+  async toggleListItem(id: string): Promise<ListItem> {
+    const response = await apiRequest(`/api/list-items/${id}/toggle`, "PATCH");
+    return response.json();
+  },
+
   // Backward compatibility aliases
   async getShoppingLists(userId: string): Promise<(ShoppingList & { items: ShoppingItem[] })[]> {
     return this.getSmartLists(userId);

@@ -841,6 +841,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle list item completion
+  app.patch("/api/list-items/:id/toggle", async (req, res) => {
+    try {
+      const item = await storage.toggleListItem(req.params.id);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Toggle list item error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.delete("/api/list-items/:id", async (req, res) => {
     try {
       await storage.deleteListItem(req.params.id);
