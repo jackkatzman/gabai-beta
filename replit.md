@@ -52,7 +52,8 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **React Hooks Error Fixed** - Resolved invalid hook call errors preventing login page display
 - ✅ **Login Page Working** - Clean login interface with OAuth callback configured for existing gabai.ai setup
 - ✅ **Server Port Conflicts Resolved** - Fixed EADDRINUSE errors and server startup issues
-- 🔧 **Ready for Authentication Testing** - All components working, pending Google OAuth verification
+- 🔧 **OAuth Issue Identified** - Google OAuth client shows "Floater" references indicating old project association, needs fresh OAuth client setup
+- 🔧 **OAuth Compliance Error** - Current client doesn't comply with Google's OAuth 2.0 policy, requires proper Google Cloud project configuration
 
 # User Preferences
 
