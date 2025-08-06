@@ -47,14 +47,26 @@ export function setupAuth(app: Express) {
     const productionCallbackURL = "https://gabai.ai/auth/google/callback";
     const developmentCallbackURL = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
     
+    // Determine the correct callback URL based on environment
+    let callbackURL = productionCallbackURL;
+    
+    // Check if we're on Replit deployment (has REPLIT_DOMAINS)
+    if (process.env.REPLIT_DOMAINS) {
+      callbackURL = `https://${process.env.REPLIT_DOMAINS}/auth/google/callback`;
+    } else if (process.env.NODE_ENV !== 'production') {
+      // Use development URL for local development
+      callbackURL = developmentCallbackURL;
+    }
+    
     console.log('OAuth callback URLs configured for:');
     console.log('  Production:', productionCallbackURL);
     console.log('  Development:', developmentCallbackURL);
+    console.log('  Current callback URL:', callbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: productionCallbackURL // Use production URL for now
+      callbackURL: callbackURL
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user exists
