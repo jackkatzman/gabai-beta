@@ -16,7 +16,7 @@ export function setupAuth(app: Express) {
   const isSecure = process.env.NODE_ENV === 'production' || 
                    (process.env.REPLIT_DOMAINS && process.env.REPLIT_DOMAINS.includes('.replit.dev'));
 
-  console.log('🍪 Cookie secure setting:', isSecure);
+  console.log('🍪 Cookie secure setting:', false);
   console.log('🌐 Environment:', process.env.NODE_ENV);
   console.log('🔗 Domains:', process.env.REPLIT_DOMAINS);
 
@@ -24,8 +24,8 @@ export function setupAuth(app: Express) {
   app.use(session({
     store: sessionStore,
     secret: process.env.SESSION_SECRET || 'gabai-dev-secret-change-in-production',
-    resave: true, // Force session save to store
-    saveUninitialized: false,
+    resave: false, // Don't save unchanged sessions
+    saveUninitialized: true, // Save empty sessions
     rolling: true, // Reset expiration on activity
     name: 'gabai.session', // Custom session name - force new sessions
     cookie: {

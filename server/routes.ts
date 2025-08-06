@@ -89,9 +89,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/auth/google/callback', async (req, res) => {
-    console.log('🎯 OAuth callback received');
+    console.log('🎯 OAUTH CALLBACK HIT! This proves the route is working');
     console.log('🔑 Code:', !!req.query.code);
     console.log('📝 Query params:', req.query);
+    console.log('🍪 Session ID before auth:', (req as any).sessionID);
     
     try {
       const { code } = req.query;
@@ -136,9 +137,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('👋 Existing user found:', user.id);
       }
 
-      // Set session with proper save
+      // Set session data
+      console.log('🔧 Setting session for user:', user.id);
       (req as any).session.userId = user.id;
       (req as any).session.authenticated = true;
+      (req as any).session.user = user; // Store full user object
+      
+      console.log('📝 Session data set:', {
+        userId: (req as any).session.userId,
+        authenticated: (req as any).session.authenticated,
+        sessionID: (req as any).sessionID
+      });
       
       // Force session save before redirect
       (req as any).session.save((err: any) => {
@@ -147,6 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.redirect('/login?error=session_failed');
         }
         console.log('✅ Session saved successfully for user:', user.id);
+        console.log('🔄 Redirecting to home page');
         res.redirect('/');
       });
     } catch (error) {
@@ -159,9 +169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/user", async (req, res) => {
     try {
       const session = (req as any).session;
-      console.log('🔍 Auth check - Session:', !!session);
+      console.log('🔍 Auth check - Session exists:', !!session);
+      console.log('🔍 Auth check - Session ID:', (req as any).sessionID);
       console.log('🔍 Auth check - User ID:', session?.userId);
       console.log('🔍 Auth check - Authenticated:', session?.authenticated);
+      console.log('🔍 Auth check - Full session:', Object.keys(session || {}));
       
       if (!session?.authenticated || !session?.userId) {
         return res.status(401).json({ message: "Not authenticated" });
