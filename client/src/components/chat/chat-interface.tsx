@@ -54,10 +54,10 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       // Save conversation ID to localStorage
       localStorage.setItem(`gabai_conversation_${user.id}`, response.conversationId);
       
-      // Update messages cache with both user and assistant messages
+      // Update messages cache with the new message
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: Message[] = []) => [...oldMessages, response.userMessage, response.assistantMessage]
+        (oldMessages: Message[] = []) => [...oldMessages, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions
@@ -103,12 +103,11 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
           <MessageBubble
             message={{
               id: 'welcome',
-              content: `Hi ${user.name}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?`,
+              content: `Hi ${user.firstName || 'there'}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?`,
               role: 'assistant',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              createdAt: new Date(),
               conversationId: '',
-              userId: ''
+              audioUrl: null
             }}
             isUser={false}
           />

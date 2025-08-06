@@ -130,7 +130,7 @@ export function ImageTextExtractor() {
       // Update messages cache
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: any[] = []) => [...oldMessages, response.userMessage, response.assistantMessage]
+        (oldMessages: any[] = []) => [...oldMessages, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions
@@ -260,7 +260,10 @@ export function ImageTextExtractor() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={() => {
+                    console.log('📸 Camera button clicked');
+                    cameraInputRef.current?.click();
+                  }}
                   className="flex-1 h-12"
                 >
                   <Camera className="h-4 w-4 mr-2" />

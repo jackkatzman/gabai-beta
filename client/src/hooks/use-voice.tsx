@@ -93,11 +93,11 @@ export function useVoice(options: UseVoiceOptions = {}) {
 
   const toggleRecording = useCallback(() => {
     if (isRecording || isTranscribing) {
-      cleanup(); // Force cleanup when toggling off
+      stopRecording(); // Proper stop instead of force cleanup
     } else {
       startRecording();
     }
-  }, [isRecording, isTranscribing, startRecording, cleanup]);
+  }, [isRecording, isTranscribing, startRecording, stopRecording]);
 
   // Cleanup on unmount
   useEffect(() => {
