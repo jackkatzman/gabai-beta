@@ -25,15 +25,15 @@ export function setupAuth(app: Express) {
     store: sessionStore,
     secret: process.env.SESSION_SECRET || 'gabai-dev-secret-change-in-production',
     resave: false, // Don't save unchanged sessions
-    saveUninitialized: true, // Save empty sessions
+    saveUninitialized: false, // Don't save empty sessions
     rolling: true, // Reset expiration on activity
-    name: 'gabai.session', // Custom session name - force new sessions
+    name: 'gabai.sid', // Simple session name
     cookie: {
       secure: false, // Disable secure for debugging OAuth issues
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      domain: undefined, // Let browser determine domain
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for better persistence
+      path: '/', // Ensure cookie works for all paths
     }
   }));
 
@@ -159,15 +159,25 @@ export function setupAuth(app: Express) {
       console.log('✅ Session ID:', req.sessionID);
       console.log('✅ Is authenticated:', req.isAuthenticated());
       
-      // Check if user needs onboarding
-      const user = req.user as any;
-      if (user && !user.onboardingCompleted) {
-        console.log('🔄 User needs onboarding, redirecting...');
-        res.redirect('/onboarding');
-      } else {
-        console.log('🏠 User completed onboarding, redirecting to home...');
-        res.redirect('/');
-      }
+      // Force session save before redirect to ensure persistence
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('❌ Session save error:', saveErr);
+          return res.redirect('/?error=session_save_failed');
+        }
+        
+        console.log('💾 Session saved successfully');
+        
+        // Check if user needs onboarding
+        const user = req.user as any;
+        if (user && !user.onboardingCompleted) {
+          console.log('🔄 User needs onboarding, redirecting...');
+          res.redirect('/?onboarding=true');
+        } else {
+          console.log('🏠 User completed onboarding, redirecting to home...');
+          res.redirect('/?auth=success');
+        }
+      });
     });
   });
 
