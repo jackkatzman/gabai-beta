@@ -135,27 +135,38 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // For Autoscale compatibility, use standard listen call without reusePort
   // Autoscale sets PORT env var automatically for proper routing
-  const port = parseInt(process.env.PORT || '8080', 10);
+  // Use dynamic port selection to avoid conflicts
+  const basePort = parseInt(process.env.PORT || '3000', 10);
   
-  server.listen(port, "0.0.0.0", (error?: Error) => {
-    if (error) {
-      if (error.message.includes('EADDRINUSE')) {
-        console.error(`❌ Port ${port} is already in use. Trying to kill existing process...`);
-        process.exit(1);
-      } else {
-        console.error('❌ Failed to start server:', error);
-        process.exit(1);
-      }
+  const startServer = (port: number, attempts = 0): void => {
+    if (attempts > 10) {
+      console.error('❌ Could not find available port after 10 attempts');
+      process.exit(1);
     }
-    log(`serving on port ${port}`);
     
-    // Log OAuth configuration status
-    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-      console.log('✅ OAuth configuration detected');
-    } else {
-      console.log('⚠️  OAuth not configured - Google login will not work');
-    }
-  });
+    server.listen(port, "0.0.0.0", (error?: Error) => {
+      if (error) {
+        if (error.message.includes('EADDRINUSE')) {
+          console.log(`⚠️ Port ${port} in use, trying ${port + 1}...`);
+          startServer(port + 1, attempts + 1);
+        } else {
+          console.error('❌ Failed to start server:', error);
+          process.exit(1);
+        }
+      } else {
+        log(`serving on port ${port}`);
+        
+        // Log OAuth configuration status
+        if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+          console.log('✅ OAuth configuration detected');
+        } else {
+          console.log('⚠️  OAuth not configured - Google login will not work');
+        }
+      }
+    });
+  };
+  
+  startServer(basePort);
   
   } catch (error) {
     console.error('❌ Failed to initialize application:', error);

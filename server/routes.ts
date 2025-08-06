@@ -72,7 +72,117 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // OAuth routes are handled in auth.ts - no duplicates needed here
+  // Add OAuth routes first to ensure they're registered before Vite middleware
+  app.get('/api/auth/google', (req, res, next) => {
+    console.log('🚀 OAuth route accessed directly in routes.ts');
+    console.log('🌐 Request URL:', req.originalUrl);
+    console.log('🔑 Client ID available:', !!process.env.GOOGLE_CLIENT_ID);
+    
+    // Redirect directly to Google OAuth with proper parameters
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const callbackUrl = encodeURIComponent('https://gab-ai-jack741.replit.app/api/auth/google/callback');
+    const scope = encodeURIComponent('profile email');
+    const googleAuthUrl = `https://accounts.google.com/oauth/authorize?client_id=${clientId}&redirect_uri=${callbackUrl}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
+    
+    console.log('🔗 Redirecting to Google:', googleAuthUrl);
+    res.redirect(googleAuthUrl);
+  });
+
+  app.get('/api/auth/google/callback', async (req, res) => {
+    console.log('🎯 OAuth callback received');
+    console.log('🔑 Code:', !!req.query.code);
+    console.log('📝 Query params:', req.query);
+    
+    try {
+      const { code } = req.query;
+      if (!code) {
+        throw new Error('No authorization code received');
+      }
+
+      // Exchange code for tokens
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: process.env.GOOGLE_CLIENT_ID!,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+          code: code as string,
+          grant_type: 'authorization_code',
+          redirect_uri: 'https://gab-ai-jack741.replit.app/api/auth/google/callback',
+        }),
+      });
+
+      const tokens = await tokenResponse.json();
+      console.log('🎫 Tokens received:', !!tokens.access_token);
+
+      // Get user profile
+      const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      const profile = await profileResponse.json();
+      console.log('👤 Profile received:', profile.email);
+
+      // Create or get user
+      let user = await storage.getUserByEmail(profile.email);
+      if (!user) {
+        user = await storage.createUser({
+          name: profile.name || 'User',
+          email: profile.email,
+          preferences: {},
+          onboardingCompleted: false
+        });
+        console.log('✨ New user created:', user.id);
+      } else {
+        console.log('👋 Existing user found:', user.id);
+      }
+
+      // Set session
+      (req as any).session.userId = user.id;
+      (req as any).session.authenticated = true;
+      
+      console.log('✅ Authentication successful, redirecting to app');
+      res.redirect('/');
+    } catch (error) {
+      console.error('❌ OAuth callback error:', error);
+      res.redirect('/login?error=auth_failed');
+    }
+  });
+
+  // Auth check endpoint
+  app.get("/api/auth/user", async (req, res) => {
+    try {
+      const session = (req as any).session;
+      console.log('🔍 Auth check - Session:', !!session);
+      console.log('🔍 Auth check - User ID:', session?.userId);
+      console.log('🔍 Auth check - Authenticated:', session?.authenticated);
+      
+      if (!session?.authenticated || !session?.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(session.userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      console.log('✅ User authenticated:', user.email);
+      res.json(user);
+    } catch (error) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    (req as any).session.destroy((err: any) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.json({ message: 'Logged out successfully' });
+    });
+  });
 
   // Simple login endpoint (dev/testing only)
   app.post("/api/simple-login", async (req, res) => {
