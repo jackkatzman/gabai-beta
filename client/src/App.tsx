@@ -105,23 +105,7 @@ function AppContent() {
 
   // No user - show login
   console.log("🔐 No user - showing login");
-  
-  // Temporary simplified login for debugging
-  return (
-    <div className="h-full flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center space-y-4">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome to GabAi</h1>
-        <p className="text-gray-600">Your voice-first smart assistant</p>
-        <button 
-          onClick={() => window.location.href = "/auth/google"}
-          className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-        >
-          Sign in with Google
-        </button>
-        <p className="text-sm text-gray-500">Debugging: Simplified login page</p>
-      </div>
-    </div>
-  );
+  return <LoginPage />;
 }
 
 function App() {
