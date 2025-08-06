@@ -22,6 +22,19 @@ app.use((req, res, next) => {
 // Setup authentication before routes
 setupAuth(app);
 
+// CRITICAL: Add OAuth routes immediately after auth setup, before any other middleware
+console.log('🔧 Adding OAuth routes BEFORE all other middleware...');
+app.get('/api/auth/google', (req, res) => {
+  console.log('🚀🚀🚀 OAUTH ROUTE HIT DIRECTLY IN INDEX.TS!');
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const callbackUrl = encodeURIComponent('https://gab-ai-jack741.replit.app/api/auth/google/callback');
+  const scope = encodeURIComponent('profile email');
+  const googleAuthUrl = `https://accounts.google.com/oauth/authorize?client_id=${clientId}&redirect_uri=${callbackUrl}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
+  
+  console.log('🔗 Redirecting to Google:', googleAuthUrl);
+  res.redirect(googleAuthUrl);
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -138,17 +151,31 @@ app.use((req, res, next) => {
   // Use dynamic port selection to avoid conflicts
   const basePort = parseInt(process.env.PORT || '8080', 10);
   
+  // Kill any existing processes on common ports
+  const killExistingProcesses = () => {
+    try {
+      require('child_process').execSync('pkill -f "tsx.*server" || true', { stdio: 'ignore' });
+      require('child_process').execSync('pkill -f "node.*server" || true', { stdio: 'ignore' });
+    } catch (e) {
+      // Ignore errors
+    }
+  };
+  
   const startServer = (port: number, attempts = 0): void => {
-    if (attempts > 10) {
-      console.error('❌ Could not find available port after 10 attempts');
+    if (attempts > 15) {
+      console.error('❌ Could not find available port after 15 attempts');
       process.exit(1);
     }
     
-    server.listen(port, "0.0.0.0", (error?: Error) => {
+    if (attempts === 0) {
+      killExistingProcesses();
+    }
+    
+    const serverInstance = server.listen(port, "0.0.0.0", (error?: Error) => {
       if (error) {
         if (error.message.includes('EADDRINUSE')) {
           console.log(`⚠️ Port ${port} in use, trying ${port + 1}...`);
-          startServer(port + 1, attempts + 1);
+          setTimeout(() => startServer(port + 1, attempts + 1), 1000);
         } else {
           console.error('❌ Failed to start server:', error);
           process.exit(1);
@@ -162,6 +189,13 @@ app.use((req, res, next) => {
         } else {
           console.log('⚠️  OAuth not configured - Google login will not work');
         }
+      }
+    });
+    
+    serverInstance.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        console.log(`⚠️ Port ${port} in use, trying ${port + 1}...`);
+        setTimeout(() => startServer(port + 1, attempts + 1), 1000);
       }
     });
   };

@@ -72,7 +72,9 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add OAuth routes first to ensure they're registered before Vite middleware
+  // CRITICAL: Register OAuth routes BEFORE any other middleware to prevent Vite interception
+  console.log('🔧 Registering OAuth routes at the TOP of route stack...');
+  
   app.get('/api/auth/google', (req, res, next) => {
     console.log('🚀🚀🚀 GOOGLE AUTH ROUTE HIT IN ROUTES.TS!');
     console.log('🌐 Request URL:', req.originalUrl);
