@@ -16,6 +16,7 @@ export function ImageTextExtractor() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -73,6 +74,13 @@ export function ImageTextExtractor() {
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleCameraUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       handleFileSelect(file);
@@ -220,16 +228,44 @@ export function ImageTextExtractor() {
               onChange={handleFileUpload}
               className="hidden"
             />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleCameraUpload}
+              className="hidden"
+            />
             <div className="flex flex-col items-center space-y-4">
               <div className="flex space-x-4">
                 <Upload className="h-8 w-8 text-gray-400" />
                 <Camera className="h-8 w-8 text-gray-400" />
               </div>
               <div>
-                <p className="text-lg font-medium">Drop an image here or click to upload</p>
+                <p className="text-lg font-medium">Drop an image here or use options below</p>
                 <p className="text-sm text-gray-500">
                   Supports JPG, PNG, and other image formats
                 </p>
+              </div>
+              
+              {/* Upload and Camera Options */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 h-12"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Choose File
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex-1 h-12"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Take Photo
+                </Button>
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
                 <Badge variant="secondary">Shopping Lists</Badge>

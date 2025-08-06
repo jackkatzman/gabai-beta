@@ -1,10 +1,38 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Download, Smartphone } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { useState, useEffect } from "react";
 
 export default function LoginPage() {
   const { login, isLoggingIn } = useAuth();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowInstallPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -56,6 +84,28 @@ export default function LoginPage() {
               </div>
             )}
           </Button>
+          
+          {showInstallPrompt && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-center space-x-2">
+                <Smartphone className="h-4 w-4 text-blue-600" />
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Install Available
+                </Badge>
+              </div>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleInstallClick}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Install GabAi App
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Install for faster access and offline support
+              </p>
+            </div>
+          )}
           
           <div className="text-center text-sm text-muted-foreground">
             <p>Sign in to sync your data across all devices</p>
