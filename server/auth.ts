@@ -43,23 +43,10 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Support both production and development callback URLs
-    const productionCallbackURL = "https://gabai.ai/auth/google/callback";
-    const developmentCallbackURL = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/google/callback`;
+    // Use ONLY the actual browser domain - no fallbacks or multiple URLs
+    const callbackURL = `https://gab-ai-jack741.replit.app/auth/google/callback`;
     
-    // Determine the correct callback URL based on environment
-    let callbackURL;
-    
-    // Fix: Use only ONE domain for OAuth callback
-    // The error shows it's trying to use multiple domains in the callback URL
-    // We need to use the actual deployed domain, not multiple domains
-    
-    // The error shows the browser is using gab-ai-jack741.replit.app
-    // Let's configure for the actual domain the browser sees
-    callbackURL = `https://gab-ai-jack741.replit.app/auth/google/callback`;
-    console.log('🎯 Using actual browser domain for OAuth');
-    
-    console.log('✅ Final OAuth callback URL:', callbackURL);
+    console.log('🎯 OAuth callback URL:', callbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
