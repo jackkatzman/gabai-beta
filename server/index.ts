@@ -63,6 +63,10 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Serve static files for PWA (manifest, service worker)
+  app.use('/manifest.json', express.static('./public/manifest.json'));
+  app.use('/sw.js', express.static('./public/sw.js'));
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes

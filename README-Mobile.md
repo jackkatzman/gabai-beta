@@ -25,9 +25,12 @@ npm run build        # Build PWA
 
 ### For Mobile App Development  
 ```bash
-npm run build:mobile # Build and sync to Capacitor
-npm run build:ios    # Open iOS project in Xcode
-npm run build:android # Open Android project in Android Studio
+npm run build        # Build the web app
+npx cap sync         # Sync changes to Capacitor
+npx cap add ios      # Add iOS platform (first time)
+npx cap add android  # Add Android platform (first time)
+npx cap open ios     # Open iOS project in Xcode
+npx cap open android # Open Android project in Android Studio
 ```
 
 ## PWA Features Implemented

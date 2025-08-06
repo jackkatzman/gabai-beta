@@ -1,0 +1,37 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'ai.gabai.app',
+  appName: 'GabAi',
+  webDir: 'dist/public',
+  server: {
+    androidScheme: 'https'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 3000,
+      launchAutoHide: true,
+      backgroundColor: "#3b82f6",
+      showSpinner: true,
+      spinnerColor: "#ffffff"
+    },
+    StatusBar: {
+      style: 'dark'
+    },
+    Keyboard: {}
+  },
+  ios: {
+    contentInset: 'automatic'
+  },
+  android: {
+    buildOptions: {
+      keystoreFile: '',
+      keystorePassword: '',
+      keystoreAlias: '',
+      keystoreAliasPassword: '',
+      releaseType: 'AAB'
+    }
+  }
+};
+
+export default config;
