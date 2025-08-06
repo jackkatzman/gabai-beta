@@ -5,6 +5,7 @@ import { RemindersPage } from "@/components/reminders/reminders-page";
 import { CalendarPage } from "@/components/calendar/calendar-page";
 import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
+import SettingsPage from "@/pages/settings";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -49,8 +50,7 @@ export default function HomePage() {
       case "/reminders":
         return <RemindersPage user={user} />;
       case "/settings":
-        // Settings is handled by a separate route in App.tsx
-        return <ChatInterface user={user} />;
+        return <SettingsPage />;
       case "/ocr":
       case "/text-extractor":
         return <OCRPage />;
