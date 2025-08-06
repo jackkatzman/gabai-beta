@@ -67,7 +67,15 @@ export function useVoice(options: UseVoiceOptions = {}) {
             variant: "destructive",
           });
         } finally {
-          cleanup();
+          // Clean up streams and reset states
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+          }
+          mediaRecorderRef.current = null;
+          chunksRef.current = [];
+          setIsRecording(false);
+          setIsTranscribing(false);
         }
       });
 
