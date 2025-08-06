@@ -103,7 +103,7 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
           <MessageBubble
             message={{
               id: 'welcome',
-              content: `Hi ${user.firstName || 'there'}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?`,
+              content: `Hi ${user.name || 'there'}! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?`,
               role: 'assistant',
               createdAt: new Date(),
               conversationId: '',

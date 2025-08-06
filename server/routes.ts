@@ -831,15 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/smart-lists/:id/share", async (req, res) => {
-    try {
-      const shareCode = await storage.shareList(req.params.id);
-      res.json({ shareCode });
-    } catch (error: any) {
-      console.error("Share list error:", error);
-      res.status(500).json({ message: error.message });
-    }
-  });
+
 
   app.post("/api/smart-lists/join", async (req, res) => {
     try {
@@ -892,7 +884,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/smart-lists/:id/share", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log('🔗 Sharing list with ID:', id);
       const shareCode = await storage.shareSmartList(id);
+      console.log('🔗 Generated share code:', shareCode);
       res.json({ shareCode });
     } catch (error) {
       console.error("Share list error:", error);

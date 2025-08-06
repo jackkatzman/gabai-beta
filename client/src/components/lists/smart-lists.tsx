@@ -210,21 +210,9 @@ export function SmartLists({ user }: SmartListsProps) {
     setSelectedListId(listId);
     
     try {
-      await startRecording();
-      const transcript = await stopRecording();
-      if (transcript) {
-        setNewItemName(transcript);
-        // Auto-detect category based on transcript
-        const list = lists.find(l => l.id === listId);
-        if (list?.categories) {
-          const detectedCategory = list.categories.find(cat => 
-            transcript.toLowerCase().includes(cat.toLowerCase())
-          );
-          if (detectedCategory) {
-            setNewItemCategory(detectedCategory);
-          }
-        }
-      }
+      startRecording();
+      // Voice recording handled by useVoice hook
+      // Transcript will be available via onTranscriptionComplete callback
     } catch (error) {
       toast({
         title: "Voice Error",
@@ -444,14 +432,24 @@ export function SmartLists({ user }: SmartListsProps) {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {list.isShared && (
+                      {list.isShared ? (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => copyShareLink(list.shareCode!)}
                         >
                           <Share2 className="h-4 w-4 mr-1" />
-                          Share
+                          Copy Link
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => shareListMutation.mutate(list.id)}
+                          disabled={shareListMutation.isPending}
+                        >
+                          <Share2 className="h-4 w-4 mr-1" />
+                          {shareListMutation.isPending ? "Sharing..." : "Share"}
                         </Button>
                       )}
                       <Badge variant="outline" className="text-xs">
@@ -544,7 +542,7 @@ export function SmartLists({ user }: SmartListsProps) {
                                 }`}
                               >
                                 <Checkbox
-                                  checked={item.completed}
+                                  checked={item.completed ?? false}
                                   onCheckedChange={(checked) => {
                                     // TODO: Implement toggle item
                                   }}
@@ -564,9 +562,9 @@ export function SmartLists({ user }: SmartListsProps) {
                                     </p>
                                   )}
                                 </div>
-                                {item.priority > 1 && (
+                                {(item.priority || 1) > 1 && (
                                   <Badge variant="outline" className="text-xs">
-                                    Priority {item.priority}
+                                    Priority {item.priority || 1}
                                   </Badge>
                                 )}
                                 <Button
