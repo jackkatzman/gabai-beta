@@ -16,6 +16,7 @@ import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Component, type ReactNode } from "react";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -112,14 +113,16 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <UserProvider>
-            <div className="h-full font-sans antialiased bg-background text-foreground">
-              <Toaster />
-              <AppContent />
-            </div>
-          </UserProvider>
-        </TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <UserProvider>
+              <div className="h-full font-sans antialiased bg-background text-foreground">
+                <Toaster />
+                <AppContent />
+              </div>
+            </UserProvider>
+          </TooltipProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
