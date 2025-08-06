@@ -17,24 +17,37 @@ export default function LoginPage() {
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
+      console.log('🎯 PWA install prompt available!');
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    
+    // For debugging - always show install option for now
+    setTimeout(() => {
+      if (!showInstallPrompt) {
+        console.log('📱 PWA prompt not triggered, showing manual install option');
+        setShowInstallPrompt(true);
+      }
+    }, 2000);
+    
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setShowInstallPrompt(false);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        setShowInstallPrompt(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      // Show manual install instructions
+      alert('To install GabAi:\n\nChrome/Edge: Click the three dots menu → "Install GabAi..."\nSafari: Click Share → "Add to Home Screen"\nFirefox: Address bar → Install icon');
     }
-    setDeferredPrompt(null);
   };
 
   return (
