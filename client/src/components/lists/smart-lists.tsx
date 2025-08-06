@@ -169,15 +169,19 @@ export function SmartLists({ user }: SmartListsProps) {
       name: string;
       category: string;
       assignedTo?: string;
-    }) => api.createListItem({
-      listId,
-      name,
-      category,
-      priority: 1,
-      assignedTo: assignedTo || undefined,
-      addedBy: user.name || user.id,
-    }),
+    }) => {
+      console.log("🔄 Mutation function called with:", { listId, name, category, assignedTo });
+      return api.createListItem({
+        listId,
+        name,
+        category,
+        priority: 1,
+        assignedTo: assignedTo || undefined,
+        addedBy: user.name || user.id,
+      });
+    },
     onSuccess: () => {
+      console.log("✅ Item creation successful");
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewItemName("");
       setNewItemCategory("");
@@ -186,6 +190,14 @@ export function SmartLists({ user }: SmartListsProps) {
       toast({
         title: "Item added!",
         description: "Item has been added to your list.",
+      });
+    },
+    onError: (error) => {
+      console.error("❌ Item creation failed:", error);
+      toast({
+        title: "Error adding item",
+        description: error.message || "Failed to add item to list",
+        variant: "destructive",
       });
     },
   });
@@ -238,11 +250,21 @@ export function SmartLists({ user }: SmartListsProps) {
   };
 
   const handleAddItem = (listId: string) => {
-    if (!newItemName.trim()) return;
+    console.log("🔧 handleAddItem called:", { listId, newItemName, selectedListId });
+    
+    if (!newItemName.trim()) {
+      console.log("❌ No item name provided");
+      return;
+    }
     
     // Set category first before mutation
     const selectedList = lists.find(list => list.id === listId);
-    if (!selectedList) return;
+    if (!selectedList) {
+      console.log("❌ Selected list not found");
+      return;
+    }
+
+    console.log("✅ Selected list found:", selectedList.name, selectedList.type);
 
     // Determine category based on item name and list type
     let category = "Other";
@@ -279,15 +301,21 @@ export function SmartLists({ user }: SmartListsProps) {
       }
     }
 
+    console.log("🏷️ Category determined:", category);
+
     // Set the selected list and trigger mutation directly with data
     setSelectedListId(listId);
     
-    createItemMutation.mutate({
+    const itemData = {
       listId,
       name: newItemName,
       category,
       assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined
-    });
+    };
+    
+    console.log("🚀 Triggering mutation with data:", itemData);
+    
+    createItemMutation.mutate(itemData);
   };
 
   const handleVoiceAddItem = async (listId: string) => {
