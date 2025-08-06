@@ -29,7 +29,7 @@ export function setupAuth(app: Express) {
     rolling: true, // Reset expiration on activity
     name: 'gabai.session', // Custom session name - force new sessions
     cookie: {
-      secure: isSecure || false, // Use secure cookies only in production/Replit
+      secure: false, // Disable secure for debugging OAuth issues
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
