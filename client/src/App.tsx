@@ -13,6 +13,7 @@ import LoginPage from "@/pages/login";
 import SimpleLoginPage from "@/pages/simple-login";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
+import { ContactsPage } from "@/components/contacts/contacts-page";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Component, type ReactNode } from "react";

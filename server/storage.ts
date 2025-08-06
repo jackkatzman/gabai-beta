@@ -5,6 +5,7 @@ import {
   smartLists,
   listItems,
   reminders,
+  contacts,
   type User,
   type InsertUser,
   type Conversation,
@@ -17,6 +18,8 @@ import {
   type InsertListItem,
   type Reminder,
   type InsertReminder,
+  type Contact,
+  type InsertContact,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -59,6 +62,13 @@ export interface IStorage {
   createReminder(reminder: InsertReminder): Promise<Reminder>;
   updateReminder(id: string, updates: Partial<InsertReminder>): Promise<Reminder>;
   deleteReminder(id: string): Promise<void>;
+
+  // Contact operations
+  getContacts(userId: string): Promise<Contact[]>;
+  createContact(contact: InsertContact): Promise<Contact>;
+  getContact(id: string): Promise<Contact | undefined>;
+  updateContact(id: string, updates: Partial<InsertContact>): Promise<Contact>;
+  deleteContact(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -375,6 +385,38 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedList;
+  }
+
+  // Contact operations
+  async getContacts(userId: string): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.userId, userId))
+      .orderBy(desc(contacts.createdAt));
+  }
+
+  async createContact(insertContact: InsertContact): Promise<Contact> {
+    const [contact] = await db.insert(contacts).values([insertContact]).returning();
+    return contact;
+  }
+
+  async getContact(id: string): Promise<Contact | undefined> {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
+    return contact;
+  }
+
+  async updateContact(id: string, updates: Partial<InsertContact>): Promise<Contact> {
+    const [contact] = await db
+      .update(contacts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(contacts.id, id))
+      .returning();
+    return contact;
+  }
+
+  async deleteContact(id: string): Promise<void> {
+    await db.delete(contacts).where(eq(contacts.id, id));
   }
 }
 

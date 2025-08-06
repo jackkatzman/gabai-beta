@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
 import { speechService } from "./services/speech";
+import { generateVCard, extractContactFromText } from "./services/vcard";
 import { 
   insertUserSchema, 
   insertConversationSchema, 
@@ -360,6 +361,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 dueDate: appointmentDate,
                 category: "Appointment"
               });
+            } else if (action.type === "create_contact" && action.data?.contact) {
+              // Handle contact creation from business card
+              const contactData = {
+                userId,
+                ...action.data.contact,
+                source: "business_card"
+              };
+              
+              const newContact = await storage.createContact(contactData);
+              console.log(`Created contact: ${newContact.firstName} ${newContact.lastName}`);
+              
+              // Also create a follow-up reminder if specified
+              if (action.data.reminder) {
+                await storage.createReminder({
+                  userId,
+                  title: action.data.reminder.title,
+                  description: action.data.reminder.description,
+                  dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+                  category: action.data.reminder.category || "Follow-up"
+                });
+              }
             } else if (action.type === "add_to_list" && action.data?.items) {
               const lists = await storage.getSmartLists(userId);
               let targetList;
@@ -938,6 +960,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Search user error:", error);
       res.status(500).json({ message: "Failed to search user" });
+    }
+  });
+
+  // Contact routes
+  app.get("/api/contacts/:userId", async (req, res) => {
+    try {
+      const contacts = await storage.getContacts(req.params.userId);
+      res.json(contacts);
+    } catch (error: any) {
+      console.error("Get contacts error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/contacts", async (req, res) => {
+    try {
+      const contactData = req.body;
+      const contact = await storage.createContact(contactData);
+      res.json(contact);
+    } catch (error: any) {
+      console.error("Create contact error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/contacts/:id/vcard", async (req, res) => {
+    try {
+      const contact = await storage.getContact(req.params.id);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      const vcard = generateVCard(contact);
+      const filename = `${contact.firstName || 'contact'}_${contact.lastName || ''}.vcf`.replace(/\s+/g, '_');
+      
+      res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(vcard);
+    } catch (error: any) {
+      console.error("VCard generation error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Enhanced OCR endpoint for business card processing
+  app.post("/api/ocr/business-card", upload.single("image"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      // Convert image buffer to base64
+      const base64Image = req.file.buffer.toString('base64');
+      
+      // Extract text using OpenAI Vision
+      const extractedText = await extractTextFromImage(base64Image);
+      
+      // Extract contact information
+      const contactInfo = extractContactFromText(extractedText);
+      
+      // Create the contact
+      const newContact = await storage.createContact({
+        ...contactInfo,
+        userId,
+        source: "business_card"
+      });
+
+      // Create follow-up reminder
+      const followUpTitle = `Follow up with ${newContact.firstName || 'new contact'}${newContact.lastName ? ' ' + newContact.lastName : ''}`;
+      await storage.createReminder({
+        userId,
+        title: followUpTitle,
+        description: `Contact info from business card:\n${extractedText}`,
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+        category: "Follow-up"
+      });
+
+      res.json({
+        contact: newContact,
+        extractedText,
+        message: `Contact saved and follow-up reminder created for ${newContact.firstName || 'contact'}`
+      });
+    } catch (error: any) {
+      console.error("Business card OCR error:", error);
+      res.status(500).json({ message: error.message });
     }
   });
 

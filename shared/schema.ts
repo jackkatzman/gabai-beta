@@ -187,3 +187,31 @@ export type ShoppingItem = ListItem;
 export type InsertShoppingItem = InsertListItem;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
+
+// Contacts table for business card storage
+export const contacts = pgTable("contacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  company: varchar("company"),
+  jobTitle: varchar("job_title"),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  website: varchar("website"),
+  address: varchar("address"),
+  notes: text("notes"),
+  source: varchar("source").default("business_card"), // business_card, manual, etc.
+  originalOcrText: text("original_ocr_text"), // Store original OCR text
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertContactSchema = createInsertSchema(contacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;

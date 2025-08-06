@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Camera, FileText, Copy, Check, Loader2 } from "lucide-react";
+import { Upload, Camera, FileText, Copy, Check, Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +16,7 @@ export function ImageTextExtractor() {
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -39,6 +41,9 @@ export function ImageTextExtractor() {
     };
     reader.readAsDataURL(file);
 
+    // Store the selected file for later use
+    setSelectedFile(file);
+    
     // Extract text
     setIsLoading(true);
     try {
@@ -331,6 +336,37 @@ export function ImageTextExtractor() {
                     <Camera className="h-4 w-4" />
                     <span>Send to GabAi</span>
                   </Button>
+                  
+                  {/* Business Card Detection */}
+                  {(extractedText.toLowerCase().includes('phone') ||
+                   extractedText.toLowerCase().includes('email') ||
+                   extractedText.toLowerCase().includes('@') ||
+                   /\d{3}.*\d{3}.*\d{4}/.test(extractedText)) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!user || !selectedFile) return;
+                        try {
+                          const result = await api.processBusinessCard(selectedFile, user.id);
+                          toast({
+                            title: "Contact Created!",
+                            description: result.message,
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Error",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="flex items-center space-x-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Save as Contact</span>
+                    </Button>
+                  )}
                 </div>
               </div>
               

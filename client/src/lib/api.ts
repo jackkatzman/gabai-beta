@@ -232,4 +232,36 @@ export const api = {
   async deleteReminder(id: string): Promise<void> {
     await apiRequest(`/api/reminders/${id}`, "DELETE");
   },
+
+  // Contact operations
+  async getContacts(userId: string): Promise<any[]> {
+    const response = await apiRequest(`/api/contacts/${userId}`, "GET");
+    return response.json();
+  },
+
+  async createContact(contactData: any): Promise<any> {
+    const response = await apiRequest("/api/contacts", "POST", contactData);
+    return response.json();
+  },
+
+  async downloadVCard(contactId: string): Promise<void> {
+    window.open(`/api/contacts/${contactId}/vcard`, '_blank');
+  },
+
+  async processBusinessCard(imageFile: File, userId: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    formData.append('userId', userId);
+    
+    const response = await fetch('/api/ocr/business-card', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
 };
