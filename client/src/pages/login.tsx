@@ -27,6 +27,7 @@ export default function LoginPage() {
     // Always show install option for Android and other devices
     setTimeout(() => {
       console.log('📱 Showing install option for all devices');
+      console.log('📱 Current showInstallPrompt state:', showInstallPrompt);
       setShowInstallPrompt(true);
     }, 1000);
     
@@ -99,27 +100,26 @@ export default function LoginPage() {
             )}
           </Button>
           
-          {showInstallPrompt && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-center space-x-2">
-                <Smartphone className="h-4 w-4 text-blue-600" />
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Install Available
-                </Badge>
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleInstallClick}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Install GabAi App
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                Install for faster access and offline support
-              </p>
+          {/* Always show install button for debugging */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-center space-x-2">
+              <Smartphone className="h-4 w-4 text-blue-600" />
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                Install Available
+              </Badge>
             </div>
-          )}
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleInstallClick}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Install GabAi App
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Install for faster access and offline support
+            </p>
+          </div>
           
           <div className="text-center text-sm text-muted-foreground">
             <p>Sign in to sync your data across all devices</p>
