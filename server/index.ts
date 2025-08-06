@@ -136,7 +136,7 @@ app.use((req, res, next) => {
   // For Autoscale compatibility, use standard listen call without reusePort
   // Autoscale sets PORT env var automatically for proper routing
   // Use dynamic port selection to avoid conflicts
-  const basePort = parseInt(process.env.PORT || '3000', 10);
+  const basePort = parseInt(process.env.PORT || '8080', 10);
   
   const startServer = (port: number, attempts = 0): void => {
     if (attempts > 10) {
