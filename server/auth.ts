@@ -43,11 +43,13 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy with ONLY the working Replit domain
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Use only the exact working Replit domain, ignoring any environment domain variables
     const callbackURL = `https://gab-ai-jack741.replit.app/api/auth/google/callback`;
-    console.log('🎯 OAuth callback URL:', callbackURL);
+    console.log('🎯 SINGLE OAuth callback URL:', callbackURL);
     console.log('🔑 Full Client ID:', process.env.GOOGLE_CLIENT_ID);
     console.log('🔒 Client Secret (first 10 chars):', process.env.GOOGLE_CLIENT_SECRET?.substring(0, 10) + '...');
     console.log('🔒 Client Secret length:', process.env.GOOGLE_CLIENT_SECRET?.length);
+    console.log('🚫 IGNORING REPLIT_DOMAINS to prevent domain concatenation');
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
