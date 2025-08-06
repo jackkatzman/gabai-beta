@@ -70,7 +70,7 @@ export const api = {
     suggestions?: string[];
     actions?: any[];
   }> {
-    const response = await apiRequest("POST", "/api/chat", {
+    const response = await apiRequest("/api/chat", "POST", {
       message,
       userId,
       conversationId,

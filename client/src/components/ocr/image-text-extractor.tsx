@@ -119,7 +119,7 @@ export function ImageTextExtractor() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/chat", { 
+      const response = await apiRequest("/api/chat", "POST", { 
         message: message,
         userId: user?.id,
         conversationId: null

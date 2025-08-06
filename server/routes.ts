@@ -153,36 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Simple login error:", error);
       res.status(500).json({ message: "Login failed", error: error.message });
     }
-  });
 
-  // Get current authenticated user (OAuth only)
-  app.get("/api/auth/user", async (req, res) => {
-    try {
-      console.log("🔍 Auth check - Is authenticated:", req.isAuthenticated());
-      console.log("🔍 Auth check - User:", req.user ? "exists" : "none");
-      console.log("🔍 Auth check - Session ID:", req.sessionID);
-      console.log("🔍 Auth check - Session data:", req.session);
-      
-      if (req.isAuthenticated() && req.user) {
-        // Ensure we have the latest user data from database
-        const currentUser = req.user as any;
-        const freshUser = await storage.getUser(currentUser.id);
-        
-        if (freshUser) {
-          res.json(freshUser);
-        } else {
-          console.error("User not found in database:", currentUser.id);
-          res.status(404).json({ message: "User not found" });
-        }
-      } else {
-        // User not authenticated
-        res.status(401).json({ message: "Not authenticated" });
-      }
-    } catch (error: any) {
-      console.error("Auth check error:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
 
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
