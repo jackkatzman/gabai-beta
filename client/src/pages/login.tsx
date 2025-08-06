@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 
 export default function LoginPage() {
   const login = () => {
-    window.location.href = "/auth/google";
+    window.location.href = "/api/auth/google";
   };
   const isLoggingIn = false;
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);

@@ -43,8 +43,8 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy with ONLY the working Replit domain
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    const callbackURL = `https://gab-ai-jack741.replit.app/auth/google/callback`;
-    console.log('🎯 Single OAuth callback URL:', callbackURL);
+    const callbackURL = `https://gab-ai-jack741.replit.app/api/auth/google/callback`;
+    console.log('🎯 Single OAuth callback URL (matching Google Console):', callbackURL);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
@@ -91,12 +91,12 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Auth routes
-  app.get('/auth/google',
+  // Auth routes - updated to match Google Cloud Console configuration
+  app.get('/api/auth/google',
     passport.authenticate('google', { scope: ['profile', 'email'] })
   );
 
-  app.get('/auth/google/callback',
+  app.get('/api/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
       // Successful authentication
