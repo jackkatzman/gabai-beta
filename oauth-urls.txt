@@ -1,0 +1,20 @@
+Google OAuth Callback URLs for GabAi
+
+Current Replit Domain:
+https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/auth/google/callback
+
+Alternative URLs to try:
+1. https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/auth/google/callback
+2. https://gabai.ai/auth/google/callback (for production)
+
+Troubleshooting Steps:
+1. Remove any existing invalid URLs first
+2. Copy the URL exactly (no spaces)
+3. Make sure you're in the correct OAuth client
+4. Try adding one URL at a time
+5. Check that the OAuth client type is "Web application"
+
+If the long Replit URL doesn't work, we can:
+- Set up a shorter custom domain
+- Use localhost for development testing
+- Configure the OAuth for production domain instead
