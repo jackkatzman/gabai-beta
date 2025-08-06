@@ -1,0 +1,15 @@
+{
+  "name": "gabai-mobile",
+  "version": "1.0.0",
+  "description": "Mobile build scripts for GabAi",
+  "scripts": {
+    "build:mobile": "npm run build && npx cap sync",
+    "build:ios": "npm run build:mobile && npx cap open ios",
+    "build:android": "npm run build:mobile && npx cap open android",
+    "cap:sync": "npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:add:android": "npx cap add android"
+  }
+}
