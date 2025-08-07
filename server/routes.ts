@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
 import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
+import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
 import { 
   insertUserSchema, 
   insertConversationSchema, 
@@ -1105,6 +1106,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Business card OCR error:", error);
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Link shortener routes for affiliate monetization
+  app.post("/api/shorten", async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url) {
+        return res.status(400).json({ message: "URL is required" });
+      }
+      
+      const { shortCode, shortUrl } = createShortLink(url);
+      res.json({ shortCode, shortUrl, originalUrl: url });
+    } catch (error: any) {
+      console.error("Link shortening error:", error);
+      res.status(500).json({ message: "Failed to shorten link" });
+    }
+  });
+
+  // Link redirect endpoint (handles short link clicks)
+  app.get("/l/:shortCode", async (req, res) => {
+    try {
+      const { shortCode } = req.params;
+      const longUrl = getLongUrl(shortCode);
+      
+      if (!longUrl) {
+        return res.status(404).json({ message: "Link not found or expired" });
+      }
+      
+      // Redirect to the original (affiliate) URL
+      res.redirect(302, longUrl);
+    } catch (error: any) {
+      console.error("Link redirect error:", error);
+      res.status(500).json({ message: "Redirect failed" });
+    }
+  });
+
+  // Link analytics endpoint (optional)
+  app.get("/api/link-stats", async (req, res) => {
+    try {
+      const stats = getLinkStats();
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Link stats error:", error);
+      res.status(500).json({ message: "Failed to get stats" });
     }
   });
 

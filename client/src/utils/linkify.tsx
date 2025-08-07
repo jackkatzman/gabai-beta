@@ -24,22 +24,24 @@ const AFFILIATE_MAPPINGS = {
   },
 };
 
-// Function to convert URLs to affiliate links
-function addAffiliateParams(url: string): string {
+// Function to shorten URLs via our API
+async function shortenUrl(url: string): Promise<string> {
   try {
-    const urlObj = new URL(url);
-    const domain = urlObj.hostname.replace(/^www\./, '');
+    const response = await fetch('/api/shorten', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
     
-    const affiliate = AFFILIATE_MAPPINGS[domain as keyof typeof AFFILIATE_MAPPINGS];
-    if (affiliate) {
-      // Add affiliate parameters
-      const separator = urlObj.search ? '&' : '?';
-      return `${url}${separator}${affiliate.affiliateId}`;
+    if (response.ok) {
+      const data = await response.json();
+      return data.shortUrl;
     }
     
-    return url;
-  } catch {
-    return url;
+    return url; // Fallback to original URL
+  } catch (error) {
+    console.error('Failed to shorten URL:', error);
+    return url; // Fallback to original URL
   }
 }
 
@@ -55,22 +57,21 @@ export function linkifyText(text: string): JSX.Element {
       {parts.map((part, index) => {
         // Check if this part is a URL
         if (URL_REGEX.test(part)) {
-          const affiliateUrl = addAffiliateParams(part);
-          
+          // Use the original URL for display, shortening happens server-side
           return (
             <a
               key={index}
-              href={affiliateUrl}
+              href={part}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-2 underline-offset-2 inline-flex items-center gap-1 font-medium"
               onClick={(e) => {
                 e.stopPropagation();
                 // Optional: Track click for analytics
-                console.log('Affiliate link clicked:', affiliateUrl);
+                console.log('Link clicked:', part);
               }}
             >
-              {part}
+              {part.length > 50 ? `${part.substring(0, 50)}...` : part}
               <ExternalLink className="h-3 w-3 inline" />
             </a>
           );
