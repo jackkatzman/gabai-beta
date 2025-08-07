@@ -62,7 +62,7 @@ export default function SimpleLoginPage() {
   };
 
   const tryGoogleLogin = () => {
-    window.location.href = "/auth/google";
+    window.location.href = "/api/auth/google";
   };
 
   return (
