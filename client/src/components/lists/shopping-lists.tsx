@@ -56,7 +56,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
 
   // Get shopping lists
   const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
-    queryKey: ["/api/smart-lists", user.id],
+    queryKey: [`/api/smart-lists/${user.id}`],
   });
 
   // Create list mutation
@@ -68,7 +68,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
       setNewListName("");
       toast({
         title: "List Created",

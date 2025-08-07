@@ -50,8 +50,8 @@ export function RemindersPage({ user }: RemindersPageProps) {
   const { toast } = useToast();
 
   // Get reminders
-  const { data: reminders = [], isLoading } = useQuery({
-    queryKey: ["/api/reminders", user.id],
+  const { data: reminders = [], isLoading } = useQuery<Reminder[]>({
+    queryKey: [`/api/reminders/${user.id}`],
   });
 
   // Create reminder mutation
@@ -59,7 +59,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
     mutationFn: (reminderData: Omit<Reminder, "id" | "createdAt" | "updatedAt">) =>
       api.createReminder(reminderData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
       setIsCreateDialogOpen(false);
       resetForm();
       toast({
@@ -74,7 +74,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Reminder> }) =>
       api.updateReminder(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
       toast({
         title: "Reminder Updated",
         description: "Your reminder has been updated.",
@@ -86,7 +86,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
   const deleteReminderMutation = useMutation({
     mutationFn: (id: string) => api.deleteReminder(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
       toast({
         title: "Reminder Deleted",
         description: "Your reminder has been deleted.",
