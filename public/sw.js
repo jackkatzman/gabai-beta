@@ -1,11 +1,13 @@
-const CACHE_NAME = 'gabai-v1.1.0';
+const CACHE_NAME = 'gabai-v1.2.0-force-clear';
 const urlsToCache = [
   '/',
   '/manifest.json'
 ];
 
-// Install event
+// Install event - SKIP WAITING TO FORCE UPDATE
 self.addEventListener('install', (event) => {
+  console.log('SW: Installing new version, skipping wait');
+  self.skipWaiting(); // Force immediate activation
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -30,18 +32,23 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate event
+// Activate event - FORCE CLEAR ALL CACHES
 self.addEventListener('activate', (event) => {
+  console.log('SW: Force clearing all caches to fix domain issue');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+    Promise.all([
+      // Clear ALL caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('SW: Deleting cache:', cacheName);
             return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+          })
+        );
+      }),
+      // Take control immediately
+      self.clients.claim()
+    ])
   );
 });
 

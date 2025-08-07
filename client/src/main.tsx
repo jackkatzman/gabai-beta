@@ -9,7 +9,18 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: async ({ queryKey, signal }) => {
-        const res = await fetch(queryKey[0] as string, { signal });
+        // FORCE current domain to fix cached domain issue
+        let url = queryKey[0] as string;
+        if (url.startsWith('/api/')) {
+          url = `${window.location.origin}${url}`;
+          console.log('🔧 Fixed API URL to current domain:', url);
+        }
+        
+        const res = await fetch(url, { 
+          signal,
+          credentials: 'include' // Important for auth cookies
+        });
+        
         if (!res.ok) {
           if (res.status >= 500) {
             throw new Error(`${res.status}: ${res.statusText}`);
