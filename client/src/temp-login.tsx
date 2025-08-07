@@ -2,7 +2,7 @@ import React from "react";
 
 export default function TempLogin() {
   const handleLogin = () => {
-    window.location.href = "/auth/google";
+    window.location.href = "/api/auth/google";
   };
 
   const handleInstall = () => {
