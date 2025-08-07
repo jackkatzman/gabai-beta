@@ -1,4 +1,4 @@
-import { useUser } from "@/context/user-context";
+import { useAuth } from "@/hooks/useAuth";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
@@ -12,16 +12,37 @@ import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
 
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 import { useLocation } from "wouter";
-import { Mic, Moon, Sun, User, Settings } from "lucide-react";
+import { useState } from "react";
+import { Mic, User, Settings, Moon, Sun } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
 export default function HomePage() {
-  const { user } = useUser();
-  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const [location, setLocation] = useLocation();
+  
+  // Simple theme state without context
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("theme") as "light" | "dark") || "light";
+    }
+    return "light";
+  });
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", newTheme);
+      const root = document.documentElement;
+      if (newTheme === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    }
+  };
 
   if (!user) {
     return (
