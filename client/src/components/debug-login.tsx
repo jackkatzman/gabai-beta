@@ -9,6 +9,8 @@ export function DebugLogin() {
     ];
 
     console.log('🔍 Testing routes from browser...');
+    alert('Check the browser console for test results!');
+    
     for (const route of routes) {
       try {
         const response = await fetch(route, { 
@@ -35,16 +37,17 @@ export function DebugLogin() {
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded">
-      <h3 className="font-semibold">Debug Tools</h3>
+    <div className="space-y-2 p-3 border rounded bg-yellow-50 border-yellow-200">
+      <h3 className="font-semibold text-sm text-yellow-800">Debug Tools</h3>
       <div className="space-x-2">
-        <Button onClick={testRoutes} variant="outline" size="sm">
+        <Button onClick={testRoutes} variant="outline" size="sm" className="bg-white">
           Test Routes
         </Button>
-        <Button onClick={directLogin} variant="outline" size="sm">
+        <Button onClick={directLogin} variant="outline" size="sm" className="bg-white">
           Direct Login
         </Button>
       </div>
+      <p className="text-xs text-yellow-700">Use F12 Console to see test results</p>
     </div>
   );
 }
