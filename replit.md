@@ -8,7 +8,7 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **Affiliate Monetization**: Automatic URL shortening with click tracking for Booking.com, Amazon, Kayak, Expedia, Hotels.com
 - **Native Notifications**: Replaced web toast notifications with Capacitor native notifications for better mobile UX
 - **Native Scheduling**: Added Capacitor alarm system with date/time pickers, recurring alarms, and voice command integration
-- **Advanced Alarm Sounds**: Custom ringtones, voice notes, and ElevenLabs AI voices with drill sergeant personality options
+- **Advanced Alarm Sounds**: Custom ringtones, voice notes, and ElevenLabs AI voices (drill sergeant, sweet grandma, angry mom, etc.)
 - **Production Ready**: Complete backend analytics and URL shortening APIs ready for $14.95/month subscription model
 
 ## Mobile-First Approach

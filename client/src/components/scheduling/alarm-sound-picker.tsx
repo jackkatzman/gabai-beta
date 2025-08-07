@@ -20,7 +20,7 @@ export function AlarmSoundPicker({ onSoundSelected, currentSound }: AlarmSoundPi
   const [ringtones, setRingtones] = useState<string[]>([]);
   const [selectedRingtone, setSelectedRingtone] = useState('default');
   const [voiceText, setVoiceText] = useState('Time to wake up! You have important things to do today.');
-  const [voicePersonality, setVoicePersonality] = useState<'drill-sergeant' | 'gentle' | 'motivational' | 'funny' | 'angry-mom'>('gentle');
+  const [voicePersonality, setVoicePersonality] = useState<'drill-sergeant' | 'gentle' | 'motivational' | 'funny' | 'angry-mom' | 'grandma'>('gentle');
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
@@ -239,6 +239,7 @@ export function AlarmSoundPicker({ onSoundSelected, currentSound }: AlarmSoundPi
                   <SelectItem value="drill-sergeant">🎖️ Drill Sergeant</SelectItem>
                   <SelectItem value="funny">😄 Funny & Quirky</SelectItem>
                   <SelectItem value="angry-mom">😤 Angry Mom</SelectItem>
+                  <SelectItem value="grandma">👵 Sweet Grandma</SelectItem>
                 </SelectContent>
               </Select>
             </div>

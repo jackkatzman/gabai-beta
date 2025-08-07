@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 interface VoiceAlarmOptions {
   text: string;
   voiceId?: string; // ElevenLabs voice ID
-  personality?: 'drill-sergeant' | 'gentle' | 'motivational' | 'funny' | 'angry-mom';
+  personality?: 'drill-sergeant' | 'gentle' | 'motivational' | 'funny' | 'angry-mom' | 'grandma';
   speed?: number;
   stability?: number;
 }
@@ -201,6 +201,12 @@ function getPersonalizedWakeUpText(baseText: string, personality?: string): stri
       `GET UP RIGHT NOW! ${baseText}! I didn't raise you to be late!`,
       `DON'T MAKE ME COME UP THERE! ${baseText}! Move it!`,
       `You're going to be late AGAIN! ${baseText}! Get moving this instant!`
+    ],
+    'grandma': [
+      `Good morning sweetheart! ${baseText}. Grandma made your favorite breakfast, but it's getting cold!`,
+      `Rise and shine my dear! ${baseText}. Don't make your old grandma worry about you sleeping too much.`,
+      `Wake up precious! ${baseText}. Grandma has fresh cookies waiting, but only if you get up now!`,
+      `Time to get up honey bunny! ${baseText}. Your grandma loves you so much, now don't be late!`
     ]
   };
 
@@ -221,6 +227,7 @@ function getVoiceIdForPersonality(personality?: string): string {
     'motivational': 'AZnzlk1XvdvUeBnXmlld', // Domi - energetic female voice
     'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual male voice
     'angry-mom': 'jsCqWAovK2LkecY7zXl4', // Freya - stern female voice
+    'grandma': 'XB0fDUnXU5powFXDhCwa', // Charlotte - warm elderly female voice
   };
 
   return voiceMap[personality as keyof typeof voiceMap] || voiceMap['gentle'];

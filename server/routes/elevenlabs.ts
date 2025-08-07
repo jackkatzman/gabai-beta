@@ -101,7 +101,8 @@ router.get('/voices', isAuthenticated, async (req, res) => {
           { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Strong)' },
           { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi (Energetic)' },
           { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh (Casual)' },
-          { voice_id: 'jsCqWAovK2LkecY7zXl4', name: 'Freya (Stern)' }
+          { voice_id: 'jsCqWAovK2LkecY7zXl4', name: 'Freya (Stern)' },
+          { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte (Grandma)' }
         ]
       });
     }
