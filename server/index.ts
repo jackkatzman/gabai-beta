@@ -65,7 +65,27 @@ app.use((req, res, next) => {
     // Add middleware to ensure API routes are handled before Vite catch-all
     app.use('/api/*', (req, res, next) => {
       console.log(`🔍 API middleware: ${req.method} ${req.path}`);
+      console.log(`🔍 Full URL: ${req.originalUrl}`);
+      console.log(`🔍 Headers: ${JSON.stringify(req.headers.accept)}`);
       next();
+    });
+
+    // Add explicit login route before other middleware to bypass Vite
+    app.get('/api/login', (req, res, next) => {
+      console.log('🚀 LOGIN ROUTE HIT - Bypassing Vite!');
+      console.log('🔄 Redirecting to Google OAuth...');
+      
+      // Direct OAuth initiation without going through auth.ts
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `response_type=code` +
+        `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
+        `&redirect_uri=https://gab-ai-jack741.replit.app/api/auth/google/callback` +
+        `&scope=profile%20email` +
+        `&access_type=offline` +
+        `&prompt=consent`;
+      
+      console.log('🔗 Redirecting to:', googleAuthUrl);
+      res.redirect(googleAuthUrl);
     });
 
     const server = await registerRoutes(app);

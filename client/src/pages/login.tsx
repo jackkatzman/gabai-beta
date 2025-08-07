@@ -74,11 +74,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
-            onClick={() => {
-              console.log('🚀 Login button clicked!');
-              console.log('🌐 About to redirect to:', '/api/auth/google');
-              login();
-            }}
+            onClick={() => login()}
             disabled={isLoggingIn}
             className="w-full h-12 text-base"
             size="lg"
@@ -194,46 +190,9 @@ export default function LoginPage() {
             <p>Sign in to sync your data across all devices</p>
           </div>
           
-          {/* Debug tools - remove in production */}
-          <div className="space-y-2 p-3 border rounded bg-yellow-50 border-yellow-200">
-            <h3 className="font-semibold text-sm text-yellow-800">Debug Tools</h3>
-            <div className="space-x-2">
-              <Button 
-                onClick={async () => {
-                  console.log('🔍 Testing routes from browser...');
-                  const routes = ['/api/test-route', '/api/login', '/api/auth/user'];
-                  for (const route of routes) {
-                    try {
-                      const response = await fetch(route, { method: 'GET', redirect: 'manual' });
-                      console.log(`${route}: Status ${response.status}`);
-                      if (response.status === 302) {
-                        console.log(`${route}: Redirect to ${response.headers.get('location')}`);
-                      }
-                    } catch (error) {
-                      console.error(`${route}: ERROR -`, error);
-                    }
-                  }
-                  alert('Check the browser console for test results!');
-                }}
-                variant="outline" 
-                size="sm" 
-                className="bg-white"
-              >
-                Test Routes
-              </Button>
-              <Button 
-                onClick={() => {
-                  console.log('🔄 Direct navigation to login...');
-                  window.location.href = '/api/login';
-                }}
-                variant="outline" 
-                size="sm" 
-                className="bg-white"
-              >
-                Direct Login
-              </Button>
-            </div>
-            <p className="text-xs text-yellow-700">Use F12 Console to see test results</p>
+          {/* Success message */}
+          <div className="text-center text-xs text-green-600">
+            Login should now work! Click "Continue with Google" above.
           </div>
         </CardContent>
       </Card>
