@@ -22,9 +22,10 @@ This means your Google Console has:
    - Remove every single URL in the "Authorized redirect URIs" section
    - Click the trash icon next to each one
 
-4. **ADD ONLY THESE 2 URLS (copy exactly):**
+4. **ADD THESE 3 URLS (copy exactly):**
    ```
    https://gab-ai-jack741.replit.app/api/auth/google/callback
+   https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback
    http://localhost:5000/api/auth/google/callback
    ```
 
