@@ -29,6 +29,11 @@ This means your Google Console has:
    http://localhost:5000/api/auth/google/callback
    ```
 
+## URGENT: The current error shows Google is rejecting this exact URL:
+**`https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback`**
+
+This URL MUST be added to your Google Cloud Console OAuth settings for login to work.
+
 5. **SAVE the changes**
 
 ## What NOT to have:
