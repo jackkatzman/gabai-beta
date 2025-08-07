@@ -16,6 +16,7 @@ import {
 import multer from "multer";
 import ical from "ical-generator";
 import passport from "passport";
+import elevenlabsRouter from './routes/elevenlabs';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -1187,6 +1188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get analytics summary" });
     }
   });
+
+  // Mount ElevenLabs routes for AI voice generation
+  app.use('/api/elevenlabs', elevenlabsRouter);
 
   const httpServer = createServer(app);
   return httpServer;

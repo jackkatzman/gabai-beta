@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Calendar, Clock, Bell, Repeat } from 'lucide-react';
+import { AlarmSoundPicker } from './alarm-sound-picker';
 
 interface NativeSchedulerProps {
   onScheduled?: (alarmId: number) => void;
@@ -20,6 +21,7 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
   const [recurring, setRecurring] = useState<'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('none');
   const [vibration, setVibration] = useState(true);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [soundConfig, setSoundConfig] = useState<any>({ type: 'system' });
 
   const handleDatePicker = async (mode: 'date' | 'time' | 'datetime') => {
     const date = await showDatePicker({
@@ -47,7 +49,8 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
         date: selectedDate,
         recurring,
         vibration,
-        sound: 'default'
+        sound: soundConfig.source || 'default',
+        soundConfig
       });
 
       if (alarmId) {
@@ -164,6 +167,12 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Alarm Sound Picker */}
+        <AlarmSoundPicker 
+          onSoundSelected={setSoundConfig}
+          currentSound={soundConfig}
+        />
 
         {/* Vibration Toggle */}
         <div className="flex items-center justify-between">
