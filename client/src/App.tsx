@@ -112,21 +112,18 @@ function AppContent() {
   );
 }
 
-function App() {
+export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <UserProvider>
             <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900">
-              {/* Native notifications handled by Capacitor */}
               <AppContent />
             </div>
           </UserProvider>
         </TooltipProvider>
-      </ErrorBoundary>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
-
-export default App;
