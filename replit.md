@@ -6,7 +6,14 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **URL Shortening Service**: Implemented clean "gab.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
 - **Metabase Analytics**: Added plug-and-play business intelligence dashboard with 30-second Docker setup
 - **Affiliate Monetization**: Automatic URL shortening with click tracking for Booking.com, Amazon, Kayak, Expedia, Hotels.com
+- **Native Notifications**: Replaced web toast notifications with Capacitor native notifications for better mobile UX
 - **Production Ready**: Complete backend analytics and URL shortening APIs ready for $14.95/month subscription model
+
+## Mobile-First Approach
+- **Capacitor Integration**: Native iOS/Android app deployment capabilities
+- **Voice-First Design**: Optimized for hands-free voice interactions
+- **Native Notifications**: Platform-specific notification system for better user engagement
+- **Progressive Web App**: Offline capabilities and app-like experience
 
 # User Preferences
 
