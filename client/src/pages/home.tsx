@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/context/user-context";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { ShoppingLists } from "@/components/lists/shopping-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [location, setLocation] = useLocation();
   
   // Simple theme state without context

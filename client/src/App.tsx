@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
 
 import { useAuth } from "@/hooks/useAuth";
+import { UserProvider } from "@/context/user-context";
 import HomePage from "@/pages/home";
 import OnboardingPage from "@/pages/onboarding";
 import { SharedListPage } from "@/pages/shared-list";
@@ -116,13 +117,15 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <TooltipProvider>
-            <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100">
-              <AppContent />
-            </div>
-          </TooltipProvider>
-        </ThemeProvider>
+        <UserProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100">
+                <AppContent />
+              </div>
+            </TooltipProvider>
+          </ThemeProvider>
+        </UserProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -11,9 +11,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  // Temporarily provide null user until QueryClient is properly set up
-  const user = null;
-  const isLoading = false;
+  const { user, isLoading } = useAuth();
 
   // setUser is now handled by the auth system, but we provide a compatible interface
   const setUser = () => {
@@ -22,7 +20,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, isLoading }}>
+    <UserContext.Provider value={{ user: user || null, setUser, isLoading }}>
       {children}
     </UserContext.Provider>
   );
