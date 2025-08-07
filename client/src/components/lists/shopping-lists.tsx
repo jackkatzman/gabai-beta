@@ -2,13 +2,11 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Mic, Trash2, Apple, Milk, Wheat, Share2, Copy, MessageCircle, UserPlus, Mail } from "lucide-react";
+import { Plus, Copy, MessageCircle, UserPlus, Mail } from "lucide-react";
+import { SimpleListCard } from "./simple-list-card";
 import { api } from "@/lib/api";
-import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User, SmartList, ListItem } from "@shared/schema";
@@ -17,34 +15,34 @@ interface ShoppingListsProps {
   user: User;
 }
 
-const categoryIcons = {
-  produce: Apple,
-  dairy: Milk,
-  grains: Wheat,
-};
-
-const getCategoryIcon = (category: string) => {
-  const Icon = categoryIcons[category.toLowerCase() as keyof typeof categoryIcons];
-  return Icon || Apple;
-};
-
-const getCategoryColor = (category: string) => {
-  const colors = {
-    produce: "text-green-500",
-    dairy: "text-yellow-500",
-    grains: "text-amber-500",
-    meat: "text-red-500",
-    pantry: "text-blue-500",
-  };
-  return colors[category.toLowerCase() as keyof typeof colors] || "text-gray-500";
-};
+// Simple categorization function
+function categorizeItem(itemName: string, user: User): string {
+  const name = itemName.toLowerCase();
+  
+  // Produce
+  if (name.includes('apple') || name.includes('banana') || name.includes('orange') || 
+      name.includes('lettuce') || name.includes('tomato') || name.includes('carrot')) {
+    return 'produce';
+  }
+  
+  // Dairy
+  if (name.includes('milk') || name.includes('cheese') || name.includes('yogurt') || 
+      name.includes('butter') || name.includes('cream')) {
+    return 'dairy';
+  }
+  
+  // Meat
+  if (name.includes('chicken') || name.includes('beef') || name.includes('pork') ||
+      name.includes('fish') || name.includes('meat')) {
+    return 'meat';
+  }
+  
+  // Default to pantry
+  return 'pantry';
+}
 
 export function ShoppingLists({ user }: ShoppingListsProps) {
   const [newListName, setNewListName] = useState("");
-  const [newItemName, setNewItemName] = useState("");
-  const [newItemCategory, setNewItemCategory] = useState("");
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
-  const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedListForShare, setSelectedListForShare] = useState<SmartList | null>(null);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
@@ -83,10 +81,8 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       api.createListItem({ listId, name, category }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
-      setNewItemName("");
-      setNewItemCategory("");
       toast({
-        title: "Item Added",
+        title: "Item Added", 
         description: "Item has been added to your list.",
       });
     },
@@ -162,53 +158,9 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     },
   });
 
-  // Voice input for adding items
-  const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
-    onTranscriptionComplete: (text) => {
-      console.log("Voice transcription complete:", text);
-      if (isVoiceAddingItem && selectedListId && text.trim()) {
-        const category = categorizeItem(text, user);
-        createItemMutation.mutate({
-          listId: selectedListId,
-          name: text.trim(),
-          category,
-        });
-        toast({
-          title: "Item Added",
-          description: `Added "${text}" to your list`,
-        });
-      }
-      setNewItemName("");
-      setIsVoiceAddingItem(false);
-      setSelectedListId(null);
-    },
-    onError: (error) => {
-      setIsVoiceAddingItem(false);
-      setSelectedListId(null);
-      console.error("Voice input error:", error);
-      toast({
-        title: "Voice Error",
-        description: "Failed to record voice input. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleCreateList = () => {
     if (newListName.trim()) {
       createListMutation.mutate(newListName.trim());
-    }
-  };
-
-  const handleAddItem = (listId: string) => {
-    if (newItemName.trim()) {
-      // Smart categorization based on user preferences
-      const category = categorizeItem(newItemName, user);
-      createItemMutation.mutate({
-        listId,
-        name: newItemName.trim(),
-        category: newItemCategory || category,
-      });
     }
   };
 
@@ -217,26 +169,6 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       id: item.id,
       updates: { completed: !item.completed },
     });
-  };
-
-  const handleVoiceAddItem = async (listId: string) => {
-    try {
-      // Force stop any existing recording with cleanup
-      if (isRecording || isTranscribing) {
-        stopRecording();
-        // Wait for cleanup to complete
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-      
-      setSelectedListId(listId);
-      setIsVoiceAddingItem(true);
-      
-      // Start new recording
-      toggleRecording();
-    } catch (error) {
-      console.error("Voice input error:", error);
-      setIsVoiceAddingItem(false);
-    }
   };
 
   const handleShareList = (list: SmartList & { items: ListItem[] }) => {
@@ -384,22 +316,27 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
           </div>
         ) : (
           lists.map((list: SmartList & { items: ListItem[] }) => (
-            <ShoppingListCard
+            <SimpleListCard
               key={list.id}
               list={list}
               user={user}
-              onAddItem={handleAddItem}
+              onAddItem={(listId, name, category) => {
+                const itemCategory = category || categorizeItem(name, user);
+                createItemMutation.mutate({
+                  listId,
+                  name,
+                  category: itemCategory,
+                });
+              }}
+              onUpdateItem={(id, updates) => {
+                updateItemMutation.mutate({
+                  id,
+                  updates,
+                });
+              }}
               onToggleItem={handleToggleItem}
               onDeleteItem={(id) => deleteItemMutation.mutate(id)}
-              onVoiceAdd={handleVoiceAddItem}
               onShare={() => handleShareList(list)}
-              newItemName={selectedListId === list.id ? newItemName : ""}
-              setNewItemName={setNewItemName}
-              newItemCategory={newItemCategory}
-              setNewItemCategory={setNewItemCategory}
-              isVoiceMode={isVoiceAddingItem && selectedListId === list.id}
-              isRecording={isRecording}
-              isTranscribing={isTranscribing}
             />
           ))
         )}
@@ -733,43 +670,4 @@ function ShoppingListCard({
   );
 }
 
-// Smart categorization function
-function categorizeItem(itemName: string, user: User): string {
-  const name = itemName.toLowerCase();
-  
-  // Produce
-  if (name.match(/\b(apple|banana|orange|lettuce|spinach|carrot|tomato|potato|onion|garlic|pepper|cucumber|broccoli|avocado)\b/)) {
-    return "Produce";
-  }
-  
-  // Dairy (consider user preferences)
-  if (name.match(/\b(milk|cheese|yogurt|butter|cream)\b/)) {
-    if (user.preferences?.dietary?.includes("Dairy-free")) {
-      return "Dairy Alternatives";
-    }
-    return "Dairy";
-  }
-  
-  // Meat
-  if (name.match(/\b(chicken|beef|pork|fish|salmon|turkey|ham|bacon)\b/)) {
-    return "Meat";
-  }
-  
-  // Grains
-  if (name.match(/\b(bread|rice|pasta|cereal|oats|quinoa|flour)\b/)) {
-    return "Grains";
-  }
-  
-  return "Other";
-}
 
-function groupItemsByCategory(items: ListItem[]): Record<string, ListItem[]> {
-  const grouped = items.reduce((acc, item) => {
-    const category = item.category || "Other";
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(item);
-    return acc;
-  }, {} as Record<string, ListItem[]>);
-
-  return grouped;
-}

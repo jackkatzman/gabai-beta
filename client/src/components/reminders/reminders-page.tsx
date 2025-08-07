@@ -101,12 +101,21 @@ export function RemindersPage({ user }: RemindersPageProps) {
       const parsed = parseVoiceReminder(text);
       setNewReminder(prev => ({
         ...prev,
-        title: parsed.title,
-        description: parsed.description,
+        title: parsed.title || text.trim(),
+        description: parsed.description || "",
         dueDate: parsed.dueDate || prev.dueDate,
       }));
       setIsVoiceMode(false);
     },
+    onError: (error) => {
+      console.error("Voice input error:", error);
+      setIsVoiceMode(false);
+      toast({
+        title: "Voice Error",
+        description: "Failed to record voice input. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   const resetForm = () => {
@@ -141,9 +150,27 @@ export function RemindersPage({ user }: RemindersPageProps) {
   };
 
   const handleVoiceReminder = () => {
-    setIsVoiceMode(true);
-    setIsCreateDialogOpen(true);
-    toggleRecording();
+    try {
+      setIsVoiceMode(true);
+      setIsCreateDialogOpen(true);
+      // Small delay to ensure dialog is open before starting recording
+      setTimeout(() => {
+        toggleRecording();
+      }, 300);
+    } catch (error) {
+      console.error("Voice input error:", error);
+      setIsVoiceMode(false);
+    }
+  };
+
+  const parseVoiceReminder = (text: string) => {
+    // Simple parsing logic for voice input
+    const lines = text.split('\n').filter(line => line.trim());
+    return {
+      title: lines[0] || text.trim(),
+      description: lines.slice(1).join(' ') || "",
+      dueDate: null // Could add date parsing logic here
+    };
   };
 
   const handleCompleteReminder = (reminder: Reminder) => {
