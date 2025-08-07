@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { LogoBubble } from "@/components/ui/logo-spinner";
+import { linkifyText } from "@/utils/linkify";
 import type { Message } from "@/types";
 
 interface MessageBubbleProps {
@@ -50,9 +51,9 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     <div className="flex items-start space-x-3 animate-slideUp">
       <LogoBubble size="sm" />
       <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
-          {message.content}
-        </p>
+        <div className="text-gray-900 dark:text-white text-sm leading-relaxed">
+          {linkifyText(message.content)}
+        </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {formatTime(message.createdAt)}
