@@ -129,7 +129,7 @@ export function SmartLists({ user }: SmartListsProps) {
 
   // Get smart lists
   const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
-    queryKey: ["/api/smart-lists", user.id],
+    queryKey: [`/api/smart-lists/${user.id}`],
   });
 
   // Create list mutation
@@ -144,7 +144,7 @@ export function SmartLists({ user }: SmartListsProps) {
       sortBy: "category"
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
       setNewListName("");
       setNewListDescription("");
       setIsShared(false);
@@ -180,7 +180,7 @@ export function SmartLists({ user }: SmartListsProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
       setNewItemName("");
       setNewItemCategory("");
       setNewItemAssignedTo("");
@@ -204,7 +204,7 @@ export function SmartLists({ user }: SmartListsProps) {
     mutationFn: (listId: string) => api.shareList(listId),
     onSuccess: (data) => {
       setShareCode(data.shareCode);
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
       toast({
         title: "List shared!",
         description: "Your list is now shareable. Copy the link to invite collaborators.",
@@ -216,7 +216,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const joinListMutation = useMutation({
     mutationFn: () => api.joinSharedList(shareCode, user.id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
       setShareCode("");
       toast({
         title: "Joined list!",
@@ -229,7 +229,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const toggleItemMutation = useMutation({
     mutationFn: (itemId: string) => api.toggleListItem(itemId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
     },
   });
 
@@ -237,7 +237,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const deleteItemMutation = useMutation({
     mutationFn: (itemId: string) => api.deleteListItem(itemId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
     },
   });
 
