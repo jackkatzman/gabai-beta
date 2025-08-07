@@ -19,7 +19,7 @@ import AnalyticsPage from "@/pages/analytics";
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Component, type ReactNode } from "react";
-// import { ThemeProvider } from "@/hooks/use-theme";
+// ThemeProvider temporarily removed due to React hook conflict
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -118,7 +118,7 @@ function App() {
       <ErrorBoundary>
         <TooltipProvider>
           <UserProvider>
-            <div className="h-full font-sans antialiased bg-gray-50 text-gray-900">
+            <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900">
               {/* Native notifications handled by Capacitor */}
               <AppContent />
             </div>
