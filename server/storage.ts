@@ -69,6 +69,23 @@ export interface IStorage {
   getContact(id: string): Promise<Contact | undefined>;
   updateContact(id: string, updates: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: string): Promise<void>;
+
+  // Admin analytics operations
+  getUserCount(): Promise<number>;
+  getConversationCount(): Promise<number>;
+  getMessageCount(): Promise<number>;
+  getSmartListCount(): Promise<number>;
+  getListItemCount(): Promise<number>;
+  getReminderCount(): Promise<number>;
+  getContactCount(): Promise<number>;
+  getRecentUsers(limit: number): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    lastActive: string;
+    messageCount: number;
+  }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -417,6 +434,86 @@ export class DatabaseStorage implements IStorage {
 
   async deleteContact(id: string): Promise<void> {
     await db.delete(contacts).where(eq(contacts.id, id));
+  }
+
+  // Admin analytics operations
+  async getUserCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(users);
+    return result[0]?.count || 0;
+  }
+
+  async getConversationCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(conversations);
+    return result[0]?.count || 0;
+  }
+
+  async getMessageCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(messages);
+    return result[0]?.count || 0;
+  }
+
+  async getSmartListCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(smartLists);
+    return result[0]?.count || 0;
+  }
+
+  async getListItemCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(listItems);
+    return result[0]?.count || 0;
+  }
+
+  async getReminderCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(reminders);
+    return result[0]?.count || 0;
+  }
+
+  async getContactCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(contacts);
+    return result[0]?.count || 0;
+  }
+
+  async getRecentUsers(limit: number): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    lastActive: string;
+    messageCount: number;
+  }>> {
+    const recentUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(limit);
+
+    // Get message counts for each user
+    const usersWithStats = await Promise.all(
+      recentUsers.map(async (user) => {
+        const messageCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(messages)
+          .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+          .where(eq(conversations.userId, user.id));
+
+        return {
+          id: user.id,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous',
+          email: user.email || 'No email',
+          createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
+          lastActive: user.updatedAt?.toISOString() || user.createdAt?.toISOString() || new Date().toISOString(),
+          messageCount: messageCount[0]?.count || 0,
+        };
+      })
+    );
+
+    return usersWithStats;
   }
 }
 

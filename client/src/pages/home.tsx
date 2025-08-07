@@ -7,6 +7,7 @@ import { ContactsPage } from "@/components/contacts/contacts-page";
 import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
+
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -57,6 +58,7 @@ export default function HomePage() {
       case "/ocr":
       case "/text-extractor":
         return <OCRPage />;
+
       default:
         return <ChatInterface user={user} />;
     }
@@ -77,6 +79,7 @@ export default function HomePage() {
       case "/ocr":
       case "/text-extractor":
         return "Text Extractor";
+
       default:
         return "GabAi";
     }

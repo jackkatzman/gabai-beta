@@ -1154,6 +1154,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin dashboard analytics endpoint
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      // Get comprehensive stats for admin dashboard
+      const totalUsers = await storage.getUserCount();
+      const totalConversations = await storage.getConversationCount();
+      const totalMessages = await storage.getMessageCount();
+      const totalLists = await storage.getSmartListCount();
+      const totalListItems = await storage.getListItemCount();
+      const totalReminders = await storage.getReminderCount();
+      const totalContacts = await storage.getContactCount();
+      const linkStats = getLinkStats();
+      const recentUsers = await storage.getRecentUsers(10);
+
+      // Mock activity data (in production, track this in database)
+      const userActivity = [
+        { date: '2025-08-01', newUsers: 5, activeUsers: 12, messages: 45 },
+        { date: '2025-08-02', newUsers: 3, activeUsers: 15, messages: 52 },
+        { date: '2025-08-03', newUsers: 7, activeUsers: 18, messages: 68 },
+        { date: '2025-08-04', newUsers: 4, activeUsers: 16, messages: 41 },
+        { date: '2025-08-05', newUsers: 6, activeUsers: 19, messages: 73 },
+        { date: '2025-08-06', newUsers: 2, activeUsers: 14, messages: 38 },
+        { date: '2025-08-07', newUsers: 8, activeUsers: 22, messages: 89 },
+      ];
+
+      // Mock top domains (in production, calculate from link clicks)
+      const topDomains = [
+        { domain: 'booking.com', clicks: 45 },
+        { domain: 'amazon.com', clicks: 32 },
+        { domain: 'kayak.com', clicks: 28 },
+        { domain: 'expedia.com', clicks: 19 },
+        { domain: 'hotels.com', clicks: 12 },
+      ];
+
+      const dashboardStats = {
+        totalUsers,
+        totalConversations,
+        totalMessages,
+        totalLists,
+        totalListItems,
+        totalReminders,
+        totalContacts,
+        linkStats: {
+          ...linkStats,
+          topDomains
+        },
+        userActivity,
+        recentUsers
+      };
+
+      res.json(dashboardStats);
+    } catch (error: any) {
+      console.error("Admin stats error:", error);
+      res.status(500).json({ message: "Failed to get admin stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
