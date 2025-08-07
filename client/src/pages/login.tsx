@@ -73,7 +73,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
-            onClick={() => window.location.href = "/api/auth/google"}
+            onClick={() => login()}
             disabled={isLoggingIn}
             className="w-full h-12 text-base"
             size="lg"
