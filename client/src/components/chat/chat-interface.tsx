@@ -57,7 +57,7 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       // Update messages cache with both user and assistant messages
       queryClient.setQueryData(
         [`/api/messages/${response.conversationId}`],
-        (oldMessages: Message[] = []) => [...oldMessages, response.userMessage, response.message]
+        (oldMessages: Message[] = []) => [...oldMessages, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions

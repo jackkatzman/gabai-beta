@@ -23,7 +23,7 @@ export function NotificationService({ user }: NotificationServiceProps) {
 
   // Get user's reminders
   const { data: reminders = [] } = useQuery<Reminder[]>({
-    queryKey: ["/api/reminders", user.id],
+    queryKey: [`/api/reminders/${user.id}`],
     refetchInterval: 30000, // Check every 30 seconds
   });
 

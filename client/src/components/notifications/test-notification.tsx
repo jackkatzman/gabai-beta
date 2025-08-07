@@ -26,7 +26,7 @@ export function TestNotification({ user }: TestNotificationProps) {
   const createTestReminderMutation = useMutation({
     mutationFn: (reminderData: any) => api.createReminder(reminderData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
       toast({
         title: "Test Reminder Created",
         description: "Browser notification will appear when due!",
