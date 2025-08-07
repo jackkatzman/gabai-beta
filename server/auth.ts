@@ -126,6 +126,8 @@ export function setupAuth(app: Express) {
     console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
     console.log('🔑 Using Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
     console.log('📍 Callback URL configured for current domain:', `https://${req.get('host')}/api/auth/google/callback`);
+    console.log('🔍 Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('🔍 User-Agent:', req.get('User-Agent'));
     
     const authenticator = passport.authenticate('google', { 
       scope: ['profile', 'email'],

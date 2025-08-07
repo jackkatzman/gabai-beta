@@ -21,8 +21,17 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
+      // Add detailed logging to trace redirect issue
+      console.log('🔍 Login mutation starting...');
+      console.log('🔍 Current location:', window.location.href);
+      console.log('🔍 About to redirect to:', "/api/auth/google");
+      
+      // Try using absolute URL to bypass any potential routing issues
+      const fullUrl = `${window.location.origin}/api/auth/google`;
+      console.log('🔍 Full OAuth URL:', fullUrl);
+      
       // Redirect to Google OAuth endpoint
-      window.location.href = "/api/auth/google";
+      window.location.href = fullUrl;
     },
   });
 
