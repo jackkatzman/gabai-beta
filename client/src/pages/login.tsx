@@ -190,9 +190,26 @@ export default function LoginPage() {
             <p>Sign in to sync your data across all devices</p>
           </div>
           
-          {/* Success message */}
-          <div className="text-center text-xs text-green-600">
-            Login should now work! Click "Continue with Google" above.
+          {/* Test button for debugging */}
+          <div className="text-center space-y-2">
+            <Button 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/test');
+                  const data = await response.json();
+                  alert(`Server test: ${data.message}`);
+                } catch (error) {
+                  alert('Server test failed: ' + error);
+                }
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Test Server Connection
+            </Button>
+            <div className="text-xs text-green-600">
+              Try the "Continue with Google" button above
+            </div>
           </div>
         </CardContent>
       </Card>

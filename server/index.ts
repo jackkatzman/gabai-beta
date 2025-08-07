@@ -19,10 +19,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup authentication before routes
-setupAuth(app);
+// CRITICAL: Add login route FIRST before any other middleware
+console.log('🔧 Setting up /api/login route BEFORE all other middleware...');
 
-// OAuth routes are handled by Passport.js in setupAuth() - no manual routes needed
+// Simple test route first
+app.get('/api/test', (req, res) => {
+  console.log('✅ TEST ROUTE REACHED from browser!');
+  res.json({ message: 'Express server is working!', timestamp: Date.now() });
+});
+
+app.get('/api/login', (req, res) => {
+  console.log('🚀🚀🚀 LOGIN ROUTE HIT - BROWSER REQUEST RECEIVED!');
+  console.log('🌐 Request from:', req.get('host'));
+  console.log('🔄 User clicked login button, starting OAuth...');
+  
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `response_type=code` +
+    `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=https://gab-ai-jack741.replit.app/api/auth/google/callback` +
+    `&scope=profile%20email` +
+    `&access_type=offline` +
+    `&prompt=consent`;
+  
+  console.log('✅ Sending redirect to Google OAuth...');
+  return res.redirect(googleAuthUrl);
+});
+
+// Setup authentication after login route
+setupAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -70,23 +94,7 @@ app.use((req, res, next) => {
       next();
     });
 
-    // Add explicit login route before other middleware to bypass Vite
-    app.get('/api/login', (req, res, next) => {
-      console.log('🚀 LOGIN ROUTE HIT - Bypassing Vite!');
-      console.log('🔄 Redirecting to Google OAuth...');
-      
-      // Direct OAuth initiation without going through auth.ts
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `response_type=code` +
-        `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
-        `&redirect_uri=https://gab-ai-jack741.replit.app/api/auth/google/callback` +
-        `&scope=profile%20email` +
-        `&access_type=offline` +
-        `&prompt=consent`;
-      
-      console.log('🔗 Redirecting to:', googleAuthUrl);
-      res.redirect(googleAuthUrl);
-    });
+    // Login route moved to top of file - this duplicate is removed
 
     const server = await registerRoutes(app);
 
