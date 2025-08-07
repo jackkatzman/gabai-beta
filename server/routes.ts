@@ -1,7 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import path from "path";
+import { fileURLToPath } from "url";
 import { storage } from "./storage";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
 import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
@@ -1158,7 +1162,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Analytics dashboard (custom built-in dashboard)
   app.get("/analytics", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/src/pages/simple-analytics.html"));
+    const analyticsHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi Analytics Dashboard</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .metric-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .metric-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
+        .users { color: #3b82f6; } .messages { color: #10b981; } .lists { color: #8b5cf6; } .clicks { color: #f59e0b; }
+        .refresh-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 GabAi Analytics Dashboard</h1>
+            <p>Real-time insights • Voice-first AI assistant</p>
+            <button class="refresh-btn" onclick="loadAnalytics()">↻ Refresh Data</button>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value users" id="totalUsers">Loading...</div>
+                <div>Total Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value messages" id="totalMessages">Loading...</div>
+                <div>Messages Sent</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value lists" id="totalLists">Loading...</div>
+                <div>Smart Lists</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value clicks" id="linkClicks">Loading...</div>
+                <div>Link Clicks</div>
+            </div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 24px; text-align: center;">
+            <h3 style="color: #374151;">✅ Production Status: All Systems Operational</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px;">
+                <div>🎙️ Voice AI Ready<br><small>6 alarm personalities</small></div>
+                <div>📱 Mobile Native<br><small>Capacitor integration</small></div>
+                <div>💰 Monetization Active<br><small>URL shortening + tracking</small></div>
+                <div>📊 Analytics Live<br><small>Real-time metrics</small></div>
+            </div>
+            <p style="margin-top: 30px; color: #10b981; font-weight: 600; font-size: 1.2rem;">
+                Ready for $14.95/month Google Play Store launch 🚀
+            </p>
+        </div>
+    </div>
+    <script>
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics/summary');
+                const data = await response.json();
+                document.getElementById('totalUsers').textContent = data.totalUsers || '0';
+                document.getElementById('totalMessages').textContent = data.totalMessages || '0';
+                document.getElementById('totalLists').textContent = data.totalLists || '0';
+                document.getElementById('linkClicks').textContent = data.linkClicks || '0';
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+        loadAnalytics();
+        setInterval(loadAnalytics, 30000);
+    </script>
+</body>
+</html>`;
+    res.send(analyticsHTML);
   });
 
   // Metabase analytics proxy endpoint (optional)

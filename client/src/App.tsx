@@ -118,7 +118,7 @@ function App() {
       <ErrorBoundary>
         <TooltipProvider>
           <UserProvider>
-            <div className="h-full font-sans antialiased bg-white text-black">
+            <div className="h-full font-sans antialiased bg-gray-50 text-gray-900">
               {/* Native notifications handled by Capacitor */}
               <AppContent />
             </div>
