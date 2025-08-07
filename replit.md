@@ -77,6 +77,9 @@ GabAi is a voice-first personal assistant web application built with React and E
 - ✅ **App Accessibility Confirmed** - Deployment at gab-ai-jack741.replit.app remains active and accessible
 - ✅ **Contacts Navigation Added** - Contacts section now visible in bottom navigation, Settings moved to header
 - ✅ **Professional List Intelligence** - AI now recognizes user profession and creates specialized lists (punch lists for contractors, closing lists for realtors, patient lists for medical, case lists for lawyers, lesson lists for teachers, menu lists for food service)
+- ✅ **Clickable Affiliate Links** - AI responses now automatically convert URLs to clickable links with affiliate monetization potential
+- ✅ **Strategic Link Recommendations** - AI only suggests affiliate links when users specifically request booking/purchasing help, maintaining natural user experience
+- ✅ **Monetization Infrastructure** - Built-in support for Booking.com, Expedia, Kayak, Amazon, and Hotels.com affiliate programs
 - → **Mobile App Reinstall** - User needs to re-add app to phone home screen after development changes
 - → **Custom Domain Setup** - Ready to configure gabai.ai domain for professional appearance
 
@@ -116,6 +119,7 @@ Date format: Current date (August 4, 2025) should be used for new appointments u
 - **Native Calendar Integration**: ICS export for seamless sync with device calendars (iPhone, Android, web)
 - **Calendar Subscription**: Live calendar feeds with automatic updates across all devices
 - **OCR Text Extraction**: AI-powered image text extraction for digitizing handwritten lists, wedding invitations, receipts, business cards, and any text-based documents
+- **Clickable Affiliate Links**: Automatic URL detection and affiliate link conversion for travel, shopping, and booking websites with built-in monetization
 - **Onboarding Flow**: Multi-step user setup to establish personalization
 - **Progressive Web App**: Installable PWA with offline support and push notifications
 - **Mobile App Ready**: Capacitor integration for native iOS and Android app store distribution

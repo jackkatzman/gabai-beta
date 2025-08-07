@@ -20,8 +20,10 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     }
   };
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { 
+  const formatTime = (dateString: string | Date | null) => {
+    if (!dateString) return '';
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
