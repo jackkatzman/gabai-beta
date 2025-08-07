@@ -121,7 +121,7 @@ export function setupAuth(app: Express) {
     console.log('🌐 Request hostname:', req.hostname);
     console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
     console.log('🔑 Using Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
-    console.log('📍 Callback URL configured:', 'https://gab-ai-jack741.replit.app/api/auth/google/callback');
+    console.log('📍 Callback URL configured for current domain:', `https://${req.get('host')}/api/auth/google/callback`);
     
     const authenticator = passport.authenticate('google', { 
       scope: ['profile', 'email'],
