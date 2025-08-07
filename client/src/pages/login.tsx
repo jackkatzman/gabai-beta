@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Download, Smartphone, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
+import { DebugLogin } from "@/components/debug-login";
 import { useState, useEffect } from "react";
 
 export default function LoginPage() {
@@ -188,6 +189,11 @@ export default function LoginPage() {
           <div className="text-center text-sm text-muted-foreground">
             <p>Sign in to sync your data across all devices</p>
           </div>
+          
+          {/* Debug tools - remove in production */}
+          {process.env.NODE_ENV === 'development' && (
+            <DebugLogin />
+          )}
         </CardContent>
       </Card>
     </div>

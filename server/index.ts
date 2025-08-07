@@ -62,6 +62,12 @@ app.use((req, res, next) => {
       res.json({ message: 'Express routes are working', timestamp: new Date().toISOString() });
     });
 
+    // Add middleware to ensure API routes are handled before Vite catch-all
+    app.use('/api/*', (req, res, next) => {
+      console.log(`🔍 API middleware: ${req.method} ${req.path}`);
+      next();
+    });
+
     const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
