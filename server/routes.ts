@@ -750,11 +750,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Use user's timezone preference, fall back to auto-detected or default
+      const userTimezone = user.timezone || "America/New_York";
+      
       // Create calendar
       const calendar = ical({
         name: `${user.name || user.email}'s GabAi Calendar`,
         description: "Appointments and reminders from GabAi",
-        timezone: "America/New_York", // EST/EDT
+        timezone: userTimezone,
         url: `${req.protocol}://${req.get('host')}/api/calendar/export/${userId}`,
       });
 
@@ -764,7 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const startTime = new Date(reminder.dueDate);
         const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000); // 1 hour duration
         
-        console.log(`Calendar export: ${reminder.title} at ${startTime.toISOString()} (EST: ${startTime.toLocaleString('en-US', { timeZone: 'America/New_York' })})`);
+        console.log(`Calendar export: ${reminder.title} at ${startTime.toISOString()} (${userTimezone}: ${startTime.toLocaleString('en-US', { timeZone: userTimezone })})`);
         
         calendar.createEvent({
           start: startTime,
@@ -776,7 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
           created: reminder.createdAt,
           lastModified: reminder.updatedAt,
-          timezone: 'America/New_York', // Explicit timezone per event
+          timezone: userTimezone, // Use user's timezone preference
         });
       });
 
@@ -807,18 +810,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Use user's timezone preference
+      const userTimezone = user.timezone || "America/New_York";
+      
       // Create single event calendar
       const calendar = ical({
         name: `GabAi Event: ${reminder.title}`,
         description: "Single event from GabAi",
-        timezone: "America/New_York",
+        timezone: userTimezone,
       });
 
       // Create proper Date objects with timezone handling
       const startTime = new Date(reminder.dueDate);
       const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000);
       
-      console.log(`Single event export: ${reminder.title} at ${startTime.toISOString()} (EST: ${startTime.toLocaleString('en-US', { timeZone: 'America/New_York' })})`);
+      console.log(`Single event export: ${reminder.title} at ${startTime.toISOString()} (${userTimezone}: ${startTime.toLocaleString('en-US', { timeZone: userTimezone })})`);
       
       calendar.createEvent({
         start: startTime,
@@ -830,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
         created: reminder.createdAt,
         lastModified: reminder.updatedAt,
-        timezone: 'America/New_York', // Explicit timezone per event
+        timezone: userTimezone, // Use user's timezone preference
       });
 
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

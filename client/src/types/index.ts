@@ -36,6 +36,7 @@ export interface OnboardingData {
   communicationStyle?: string;
   interests?: string[];
   familyDetails?: string;
+  timezone?: string;
 }
 
 export interface VoiceSettings {

@@ -23,6 +23,7 @@ export const users = pgTable("users", {
     notificationAdvance?: number; // minutes before due date
   }>().default({}),
   onboardingCompleted: boolean("onboarding_completed").default(false),
+  timezone: varchar("timezone").default("America/New_York"), // User's timezone preference
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

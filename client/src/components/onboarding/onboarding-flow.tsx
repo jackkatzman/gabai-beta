@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Mic, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { detectUserTimezone, getCommonTimezones } from "@/lib/timezone";
 import type { OnboardingData } from "@/types";
 
 interface OnboardingFlowProps {
@@ -29,6 +31,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
     communicationStyle: "",
     interests: [],
     familyDetails: "",
+    timezone: detectUserTimezone(), // Auto-detect user's timezone
   });
 
   const updateData = (updates: Partial<OnboardingData>) => {
@@ -330,11 +333,13 @@ function LifestyleStep({ data, updateData, onNext, onPrev }: {
 }) {
   const commStyles = [
     "Casual and friendly",
-    "Professional and formal",
+    "Professional and formal", 
     "Direct and to-the-point",
     "Supportive and encouraging",
     "Humorous and lighthearted"
   ];
+  
+  const timezones = getCommonTimezones();
 
   return (
     <div className="space-y-6">
@@ -382,6 +387,23 @@ function LifestyleStep({ data, updateData, onNext, onPrev }: {
               />
             </div>
           </div>
+        </div>
+
+        <div>
+          <Label>What's your timezone?</Label>
+          <p className="text-sm text-gray-500 mt-1 mb-2">This helps me schedule reminders and appointments correctly.</p>
+          <Select value={data.timezone || detectUserTimezone()} onValueChange={(value) => updateData({ timezone: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select your timezone" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {getCommonTimezones().map((tz) => (
+                <SelectItem key={tz.value} value={tz.value}>
+                  {tz.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
