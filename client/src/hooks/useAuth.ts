@@ -21,19 +21,7 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      // Debug: Log what we're trying to access
-      console.log('🔍 Attempting to redirect to:', "/api/auth/google");
-      console.log('🌐 Current window location:', window.location.href);
-      
-      // Test if the endpoint exists first
-      try {
-        const testResponse = await fetch("/api/test-route");
-        console.log('✅ Test route works:', testResponse.status);
-      } catch (error) {
-        console.error('❌ Can\'t reach backend:', error);
-      }
-      
-      // Use the simpler login endpoint to avoid Vite routing conflicts
+      // Use the correct OAuth endpoint that the server expects
       window.location.href = "/api/login";
     },
   });

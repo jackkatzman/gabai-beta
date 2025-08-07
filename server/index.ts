@@ -19,34 +19,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// CRITICAL: Add login route FIRST before any other middleware
-console.log('🔧 Setting up /api/login route BEFORE all other middleware...');
-
-// Simple test route first
-app.get('/api/test', (req, res) => {
-  console.log('✅ TEST ROUTE REACHED from browser!');
-  res.json({ message: 'Express server is working!', timestamp: Date.now() });
-});
-
-app.get('/api/login', (req, res) => {
-  console.log('🚀🚀🚀 LOGIN ROUTE HIT - BROWSER REQUEST RECEIVED!');
-  console.log('🌐 Request from:', req.get('host'));
-  console.log('🔄 User clicked login button, starting OAuth...');
-  
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `response_type=code` +
-    `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=https://gab-ai-jack741.replit.app/api/auth/google/callback` +
-    `&scope=profile%20email` +
-    `&access_type=offline` +
-    `&prompt=consent`;
-  
-  console.log('✅ Sending redirect to Google OAuth...');
-  return res.redirect(googleAuthUrl);
-});
-
-// Setup authentication after login route
+// Setup authentication before routes
 setupAuth(app);
+
+// OAuth routes are handled by Passport.js in setupAuth() - no manual routes needed
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -85,16 +61,6 @@ app.use((req, res, next) => {
       console.log('✅ Test route accessed successfully!');
       res.json({ message: 'Express routes are working', timestamp: new Date().toISOString() });
     });
-
-    // Add middleware to ensure API routes are handled before Vite catch-all
-    app.use('/api/*', (req, res, next) => {
-      console.log(`🔍 API middleware: ${req.method} ${req.path}`);
-      console.log(`🔍 Full URL: ${req.originalUrl}`);
-      console.log(`🔍 Headers: ${JSON.stringify(req.headers.accept)}`);
-      next();
-    });
-
-    // Login route moved to top of file - this duplicate is removed
 
     const server = await registerRoutes(app);
 

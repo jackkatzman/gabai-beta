@@ -237,7 +237,7 @@ export function ImageTextExtractor() {
               ref={cameraInputRef}
               type="file"
               accept="image/*"
-              capture="user"
+              capture="environment"
               onChange={handleCameraUpload}
               className="hidden"
               style={{ display: 'none' }}
@@ -268,12 +268,10 @@ export function ImageTextExtractor() {
                   variant="outline"
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     console.log('📸 Camera button clicked');
-                    // Force camera to open directly, not gallery
+                    // Force focus and trigger camera immediately
                     if (cameraInputRef.current) {
-                      // Reset the input to ensure fresh camera access
-                      cameraInputRef.current.value = '';
+                      cameraInputRef.current.focus();
                       cameraInputRef.current.click();
                     }
                   }}
