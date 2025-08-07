@@ -8,10 +8,21 @@ export function DebugLogin() {
       '/api/auth/user'
     ];
 
+    console.log('🔍 Testing routes from browser...');
     for (const route of routes) {
       try {
-        const response = await fetch(route, { method: 'HEAD' });
-        console.log(`${route}: ${response.status}`);
+        const response = await fetch(route, { 
+          method: 'GET',
+          redirect: 'manual' // Don't follow redirects so we can see the response
+        });
+        console.log(`${route}: Status ${response.status}`);
+        if (response.status === 302) {
+          console.log(`${route}: Redirect to ${response.headers.get('location')}`);
+        }
+        if (response.status === 200) {
+          const text = await response.text();
+          console.log(`${route}: Response preview:`, text.substring(0, 100));
+        }
       } catch (error) {
         console.error(`${route}: ERROR -`, error);
       }

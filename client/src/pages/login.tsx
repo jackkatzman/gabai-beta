@@ -191,9 +191,7 @@ export default function LoginPage() {
           </div>
           
           {/* Debug tools - remove in production */}
-          {process.env.NODE_ENV === 'development' && (
-            <DebugLogin />
-          )}
+          <DebugLogin />
         </CardContent>
       </Card>
     </div>
