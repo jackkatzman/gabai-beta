@@ -14,11 +14,12 @@ import SimpleLoginPage from "@/pages/simple-login";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
 import { ContactsPage } from "@/components/contacts/contacts-page";
+import AnalyticsPage from "@/pages/analytics";
 
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Component, type ReactNode } from "react";
-import { ThemeProvider } from "@/hooks/use-theme";
+// import { ThemeProvider } from "@/hooks/use-theme";
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -84,34 +85,47 @@ function AppContent() {
     );
   }
 
-  // Show main app for users who completed onboarding
-  if (user?.onboardingCompleted === true) {
-    return <HomePage />;
-  }
+  return (
+    <Switch>
+      <Route path="/analytics" component={AnalyticsPage} />
+      <Route path="/simple-login" component={SimpleLoginPage} />
+      <Route path="/shared/:listId" component={SharedListPage} />
+      <Route path="/ocr" component={OCRPage} />
+      <Route path="/settings" component={SettingsPage} />
+      <Route path="/contacts" component={ContactsPage} />
+      <Route path="/">
+        {() => {
+          // Show main app for users who completed onboarding
+          if (user?.onboardingCompleted === true) {
+            return <HomePage />;
+          }
 
-  if (user && !user.onboardingCompleted) {
-    return <OnboardingPage />;
-  }
+          if (user && !user.onboardingCompleted) {
+            return <OnboardingPage />;
+          }
 
-  return <LoginPage />;
+          return <LoginPage />;
+        }}
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <TooltipProvider>
-            <UserProvider>
-              <div className="h-full font-sans antialiased bg-background text-foreground">
-                {/* Native notifications handled by Capacitor */}
-                <AppContent />
-              </div>
-            </UserProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <TooltipProvider>
+          <UserProvider>
+            <div className="h-full font-sans antialiased bg-white text-black">
+              {/* Native notifications handled by Capacitor */}
+              <AppContent />
+            </div>
+          </UserProvider>
+        </TooltipProvider>
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 }
 

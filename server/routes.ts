@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
 import { storage } from "./storage";
 import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
 import { speechService } from "./services/speech";
@@ -1153,6 +1154,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Link stats error:", error);
       res.status(500).json({ message: "Failed to get stats" });
     }
+  });
+
+  // Analytics dashboard (custom built-in dashboard)
+  app.get("/analytics", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/src/pages/simple-analytics.html"));
   });
 
   // Metabase analytics proxy endpoint (optional)
