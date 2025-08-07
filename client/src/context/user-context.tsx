@@ -1,5 +1,4 @@
-import { createContext, useContext } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@shared/schema";
 
 interface UserContextType {
@@ -11,16 +10,30 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  // Simplified approach - avoid useAuth hook that needs QueryClient
+  const [user, setUserState] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // setUser is now handled by the auth system, but we provide a compatible interface
+  // Check auth status on mount
+  useEffect(() => {
+    fetch('/api/auth/user')
+      .then(res => res.ok ? res.json() : null)
+      .then(userData => {
+        setUserState(userData);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setUserState(null);
+        setIsLoading(false);
+      });
+  }, []);
+
   const setUser = () => {
-    // Auth mutations handle user state changes
     console.warn("setUser is deprecated with OAuth - use login/logout instead");
   };
 
   return (
-    <UserContext.Provider value={{ user: user || null, setUser, isLoading }}>
+    <UserContext.Provider value={{ user, setUser, isLoading }}>
       {children}
     </UserContext.Provider>
   );
