@@ -7,6 +7,8 @@ import { ContactsPage } from "@/components/contacts/contacts-page";
 import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
+import { NativeScheduler, QuickScheduleButtons } from "@/components/scheduling/native-scheduler";
+import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
 
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
@@ -53,6 +55,22 @@ export default function HomePage() {
         return <ContactsPage />;
       case "/reminders":
         return <RemindersPage user={user} />;
+      case "/scheduler":
+        return (
+          <div className="p-4 space-y-6">
+            <h1 className="text-2xl font-bold">Native Scheduler</h1>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <NativeScheduler onScheduled={(id) => console.log(`Alarm ${id} scheduled`)} />
+                <div>
+                  <h3 className="font-medium mb-2">Quick Timers</h3>
+                  <QuickScheduleButtons onScheduled={(id) => console.log(`Timer ${id} set`)} />
+                </div>
+              </div>
+              <ScheduledAlarms />
+            </div>
+          </div>
+        );
       case "/settings":
         return <SettingsPage />;
       case "/ocr":
@@ -74,6 +92,8 @@ export default function HomePage() {
         return "Contacts";
       case "/reminders":
         return "Reminders";
+      case "/scheduler":
+        return "Scheduler";
       case "/settings":
         return "Settings";
       case "/ocr":
