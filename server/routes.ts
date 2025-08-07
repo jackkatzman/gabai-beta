@@ -1154,60 +1154,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin dashboard analytics endpoint
-  app.get("/api/admin/stats", async (req, res) => {
+  // Metabase analytics proxy endpoint (optional)
+  app.get("/api/analytics/embed/:dashboardId", async (req, res) => {
     try {
-      // Get comprehensive stats for admin dashboard
-      const totalUsers = await storage.getUserCount();
-      const totalConversations = await storage.getConversationCount();
-      const totalMessages = await storage.getMessageCount();
-      const totalLists = await storage.getSmartListCount();
-      const totalListItems = await storage.getListItemCount();
-      const totalReminders = await storage.getReminderCount();
-      const totalContacts = await storage.getContactCount();
-      const linkStats = getLinkStats();
-      const recentUsers = await storage.getRecentUsers(10);
+      // This endpoint can be used to embed Metabase dashboards
+      // For now, just redirect to the analytics setup page
+      res.json({ 
+        message: "Analytics dashboard available at http://localhost:3000",
+        setup: "Run: docker run -d -p 3000:3000 metabase/metabase",
+        dashboardId: req.params.dashboardId
+      });
+    } catch (error: any) {
+      console.error("Analytics embed error:", error);
+      res.status(500).json({ message: "Failed to load analytics" });
+    }
+  });
 
-      // Mock activity data (in production, track this in database)
-      const userActivity = [
-        { date: '2025-08-01', newUsers: 5, activeUsers: 12, messages: 45 },
-        { date: '2025-08-02', newUsers: 3, activeUsers: 15, messages: 52 },
-        { date: '2025-08-03', newUsers: 7, activeUsers: 18, messages: 68 },
-        { date: '2025-08-04', newUsers: 4, activeUsers: 16, messages: 41 },
-        { date: '2025-08-05', newUsers: 6, activeUsers: 19, messages: 73 },
-        { date: '2025-08-06', newUsers: 2, activeUsers: 14, messages: 38 },
-        { date: '2025-08-07', newUsers: 8, activeUsers: 22, messages: 89 },
-      ];
-
-      // Mock top domains (in production, calculate from link clicks)
-      const topDomains = [
-        { domain: 'booking.com', clicks: 45 },
-        { domain: 'amazon.com', clicks: 32 },
-        { domain: 'kayak.com', clicks: 28 },
-        { domain: 'expedia.com', clicks: 19 },
-        { domain: 'hotels.com', clicks: 12 },
-      ];
-
-      const dashboardStats = {
-        totalUsers,
-        totalConversations,
-        totalMessages,
-        totalLists,
-        totalListItems,
-        totalReminders,
-        totalContacts,
-        linkStats: {
-          ...linkStats,
-          topDomains
-        },
-        userActivity,
-        recentUsers
+  // Simple analytics data endpoint for Metabase
+  app.get("/api/analytics/summary", async (req, res) => {
+    try {
+      const summary = {
+        totalUsers: await storage.getUserCount(),
+        totalMessages: await storage.getMessageCount(),
+        totalLists: await storage.getSmartListCount(),
+        linkClicks: getLinkStats().totalClicks,
+        timestamp: new Date().toISOString()
       };
 
-      res.json(dashboardStats);
+      res.json(summary);
     } catch (error: any) {
-      console.error("Admin stats error:", error);
-      res.status(500).json({ message: "Failed to get admin stats" });
+      console.error("Analytics summary error:", error);
+      res.status(500).json({ message: "Failed to get analytics summary" });
     }
   });
 
