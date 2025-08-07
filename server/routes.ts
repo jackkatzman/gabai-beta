@@ -763,11 +763,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add reminders as calendar events with proper timezone handling
       reminders.forEach((reminder) => {
-        // Create proper Date objects ensuring timezone consistency
-        const startTime = new Date(reminder.dueDate);
-        const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000); // 1 hour duration
+        // Convert the stored time to the user's timezone, then create a "floating" time
+        // This prevents double timezone conversion during calendar import
+        const originalDate = new Date(reminder.dueDate);
         
-        console.log(`Calendar export: ${reminder.title} at ${startTime.toISOString()} (${userTimezone}: ${startTime.toLocaleString('en-US', { timeZone: userTimezone })})`);
+        // Create a new date that represents the local time in the user's timezone
+        // but without timezone offset (floating time)
+        const localTimeString = originalDate.toLocaleString('en-CA', { 
+          timeZone: userTimezone,
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        
+        const startTime = new Date(localTimeString);
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour duration
+        
+        console.log(`Calendar export: ${reminder.title} - Original: ${originalDate.toISOString()}, Local: ${localTimeString}, Final: ${startTime.toISOString()}`);
         
         calendar.createEvent({
           start: startTime,
@@ -776,10 +792,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: reminder.description || '',
           location: reminder.category === 'appointment' ? user.location || '' : '',
           categories: [{ name: reminder.category || 'reminder' }],
-          // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
           created: reminder.createdAt,
           lastModified: reminder.updatedAt,
-          timezone: userTimezone, // Use user's timezone preference
+          floating: true, // This creates a "floating" time that won't be converted
         });
       });
 
@@ -820,11 +835,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timezone: userTimezone,
       });
 
-      // Create proper Date objects with timezone handling
-      const startTime = new Date(reminder.dueDate);
-      const endTime = new Date(reminder.dueDate.getTime() + 60 * 60 * 1000);
+      // Create proper Date objects with timezone handling to prevent import time shifts
+      const originalDate = new Date(reminder.dueDate);
       
-      console.log(`Single event export: ${reminder.title} at ${startTime.toISOString()} (${userTimezone}: ${startTime.toLocaleString('en-US', { timeZone: userTimezone })})`);
+      // Create a "floating" time that represents the local time without timezone conversion
+      const localTimeString = originalDate.toLocaleString('en-CA', { 
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      
+      const startTime = new Date(localTimeString);
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+      
+      console.log(`Single event export: ${reminder.title} - Original: ${originalDate.toISOString()}, Local: ${localTimeString}, Final: ${startTime.toISOString()}`);
       
       calendar.createEvent({
         start: startTime,
@@ -833,10 +862,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: reminder.description || '',
         location: reminder.category === 'appointment' ? user.location || '' : '',
         categories: [{ name: reminder.category || 'reminder' }],
-        // status: reminder.completed ? 'CONFIRMED' : 'TENTATIVE',
         created: reminder.createdAt,
         lastModified: reminder.updatedAt,
-        timezone: userTimezone, // Use user's timezone preference
+        floating: true, // This creates a "floating" time that won't be converted during import
       });
 
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

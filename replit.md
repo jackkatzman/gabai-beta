@@ -3,6 +3,8 @@
 GabAi is a voice-first personal assistant web application designed to provide AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. It features real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continually learning from preferences for increasingly personalized responses. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 ## Recent Updates (August 2025)
+- **Calendar Timezone Fix**: Resolved calendar import time shifting issues by implementing floating time events and user timezone preferences
+- **Timezone Detection**: Auto-detect user timezone from browser with manual selection during onboarding
 - **URL Shortening Service**: Implemented clean "gab.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
 - **Metabase Analytics**: Added plug-and-play business intelligence dashboard with 30-second Docker setup
 - **Affiliate Monetization**: Automatic URL shortening with click tracking for Booking.com, Amazon, Kayak, Expedia, Hotels.com
