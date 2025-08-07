@@ -22,7 +22,7 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: async () => {
       // Use the correct OAuth endpoint that the server expects
-      window.location.href = "/api/login";
+      window.location.href = "/api/auth/google";
     },
   });
 

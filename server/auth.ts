@@ -181,12 +181,22 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Logout routes - both for compatibility
   app.get('/auth/logout', (req, res) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ message: 'Logout failed' });
       }
       res.redirect('/');
+    });
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.json({ message: 'Logged out successfully' });
     });
   });
 
