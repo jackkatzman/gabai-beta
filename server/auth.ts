@@ -115,8 +115,8 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Auth routes - updated to match Google Cloud Console configuration
-  app.get('/api/auth/google', (req, res, next) => {
+  // OAuth start function - shared between routes
+  const startOAuth = (req: any, res: any, next: any) => {
     console.log('🚀 Starting Google OAuth flow...');
     console.log('🌐 Request hostname:', req.hostname);
     console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
@@ -131,7 +131,11 @@ export function setupAuth(app: Express) {
     
     console.log('🔄 Calling passport.authenticate...');
     authenticator(req, res, next);
-  });
+  };
+
+  // Auth routes - multiple paths for compatibility with frontend routing issues
+  app.get('/api/auth/google', startOAuth);
+  app.get('/api/login', startOAuth); // Add the route the frontend originally expected
 
   app.get('/api/auth/google/callback', (req, res, next) => {
     console.log('🔄 OAuth callback route hit!');

@@ -201,7 +201,7 @@ export default function LoginPage() {
               <Button 
                 onClick={async () => {
                   console.log('🔍 Testing routes from browser...');
-                  const routes = ['/api/test-route', '/api/auth/google', '/api/auth/user'];
+                  const routes = ['/api/test-route', '/api/login', '/api/auth/user'];
                   for (const route of routes) {
                     try {
                       const response = await fetch(route, { method: 'GET', redirect: 'manual' });
@@ -224,7 +224,7 @@ export default function LoginPage() {
               <Button 
                 onClick={() => {
                   console.log('🔄 Direct navigation to login...');
-                  window.location.href = '/api/auth/google';
+                  window.location.href = '/api/login';
                 }}
                 variant="outline" 
                 size="sm" 

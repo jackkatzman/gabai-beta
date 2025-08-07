@@ -33,8 +33,8 @@ export function useAuth() {
         console.error('❌ Can\'t reach backend:', error);
       }
       
-      // Use the correct OAuth endpoint that the server expects
-      window.location.href = "/api/auth/google";
+      // Use the simpler login endpoint to avoid Vite routing conflicts
+      window.location.href = "/api/login";
     },
   });
 
