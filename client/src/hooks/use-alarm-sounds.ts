@@ -178,9 +178,10 @@ export function useAlarmSounds() {
 function getPersonalizedWakeUpText(baseText: string, personality?: string): string {
   const templates = {
     'drill-sergeant': [
-      `DROP AND GIVE ME TWENTY! ${baseText}! GET UP NOW SOLDIER!`,
-      `RISE AND SHINE RECRUIT! NO EXCUSES! ${baseText}!`,
-      `MOVE MOVE MOVE! ${baseText}! THE DAY WON'T WAIT FOR YOU!`
+      `GET UP NOW SOLDIER! ${baseText}! DROP AND GIVE ME TWENTY PUSH-UPS!`,
+      `WAKE UP RECRUIT! ${baseText}! THE ENEMY DOESN'T SLEEP AND NEITHER SHOULD YOU!`,
+      `MOVE IT MOVE IT MOVE IT! ${baseText}! I'VE SEEN DEAD FISH WITH MORE ENERGY!`,
+      `ON YOUR FEET MAGGOT! ${baseText}! NO EXCUSES, NO SNOOZE BUTTON, JUST DISCIPLINE!`
     ],
     'gentle': [
       `Good morning sunshine. ${baseText}. Time to start your beautiful day.`,
@@ -222,7 +223,7 @@ function getPersonalizedWakeUpText(baseText: string, personality?: string): stri
 // Helper function to get ElevenLabs voice ID for personality
 function getVoiceIdForPersonality(personality?: string): string {
   const voiceMap = {
-    'drill-sergeant': 'pNInz6obpgDQGcFmaJgB', // Adam - strong male voice
+    'drill-sergeant': 'onwK4e9ZLuTAKqWW03F9', // Daniel - deep authoritative male voice (better for drill sergeant)
     'gentle': '21m00Tcm4TlvDq8ikWAM', // Rachel - gentle female voice  
     'motivational': 'AZnzlk1XvdvUeBnXmlld', // Domi - energetic female voice
     'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual male voice
