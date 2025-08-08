@@ -18,7 +18,8 @@ const AFFILIATE_MAPPINGS = {
   'expedia.com': 'tpid=gabai2025',
   'kayak.com': 'aid=gabai',
   'hotels.com': 'aid=gabai2025',
-  'amazon.com': 'tag=floater01b-20'
+  'amazon.com': 'tag=floater01b-20',
+  'vrbo.com': 'https://www.dpbolvw.net/click-101504231-10697641' // User's VRBO affiliate link
 };
 
 function addAffiliateParams(url: string): string {
@@ -28,6 +29,12 @@ function addAffiliateParams(url: string): string {
     
     const affiliateId = AFFILIATE_MAPPINGS[domain as keyof typeof AFFILIATE_MAPPINGS];
     if (affiliateId) {
+      // Special handling for VRBO - use direct affiliate link
+      if (domain === 'vrbo.com') {
+        return affiliateId; // Return the full affiliate URL for VRBO
+      }
+      
+      // For other domains, add as query parameter
       const separator = urlObj.search ? '&' : '?';
       return `${url}${separator}${affiliateId}`;
     }

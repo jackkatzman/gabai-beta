@@ -22,7 +22,7 @@ async function processUrlsInContent(content: string): Promise<string> {
         const urlObj = new URL(url);
         const domain = urlObj.hostname.replace(/^www\./, '');
         
-        if (['amazon.com', 'booking.com', 'expedia.com', 'kayak.com', 'hotels.com'].includes(domain)) {
+        if (['amazon.com', 'booking.com', 'expedia.com', 'kayak.com', 'hotels.com', 'vrbo.com'].includes(domain)) {
           console.log(`🔗 Processing affiliate URL: ${url}`);
           const { shortUrl } = createShortLink(url);
           processedContent = processedContent.replace(url, shortUrl);

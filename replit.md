@@ -42,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 Timezone: Eastern Time (EST/EDT) - All appointments and reminders should use EST.
 Date format: Current date (August 4, 2025) should be used for new appointments unless specified otherwise.
 Amazon affiliate code: floater01b-20 (configured in the URL shortening monetization system).
+VRBO affiliate link: https://www.dpbolvw.net/click-101504231-10697641 (configured for vacation rental recommendations).
 
 # System Architecture
 
