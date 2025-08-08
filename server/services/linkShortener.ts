@@ -64,7 +64,7 @@ export function createShortLink(originalUrl: string): { shortCode: string; short
   linkStore.set(shortCode, shortLink);
   
   // Return short URL using current domain
-  // In production use gabai.ai, in development use the current Replit domain
+  // Always use gabai.ai for production, current Replit domain for development
   const currentDomain = process.env.NODE_ENV === 'production' 
     ? 'gabai.ai' 
     : process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';

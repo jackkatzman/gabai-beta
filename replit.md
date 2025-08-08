@@ -11,7 +11,7 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **Multi-Platform Landing Page**: Professional download options for Android APK, iOS web app, and direct web access with $14.95/month subscription model
 - **ALARM SYSTEM COMPLETELY FIXED** (Aug 8): Critical bug resolved - voice commands now properly create alarms instead of calendar appointments. Added "create_alarm" action type to OpenAI system prompt to distinguish alarms from appointments. Manual "Set Alarm" button now fully responsive with proper loading states.
 - **Drill Sergeant Voice Fixed** (Aug 8): Updated to correct voice ID (DGzg6RaUqxGRTHSBjfgF) with enhanced military phrases including "MAGGOT", "RECRUIT", "THE ENEMY DOESN'T SLEEP" for aggressive wake-up calls
-- **Amazon Affiliate Code Updated** (Aug 8): Successfully changed from "gabai-20" to user's personal code "floater01b-20" in URL shortening system for proper commission tracking. Added automatic URL processing to AI chat responses - ALL Amazon links now automatically include affiliate code and get shortened to clean gab.ai/l/xxxxx format
+- **Amazon Affiliate Code Updated** (Aug 8): Successfully changed from "gabai-20" to user's personal code "floater01b-20" in URL shortening system for proper commission tracking. Added automatic URL processing to AI chat responses - ALL Amazon links now automatically include affiliate code and get shortened to clean gabai.ai/l/xxxxx format
 - **Navigation System Fixed** (Aug 8): Resolved critical routing issue preventing Lists and Calendar navigation - restructured App.tsx routes to handle `/lists` and `/calendar` properly
 - **React Query Integration**: Fixed query key formatting and URL construction for proper data fetching across all components
 - **Authentication Flow**: Stabilized OAuth session management with consistent cookie handling and user state synchronization
@@ -20,7 +20,7 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **Google Console Setup**: Development URL must be added to OAuth callback: `https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback`
 - **Calendar Timezone Fix**: Resolved calendar import time shifting issues by implementing floating time events and user timezone preferences
 - **Timezone Detection**: Auto-detect user timezone from browser with manual selection during onboarding
-- **URL Shortening Service**: Implemented clean "gab.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
+- **URL Shortening Service**: Implemented clean "gabai.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
 - **Metabase Analytics**: Added plug-and-play business intelligence dashboard with 30-second Docker setup
 - **Affiliate Monetization**: Automatic URL shortening with click tracking for Booking.com, Amazon, Kayak, Expedia, Hotels.com
 - **Native Notifications**: Replaced web toast notifications with Capacitor native notifications for better mobile UX
