@@ -38,9 +38,12 @@ export const getQueryFn: <T>(options: {
       url = queryKey.join("/");
     }
     
+    console.log("🔍 React Query fetching URL:", url);
     const res = await fetch(url, {
       credentials: "include",
     });
+    
+    console.log("📡 Response status:", res.status);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
