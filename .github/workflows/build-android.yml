@@ -1,0 +1,103 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build web app
+      run: npm run build
+      
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Sync Capacitor
+      run: npx cap sync android
+      
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+      
+    - name: Build APK
+      run: |
+        cd android
+        ./gradlew assembleDebug --no-daemon
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: gabai-beta-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+        
+    - name: Create Release (on main branch)
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: beta-${{ github.run_number }}
+        name: GabAi Beta ${{ github.run_number }}
+        body: |
+          🚀 **GabAi Beta Release**
+          
+          **Version:** 1.0.0-beta.${{ github.run_number }}
+          **Build:** ${{ github.run_number }}
+          **Commit:** ${{ github.sha }}
+          
+          **Features in this build:**
+          - 🎤 Voice Recognition with OpenAI Whisper
+          - 🧠 AI Chat with GPT-4o
+          - ⏰ Smart Alarms with AI voice personalities
+          - 📝 Intelligent auto-categorizing lists
+          - 📅 Natural language calendar integration
+          - 📷 OCR text extraction from images
+          - 👥 Smart contact management
+          - 💰 Affiliate link monetization
+          
+          **Installation:**
+          1. Download the APK below
+          2. Enable "Install from Unknown Sources" on Android
+          3. Install and allow all permissions
+          4. Start testing and provide feedback!
+          
+          **Feedback:** beta@gabai.ai or GitHub Issues
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Comment on PR with APK
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🎉 **APK Build Complete!**\n\nDownload the beta APK from the artifacts section above to test your changes.\n\n**Testing checklist:**\n- [ ] Voice recognition works\n- [ ] AI chat responds correctly\n- [ ] Alarms set and trigger properly\n- [ ] Lists auto-categorize items\n- [ ] OCR scans text accurately\n- [ ] Calendar sync functions'
+          })
