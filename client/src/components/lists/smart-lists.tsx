@@ -128,9 +128,17 @@ export function SmartLists({ user }: SmartListsProps) {
   });
 
   // Get smart lists
-  const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
+  const { data: lists = [], isLoading, error } = useQuery<(SmartList & { items: ListItem[] })[]>({
     queryKey: ["/api/smart-lists", user.id],
+    enabled: !!user?.id, // Only fetch when user exists
   });
+
+  // Debug logging
+  console.log("SmartLists - User ID:", user?.id);
+  console.log("SmartLists - Query enabled:", !!user?.id);
+  console.log("SmartLists - Loading:", isLoading);
+  console.log("SmartLists - Error:", error);
+  console.log("SmartLists - Data:", lists);
 
   // Create list mutation
   const createListMutation = useMutation({
