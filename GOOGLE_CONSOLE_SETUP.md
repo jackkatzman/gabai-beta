@@ -36,10 +36,10 @@ This URL MUST be added to your Google Cloud Console OAuth settings for login to 
 
 5. **SAVE the changes**
 
-## What NOT to have:
-- ❌ Any URL with `gabai.ai` 
-- ❌ Any URL ending in `/auth/google/callback` (missing `/api`)
-- ❌ Any other domains or URLs
+## Current Configuration (August 8, 2025):
+- ✅ Backend now uses `gabai.ai` for all OAuth callbacks
+- ✅ Production deployment on gabai.ai
+- ✅ Clean redirect URI setup required
 
 ## Current Server Configuration:
 - ✅ Client ID: 963480849928-31lrn2rb8unjm83u55tjbtc52ieqffqf.apps.googleusercontent.com

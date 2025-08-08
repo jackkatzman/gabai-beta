@@ -41,25 +41,13 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure Google OAuth strategy with production and development support
+  // Configure Google OAuth strategy - use gabai.ai for all environments
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Determine callback URL - prioritize production domain
-    let callbackURL: string;
-    
-    // Check if we're in production environment (gabai.ai)
-    if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === 'production') {
-      callbackURL = 'https://gabai.ai/api/auth/google/callback';
-    } else {
-      // Development - use current Replit domain
-      const currentDomain = process.env.REPLIT_DOMAINS || 'localhost:5000';
-      callbackURL = currentDomain.includes('localhost') 
-        ? `http://${currentDomain}/api/auth/google/callback`
-        : `https://${currentDomain}/api/auth/google/callback`;
-    }
+    // Always use gabai.ai callback URL since that's your production domain
+    const callbackURL = 'https://gabai.ai/api/auth/google/callback';
     
     console.log('🎯 OAuth callback URL:', callbackURL);
     console.log('🌐 Environment:', process.env.NODE_ENV);
-    console.log('🚀 Deployment status:', process.env.REPLIT_DEPLOYMENT);
     console.log('🔑 Client ID:', process.env.GOOGLE_CLIENT_ID);
     console.log('🔒 Client Secret configured:', !!process.env.GOOGLE_CLIENT_SECRET);
     
