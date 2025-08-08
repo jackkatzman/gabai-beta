@@ -53,8 +53,10 @@ export function useCapacitorScheduler() {
 
   // Schedule native alarm/notification
   const scheduleAlarm = useCallback(async (options: ScheduleOptions): Promise<number | null> => {
+    console.log('📅 scheduleAlarm called with:', options);
     try {
       if (window.Capacitor?.isNativePlatform()) {
+        console.log('📱 Using native Capacitor platform');
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         
         // Request permissions first
@@ -83,8 +85,10 @@ export function useCapacitorScheduler() {
 
         return notificationId;
       } else {
+        console.log('🌐 Using web fallback platform');
         // Web fallback using setTimeout and browser notifications
         const timeUntilAlarm = options.date.getTime() - Date.now();
+        console.log('⏰ Time until alarm (ms):', timeUntilAlarm);
         
         if (timeUntilAlarm > 0) {
           const alarmId = Date.now();
@@ -98,8 +102,10 @@ export function useCapacitorScheduler() {
             schedule: { at: options.date }
           });
           localStorage.setItem('gabai-web-alarms', JSON.stringify(webAlarms));
+          console.log('💾 Alarm stored in localStorage:', webAlarms);
           
           setTimeout(async () => {
+            console.log('⏰ Alarm triggered!', options.title);
             if ('Notification' in window) {
               const permission = await Notification.requestPermission();
               if (permission === 'granted') {
@@ -123,13 +129,15 @@ export function useCapacitorScheduler() {
             localStorage.setItem('gabai-web-alarms', JSON.stringify(updatedAlarms));
           }, timeUntilAlarm);
           
+          console.log('✅ Alarm scheduled with ID:', alarmId);
           return alarmId;
+        } else {
+          console.log('❌ Time until alarm is negative or zero, cannot schedule');
+          return null;
         }
-        
-        return null;
       }
     } catch (error) {
-      console.error('Alarm scheduling error:', error);
+      console.error('❌ Alarm scheduling error:', error);
       return null;
     }
   }, []);

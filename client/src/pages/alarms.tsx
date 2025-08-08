@@ -16,11 +16,22 @@ export function AlarmsPage() {
   const [alarmTitle, setAlarmTitle] = useState("");
   const [voicePersonality, setVoicePersonality] = useState<'drill-sergeant' | 'gentle' | 'funny'>('gentle');
   
-  const { scheduleAlarm, showDatePicker } = useCapacitorScheduler();
-  const { playAlarmSound, generateVoiceAlarm } = useAlarmSounds();
+  const capacitorScheduler = useCapacitorScheduler();
+  const { scheduleAlarm, showDatePicker } = capacitorScheduler || {};
+  const alarmSounds = useAlarmSounds();
+  const { playAlarmSound, generateVoiceAlarm } = alarmSounds || {};
   const { toast } = useToast();
 
   const handleQuickTimer = async (minutes: number) => {
+    if (!scheduleAlarm) {
+      toast({
+        title: "Alarm Error",
+        description: "Alarm scheduling not available",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const timerDate = new Date();
     timerDate.setMinutes(timerDate.getMinutes() + minutes);
     
@@ -48,6 +59,8 @@ export function AlarmsPage() {
   };
 
   const handleVoiceAlarm = async () => {
+    console.log('🔔 Setting alarm with:', { selectedTime, selectedDate, alarmTitle, voicePersonality });
+    
     if (!selectedTime || !alarmTitle) {
       toast({
         title: "Missing Information",
@@ -57,48 +70,85 @@ export function AlarmsPage() {
       return;
     }
 
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    let alarmDate = new Date();
-    
-    // Use selected date if provided, otherwise use today
-    if (selectedDate) {
-      const [year, month, day] = selectedDate.split('-').map(Number);
-      alarmDate = new Date(year, month - 1, day);
-    }
-    
-    alarmDate.setHours(hours, minutes, 0, 0);
-    
-    // If time is in the past and no date selected, schedule for tomorrow
-    if (!selectedDate && alarmDate < new Date()) {
-      alarmDate.setDate(alarmDate.getDate() + 1);
-    }
-
-    const alarmId = await scheduleAlarm({
-      title: alarmTitle,
-      description: `AI Voice Alarm - ${voicePersonality} style`,
-      date: alarmDate,
-      recurring: 'none',
-      vibration: true,
-      sound: 'ai-voice',
-      voiceOptions: {
-        text: alarmTitle,
-        personality: voicePersonality
+    try {
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      let alarmDate = new Date();
+      
+      // Use selected date if provided, otherwise use today
+      if (selectedDate) {
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        alarmDate = new Date(year, month - 1, day);
       }
-    });
+      
+      alarmDate.setHours(hours, minutes, 0, 0);
+      
+      // If time is in the past and no date selected, schedule for tomorrow
+      if (!selectedDate && alarmDate < new Date()) {
+        alarmDate.setDate(alarmDate.getDate() + 1);
+      }
 
-    if (alarmId) {
-      toast({
-        title: "Voice Alarm Set",
-        description: `${voicePersonality} alarm set for ${selectedTime}`,
+      console.log('🔔 Alarm date created:', alarmDate);
+
+      if (!scheduleAlarm) {
+        toast({
+          title: "Alarm Error", 
+          description: "Alarm scheduling not available",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const alarmId = await scheduleAlarm({
+        title: alarmTitle,
+        description: `AI Voice Alarm - ${voicePersonality} style`,
+        date: alarmDate,
+        recurring: 'none',
+        vibration: true,
+        sound: 'ai-voice',
+        voiceOptions: {
+          text: alarmTitle,
+          personality: voicePersonality
+        }
       });
-      setIsScheduling(false);
-      setSelectedTime("");
-      setSelectedDate("");
-      setAlarmTitle("");
+
+      console.log('🔔 Alarm ID returned:', alarmId);
+
+      if (alarmId) {
+        toast({
+          title: "Voice Alarm Set",
+          description: `${voicePersonality} alarm set for ${alarmDate.toLocaleString()}`,
+        });
+        setIsScheduling(false);
+        setSelectedTime("");
+        setSelectedDate("");
+        setAlarmTitle("");
+      } else {
+        toast({
+          title: "Alarm Failed",
+          description: "Could not set the alarm. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('🔔 Alarm setting error:', error);
+      toast({
+        title: "Alarm Error",
+        description: "There was an error setting your alarm. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
   const testVoice = async () => {
+    if (!playAlarmSound) {
+      toast({
+        title: "Voice Test Error",
+        description: "Voice playback not available",
+        variant: "destructive"
+      });
+      return;
+    }
+
     await playAlarmSound({
       type: 'ai-voice',
       voiceOptions: {
@@ -235,13 +285,28 @@ export function AlarmsPage() {
               </div>
 
               <div className="flex space-x-3">
-                <Button variant="outline" onClick={testVoice} className="flex-1">
+                <Button 
+                  variant="outline" 
+                  onClick={testVoice} 
+                  className="flex-1"
+                  disabled={!alarmTitle}
+                >
                   Test Voice
                 </Button>
-                <Button onClick={handleVoiceAlarm} className="flex-1">
+                <Button 
+                  onClick={handleVoiceAlarm} 
+                  className="flex-1"
+                  disabled={!selectedTime || !alarmTitle}
+                >
                   Set Alarm
                 </Button>
               </div>
+              
+              {(!selectedTime || !alarmTitle) && (
+                <p className="text-xs text-gray-500 text-center">
+                  Please set both time and message to enable alarm
+                </p>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
