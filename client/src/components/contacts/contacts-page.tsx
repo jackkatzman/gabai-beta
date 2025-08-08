@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Download, Phone, Mail, Building, MapPin, Calendar } from "lucide-react";
+import { User, Download, Phone, Mail, Building, MapPin, Calendar, ArrowLeft, Home } from "lucide-react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +53,18 @@ export function ContactsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between border-b pb-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Contacts</h1>
+          <div className="w-20"></div> {/* Spacer for balance */}
+        </div>
+        
         <div className="text-center py-8">
           <User className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <p>Loading your contacts...</p>
@@ -63,6 +76,18 @@ export function ContactsPage() {
   if (contacts.length === 0) {
     return (
       <div className="space-y-6">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between border-b pb-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Contacts</h1>
+          <div className="w-20"></div> {/* Spacer for balance */}
+        </div>
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -87,6 +112,18 @@ export function ContactsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Navigation Header */}
+      <div className="flex items-center justify-between border-b pb-4">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Button>
+        </Link>
+        <h1 className="text-2xl font-bold">Contacts</h1>
+        <div className="w-20"></div> {/* Spacer for balance */}
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
