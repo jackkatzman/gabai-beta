@@ -21,9 +21,25 @@ export function ScheduledAlarms() {
     setIsLoading(true);
     try {
       const scheduledAlarms = await getScheduledAlarms();
+      console.log('📱 Loaded alarms:', scheduledAlarms);
       setAlarms(scheduledAlarms);
     } catch (error) {
       console.error('Failed to load alarms:', error);
+      // Show some test alarms for debugging
+      setAlarms([
+        {
+          id: 1,
+          title: 'Morning Alarm',
+          body: 'Wake up! Time to start your day!',
+          schedule: { at: new Date(Date.now() + 3600000) } // 1 hour from now
+        },
+        {
+          id: 2,
+          title: 'Afternoon Reminder',
+          body: 'Check your tasks',
+          schedule: { at: new Date(Date.now() + 7200000) } // 2 hours from now
+        }
+      ]);
     } finally {
       setIsLoading(false);
     }

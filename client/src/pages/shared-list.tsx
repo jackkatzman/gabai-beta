@@ -10,6 +10,7 @@ import { Plus, Share2, ExternalLink } from "lucide-react";
 import { LogoBubble } from "@/components/ui/logo-spinner";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 import type { SmartList, ListItem } from "@shared/schema";
 import gabaiLogo from "@assets/gabai_logo_1754292316913.png";
 
@@ -167,7 +168,7 @@ export function SharedListPage() {
                   className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <Checkbox
-                    checked={item.completed}
+                    checked={item.completed || false}
                     onCheckedChange={() => handleToggleItem(item)}
                   />
                   <span
@@ -215,6 +216,12 @@ export function SharedListPage() {
           <ExternalLink className="h-4 w-4 mr-2" />
           Get Your Own Smart Lists
         </Button>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="h-20" />
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
       </div>
     </div>
   );

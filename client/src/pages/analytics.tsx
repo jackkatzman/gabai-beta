@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, MessageCircle, List, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 
 interface AnalyticsData {
   totalUsers: string;
@@ -271,6 +272,11 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
       </div>
     </div>
   );

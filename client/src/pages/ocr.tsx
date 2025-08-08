@@ -2,6 +2,7 @@ import { ImageTextExtractor } from "@/components/ocr/image-text-extractor";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 
 export function OCRPage() {
   return (
@@ -29,6 +30,12 @@ export function OCRPage() {
         </div>
         
         <ImageTextExtractor />
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="h-20" /> {/* Spacer for bottom nav */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
       </div>
     </div>
   );

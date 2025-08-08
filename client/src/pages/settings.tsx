@@ -2,13 +2,20 @@ import { NotificationSettings } from "@/components/settings/notification-setting
 import { TestNotification } from "@/components/notifications/test-notification";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, User, Bell } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Settings as SettingsIcon, User, Bell, Camera, Edit } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { BottomNav } from "@/components/navigation/bottom-nav";
+import { useState } from "react";
 import type { User as UserType } from "@shared/schema";
 
 export default function SettingsPage() {
   const { user, isLoading } = useAuth();
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState(user?.name || "");
+  const [editEmail, setEditEmail] = useState(user?.email || "");
 
   if (isLoading) {
     return (
@@ -56,29 +63,95 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-6">
-          {/* User Profile Summary */}
+          {/* User Profile */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsEditingProfile(!isEditingProfile)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isEditingProfile ? "Cancel" : "Edit"}
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                  <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              {isEditingProfile ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="relative">
+                      <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full p-0"
+                      >
+                        <Camera className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Click camera icon to upload profile picture
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="edit-name">Name</Label>
+                      <Input 
+                        id="edit-name"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Your name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-email">Email</Label>
+                      <Input 
+                        id="edit-email"
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-2">
+                    <Button className="flex-1">Save Changes</Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsEditingProfile(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium">{user.name}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {user.email || "No email set"}
-                  </p>
-                  {user.location && (
-                    <p className="text-sm text-gray-500">{user.location}</p>
-                  )}
+              ) : (
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{user.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {user.email || "No email set"}
+                    </p>
+                    {user.location && (
+                      <p className="text-sm text-gray-500">{user.location}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -100,6 +173,12 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="h-20" /> {/* Spacer for bottom nav */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
       </div>
     </div>
   );

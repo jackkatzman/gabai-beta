@@ -87,6 +87,18 @@ export function useCapacitorScheduler() {
         const timeUntilAlarm = options.date.getTime() - Date.now();
         
         if (timeUntilAlarm > 0) {
+          const alarmId = Date.now();
+          
+          // Store alarm in localStorage for retrieval
+          const webAlarms = JSON.parse(localStorage.getItem('gabai-web-alarms') || '[]');
+          webAlarms.push({
+            id: alarmId,
+            title: options.title,
+            body: options.description,
+            schedule: { at: options.date }
+          });
+          localStorage.setItem('gabai-web-alarms', JSON.stringify(webAlarms));
+          
           setTimeout(async () => {
             if ('Notification' in window) {
               const permission = await Notification.requestPermission();
@@ -104,9 +116,14 @@ export function useCapacitorScheduler() {
               const audio = new Audio(options.sound);
               audio.play().catch(console.error);
             }
+            
+            // Remove from localStorage after triggering
+            const updatedAlarms = JSON.parse(localStorage.getItem('gabai-web-alarms') || '[]')
+              .filter((alarm: any) => alarm.id !== alarmId);
+            localStorage.setItem('gabai-web-alarms', JSON.stringify(updatedAlarms));
           }, timeUntilAlarm);
           
-          return Date.now(); // Return a simple ID
+          return alarmId;
         }
         
         return null;
@@ -148,7 +165,15 @@ export function useCapacitorScheduler() {
           schedule: n.schedule
         }));
       } else {
-        // Web fallback - return empty array
+        // Web fallback - check localStorage for web alarms
+        const webAlarms = localStorage.getItem('gabai-web-alarms');
+        if (webAlarms) {
+          const alarms = JSON.parse(webAlarms);
+          // Filter out expired alarms
+          const activeAlarms = alarms.filter((alarm: any) => new Date(alarm.schedule.at) > new Date());
+          localStorage.setItem('gabai-web-alarms', JSON.stringify(activeAlarms));
+          return activeAlarms;
+        }
         return [];
       }
     } catch (error) {

@@ -190,6 +190,11 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Bottom Navigation - only show if there's intent to navigate */}
+      <div className="mt-8 text-center text-xs text-gray-500">
+        <p>Access all GabAi features after logging in</p>
+      </div>
     </div>
   );
 }

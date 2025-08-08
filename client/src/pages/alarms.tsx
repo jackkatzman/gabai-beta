@@ -7,10 +7,12 @@ import { useCapacitorScheduler } from "@/hooks/use-capacitor-scheduler";
 import { useAlarmSounds } from "@/hooks/use-alarm-sounds";
 import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
 import { useToast } from "@/hooks/use-toast";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 
 export function AlarmsPage() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedTime, setSelectedTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [alarmTitle, setAlarmTitle] = useState("");
   const [voicePersonality, setVoicePersonality] = useState<'drill-sergeant' | 'gentle' | 'funny'>('gentle');
   
@@ -39,6 +41,12 @@ export function AlarmsPage() {
     }
   };
 
+  const setToday = () => {
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    setSelectedDate(todayString);
+  };
+
   const handleVoiceAlarm = async () => {
     if (!selectedTime || !alarmTitle) {
       toast({
@@ -50,11 +58,18 @@ export function AlarmsPage() {
     }
 
     const [hours, minutes] = selectedTime.split(':').map(Number);
-    const alarmDate = new Date();
+    let alarmDate = new Date();
+    
+    // Use selected date if provided, otherwise use today
+    if (selectedDate) {
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      alarmDate = new Date(year, month - 1, day);
+    }
+    
     alarmDate.setHours(hours, minutes, 0, 0);
     
-    // If time is in the past, schedule for tomorrow
-    if (alarmDate < new Date()) {
+    // If time is in the past and no date selected, schedule for tomorrow
+    if (!selectedDate && alarmDate < new Date()) {
       alarmDate.setDate(alarmDate.getDate() + 1);
     }
 
@@ -78,6 +93,7 @@ export function AlarmsPage() {
       });
       setIsScheduling(false);
       setSelectedTime("");
+      setSelectedDate("");
       setAlarmTitle("");
     }
   };
@@ -153,6 +169,30 @@ export function AlarmsPage() {
           {isScheduling ? (
             <div className="space-y-4">
               <div>
+                <label className="block text-sm font-medium mb-2">Alarm Date</label>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="flex-1 p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={setToday}
+                    className="px-4"
+                  >
+                    Today
+                  </Button>
+                </div>
+                {!selectedDate && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    No date selected - will use today or tomorrow if time has passed
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-2">Alarm Time</label>
                 <input
                   type="time"
@@ -227,6 +267,12 @@ export function AlarmsPage() {
 
       {/* Scheduled Alarms */}
       <ScheduledAlarms />
+
+      {/* Bottom Navigation */}
+      <div className="h-20" /> {/* Spacer for bottom nav */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
+      </div>
     </div>
   );
 }

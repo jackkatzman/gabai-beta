@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 
 interface Contact {
   id: string;
@@ -231,6 +232,12 @@ export function ContactsPage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Bottom Navigation */}
+      <div className="h-20" />
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
+      </div>
     </div>
   );
 }
