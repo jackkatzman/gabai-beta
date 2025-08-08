@@ -7,6 +7,35 @@ import { storage } from "./storage";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
+
+// Function to process URLs in content and add affiliate shortening
+async function processUrlsInContent(content: string): Promise<string> {
+  // Regex to find URLs in the content
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  let processedContent = content;
+  
+  const matches = content.match(urlRegex);
+  if (matches) {
+    for (const url of matches) {
+      try {
+        // Check if it's a supported affiliate domain
+        const urlObj = new URL(url);
+        const domain = urlObj.hostname.replace(/^www\./, '');
+        
+        if (['amazon.com', 'booking.com', 'expedia.com', 'kayak.com', 'hotels.com'].includes(domain)) {
+          console.log(`🔗 Processing affiliate URL: ${url}`);
+          const { shortUrl } = createShortLink(url);
+          processedContent = processedContent.replace(url, shortUrl);
+          console.log(`✅ Replaced with: ${shortUrl}`);
+        }
+      } catch (error) {
+        console.error('Error processing URL:', url, error);
+      }
+    }
+  }
+  
+  return processedContent;
+}
 import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
 import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
@@ -338,11 +367,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate AI response
       const aiResponse = await generatePersonalizedResponse(message, user, historyForAI);
 
-      // Save assistant message
+      // Process any URLs in the response for affiliate shortening
+      const processedContent = await processUrlsInContent(aiResponse.content);
+
+      // Save assistant message with processed content (URLs converted to affiliate short links)
       const assistantMessage = await storage.createMessage({
         conversationId: currentConversationId,
         role: "assistant",
-        content: aiResponse.content
+        content: processedContent
       });
 
       // Process any actions from the AI response
@@ -509,7 +541,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         userMessage,
-        message: assistantMessage,
+        message: {
+          ...assistantMessage,
+          content: processedContent // Return the processed content with shortened affiliate URLs
+        },
         conversationId: currentConversationId,
         suggestions: aiResponse.suggestions,
         actions: aiResponse.actions
@@ -1189,6 +1224,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Link shortening error:", error);
       res.status(500).json({ message: "Failed to shorten link" });
+    }
+  });
+
+  // Test endpoint to verify affiliate link processing
+  app.post("/api/test-affiliate", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ message: "Text content is required" });
+      }
+      
+      const processedText = await processUrlsInContent(text);
+      res.json({ 
+        original: text,
+        processed: processedText,
+        affiliateCode: "floater01b-20"
+      });
+    } catch (error: any) {
+      console.error("Affiliate test error:", error);
+      res.status(500).json({ message: "Failed to process affiliate links" });
     }
   });
 
