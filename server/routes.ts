@@ -22,6 +22,7 @@ import multer from "multer";
 import ical from "ical-generator";
 import passport from "passport";
 import elevenlabsRouter from './routes/elevenlabs';
+import { registerApkRoutes } from "./apk-routes";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -1309,6 +1310,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount ElevenLabs routes for AI voice generation
   app.use('/api/elevenlabs', elevenlabsRouter);
+
+  // Mount APK download routes for beta testing
+  registerApkRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

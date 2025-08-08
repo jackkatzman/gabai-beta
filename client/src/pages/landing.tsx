@@ -106,7 +106,7 @@ export function LandingPage() {
             </div>
 
             {/* Download Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-4 mb-8">
               {/* App Store */}
               <Button 
                 size="lg" 
@@ -146,6 +146,50 @@ export function LandingPage() {
                   <div className="text-lg font-semibold">Web App</div>
                 </div>
               </Button>
+            </div>
+
+            {/* Beta APK Download */}
+            <div className="flex items-center justify-center mb-12">
+              <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-700 rounded-xl p-8 max-w-lg">
+                <div className="text-center">
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300 mb-4 text-sm px-3 py-1">
+                    🧪 Beta Testing Program
+                  </Badge>
+                  <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    Get Early Access
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                    Help shape GabAi's future! Test cutting-edge features, provide feedback, 
+                    and get the latest updates before anyone else.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                    <Button 
+                      size="lg" 
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2"
+                      onClick={() => window.open('/downloads/gabai-beta.apk', '_blank')}
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Beta APK</span>
+                    </Button>
+                    
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-600 dark:text-orange-400 px-6 py-3 rounded-lg flex items-center space-x-2"
+                      onClick={() => window.open('/downloads/README-BETA.md', '_blank')}
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>Beta Guide</span>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                    <p>✓ Android 7.0+ required</p>
+                    <p>✓ Version 1.0.0-beta.1 • Released Aug 8, 2025</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Benefits Row */}
