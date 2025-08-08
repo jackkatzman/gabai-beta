@@ -94,6 +94,32 @@ function AppContent() {
       <Route path="/ocr" component={OCRPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route path="/contacts" component={ContactsPage} />
+      
+      {/* Protected routes - require authentication */}
+      <Route path="/lists">
+        {() => {
+          if (user?.onboardingCompleted === true) {
+            return <HomePage />;
+          }
+          if (user && !user.onboardingCompleted) {
+            return <OnboardingPage />;
+          }
+          return <LoginPage />;
+        }}
+      </Route>
+      
+      <Route path="/calendar">
+        {() => {
+          if (user?.onboardingCompleted === true) {
+            return <HomePage />;
+          }
+          if (user && !user.onboardingCompleted) {
+            return <OnboardingPage />;
+          }
+          return <LoginPage />;
+        }}
+      </Route>
+
       <Route path="/">
         {() => {
           // Show main app for users who completed onboarding

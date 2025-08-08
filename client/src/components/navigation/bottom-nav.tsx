@@ -24,7 +24,10 @@ export function BottomNav() {
             <Button
               key={item.path}
               variant="ghost"
-              onClick={() => setLocation(item.path)}
+              onClick={() => {
+                console.log("BottomNav - Clicking", item.path);
+                setLocation(item.path);
+              }}
               className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors h-auto ${
                 isActive 
                   ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" 
