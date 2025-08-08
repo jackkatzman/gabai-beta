@@ -16,6 +16,7 @@ import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
 import { ContactsPage } from "@/components/contacts/contacts-page";
 import { AlarmsPage } from "@/pages/alarms";
+import { LandingPage } from "@/pages/landing";
 import AnalyticsPage from "@/pages/analytics";
 
 import NotFound from "@/pages/not-found";
@@ -133,7 +134,7 @@ function AppContent() {
             return <OnboardingPage />;
           }
 
-          return <LoginPage />;
+          return <LandingPage />;
         }}
       </Route>
       <Route component={NotFound} />
