@@ -41,23 +41,27 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure Google OAuth strategy with dynamic domain
+  // Configure Google OAuth strategy with production and development support
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Use current Replit domain dynamically
-    const currentDomain = process.env.REPLIT_DOMAINS || 'localhost:5000';
-    const callbackURL = currentDomain.includes('localhost') 
-      ? `http://${currentDomain}/api/auth/google/callback`
-      : `https://${currentDomain}/api/auth/google/callback`;
+    // Determine callback URL - prioritize production domain
+    let callbackURL: string;
     
-    console.log('🎯 Dynamic OAuth callback URL:', callbackURL);
-    console.log('🔑 Full Client ID:', process.env.GOOGLE_CLIENT_ID);
-    console.log('🔒 Client Secret (first 10 chars):', process.env.GOOGLE_CLIENT_SECRET?.substring(0, 10) + '...');
-    console.log('🔒 Client Secret length:', process.env.GOOGLE_CLIENT_SECRET?.length);
-    console.log('🌐 Using REPLIT_DOMAINS for dynamic callback:', currentDomain);
+    // Check if we're in production environment (gabai.ai)
+    if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === 'production') {
+      callbackURL = 'https://gabai.ai/api/auth/google/callback';
+    } else {
+      // Development - use current Replit domain
+      const currentDomain = process.env.REPLIT_DOMAINS || 'localhost:5000';
+      callbackURL = currentDomain.includes('localhost') 
+        ? `http://${currentDomain}/api/auth/google/callback`
+        : `https://${currentDomain}/api/auth/google/callback`;
+    }
     
-    console.log('🔧 Configuring GoogleStrategy with:');
-    console.log('   - clientID:', process.env.GOOGLE_CLIENT_ID);
-    console.log('   - callbackURL:', callbackURL);
+    console.log('🎯 OAuth callback URL:', callbackURL);
+    console.log('🌐 Environment:', process.env.NODE_ENV);
+    console.log('🚀 Deployment status:', process.env.REPLIT_DEPLOYMENT);
+    console.log('🔑 Client ID:', process.env.GOOGLE_CLIENT_ID);
+    console.log('🔒 Client Secret configured:', !!process.env.GOOGLE_CLIENT_SECRET);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
