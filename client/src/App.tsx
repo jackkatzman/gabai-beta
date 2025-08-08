@@ -15,6 +15,7 @@ import SimpleLoginPage from "@/pages/simple-login";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
 import { ContactsPage } from "@/components/contacts/contacts-page";
+import { AlarmsPage } from "@/pages/alarms";
 import AnalyticsPage from "@/pages/analytics";
 
 import NotFound from "@/pages/not-found";
@@ -94,6 +95,7 @@ function AppContent() {
       <Route path="/ocr" component={OCRPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route path="/contacts" component={ContactsPage} />
+      <Route path="/alarms" component={AlarmsPage} />
       
       {/* Protected routes - require authentication */}
       <Route path="/lists">

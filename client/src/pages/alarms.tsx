@@ -1,0 +1,232 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Clock, Bell, Volume2, Calendar, Plus } from "lucide-react";
+import { Link } from "wouter";
+import { useCapacitorScheduler } from "@/hooks/use-capacitor-scheduler";
+import { useAlarmSounds } from "@/hooks/use-alarm-sounds";
+import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
+import { useToast } from "@/hooks/use-toast";
+
+export function AlarmsPage() {
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [alarmTitle, setAlarmTitle] = useState("");
+  const [voicePersonality, setVoicePersonality] = useState<'drill-sergeant' | 'gentle' | 'funny'>('gentle');
+  
+  const { scheduleAlarm, showDatePicker } = useCapacitorScheduler();
+  const { playAlarmSound, generateVoiceAlarm } = useAlarmSounds();
+  const { toast } = useToast();
+
+  const handleQuickTimer = async (minutes: number) => {
+    const timerDate = new Date();
+    timerDate.setMinutes(timerDate.getMinutes() + minutes);
+    
+    const alarmId = await scheduleAlarm({
+      title: `${minutes} Minute Timer`,
+      description: `Quick timer set for ${minutes} minutes`,
+      date: timerDate,
+      recurring: 'none',
+      vibration: true,
+      sound: 'default'
+    });
+    
+    if (alarmId) {
+      toast({
+        title: "Timer Set",
+        description: `${minutes} minute timer started`,
+      });
+    }
+  };
+
+  const handleVoiceAlarm = async () => {
+    if (!selectedTime || !alarmTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please set a time and title for your alarm",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const alarmDate = new Date();
+    alarmDate.setHours(hours, minutes, 0, 0);
+    
+    // If time is in the past, schedule for tomorrow
+    if (alarmDate < new Date()) {
+      alarmDate.setDate(alarmDate.getDate() + 1);
+    }
+
+    const alarmId = await scheduleAlarm({
+      title: alarmTitle,
+      description: `AI Voice Alarm - ${voicePersonality} style`,
+      date: alarmDate,
+      recurring: 'none',
+      vibration: true,
+      sound: 'ai-voice',
+      voiceOptions: {
+        text: alarmTitle,
+        personality: voicePersonality
+      }
+    });
+
+    if (alarmId) {
+      toast({
+        title: "Voice Alarm Set",
+        description: `${voicePersonality} alarm set for ${selectedTime}`,
+      });
+      setIsScheduling(false);
+      setSelectedTime("");
+      setAlarmTitle("");
+    }
+  };
+
+  const testVoice = async () => {
+    await playAlarmSound({
+      type: 'ai-voice',
+      voiceOptions: {
+        text: alarmTitle || "Wake up! Time to start your day!",
+        personality: voicePersonality
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-6 p-4">
+      {/* Navigation Header */}
+      <div className="flex items-center justify-between border-b pb-4">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Button>
+        </Link>
+        <h1 className="text-2xl font-bold">Alarms & Timers</h1>
+        <div className="w-20"></div>
+      </div>
+
+      {/* Quick Timers */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Clock className="h-5 w-5" />
+            <span>Quick Timers</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[5, 15, 30, 60].map((minutes) => (
+              <Button
+                key={minutes}
+                variant="outline"
+                onClick={() => handleQuickTimer(minutes)}
+                className="flex flex-col items-center p-4 h-auto"
+              >
+                <Clock className="h-6 w-6 mb-2" />
+                <span>{minutes}m</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI Voice Alarms */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Volume2 className="h-5 w-5" />
+              <span>AI Voice Alarms</span>
+            </div>
+            <Button 
+              size="sm" 
+              onClick={() => setIsScheduling(!isScheduling)}
+              className="flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Alarm</span>
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isScheduling ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Alarm Time</label>
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Alarm Message</label>
+                <input
+                  type="text"
+                  value={alarmTitle}
+                  onChange={(e) => setAlarmTitle(e.target.value)}
+                  placeholder="Wake up! Time to start your day!"
+                  className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Voice Personality</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'gentle', label: 'Gentle', desc: 'Sweet & calm' },
+                    { id: 'drill-sergeant', label: 'Drill Sergeant', desc: 'Tough & motivating' },
+                    { id: 'funny', label: 'Funny', desc: 'Playful & witty' }
+                  ].map((voice) => (
+                    <Button
+                      key={voice.id}
+                      variant={voicePersonality === voice.id ? "default" : "outline"}
+                      onClick={() => setVoicePersonality(voice.id as any)}
+                      className="flex flex-col items-center p-3 h-auto"
+                    >
+                      <span className="font-medium">{voice.label}</span>
+                      <span className="text-xs text-gray-500">{voice.desc}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <Button variant="outline" onClick={testVoice} className="flex-1">
+                  Test Voice
+                </Button>
+                <Button onClick={handleVoiceAlarm} className="flex-1">
+                  Set Alarm
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Bell className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Create personalized wake-up calls with AI voices
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                  <strong>Gentle</strong><br/>Sweet & calming
+                </div>
+                <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                  <strong>Drill Sergeant</strong><br/>Tough motivator
+                </div>
+                <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                  <strong>Funny</strong><br/>Playful & witty
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Scheduled Alarms */}
+      <ScheduledAlarms />
+    </div>
+  );
+}

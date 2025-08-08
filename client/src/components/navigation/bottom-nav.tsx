@@ -1,13 +1,14 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ShoppingCart, Calendar, Users, FileText } from "lucide-react";
+import { MessageCircle, ShoppingCart, Calendar, Users, FileText, Bell } from "lucide-react";
 
 const navItems = [
   { path: "/", icon: MessageCircle, label: "Chat" },
   { path: "/lists", icon: ShoppingCart, label: "Lists" },
   { path: "/calendar", icon: Calendar, label: "Calendar" },
+  { path: "/alarms", icon: Bell, label: "Alarms" },
   { path: "/contacts", icon: Users, label: "Contacts" },
-  { path: "/ocr", icon: FileText, label: "Text Scanner" },
+  { path: "/ocr", icon: FileText, label: "Scanner" },
 ];
 
 export function BottomNav() {

@@ -18,6 +18,10 @@ interface ScheduleOptions {
   recurring?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   sound?: string;
   vibration?: boolean;
+  voiceOptions?: {
+    text: string;
+    personality: 'drill-sergeant' | 'gentle' | 'funny';
+  };
 }
 
 interface DatePickerOptions {
