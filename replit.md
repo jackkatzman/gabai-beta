@@ -3,6 +3,10 @@
 GabAi is a voice-first personal assistant web application designed to provide AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. It features real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continually learning from preferences for increasingly personalized responses. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 ## Recent Updates (August 2025)
+- **APK Build Infrastructure** (Aug 8): Complete Android APK build system with GitHub Actions automation, professional beta testing program, and comprehensive distribution setup
+- **Beta Testing Program**: Enhanced landing page with prominent beta download section, comprehensive testing guide, and multi-channel feedback collection
+- **GitHub Actions Workflow**: Automated APK builds on every commit with release management, artifact distribution, and version tracking
+- **Mobile App Configuration**: Optimized Capacitor setup with proper Android permissions, native plugin integration, and production-ready build scripts
 - **Navigation System Fixed** (Aug 8): Resolved critical routing issue preventing Lists and Calendar navigation - restructured App.tsx routes to handle `/lists` and `/calendar` properly
 - **React Query Integration**: Fixed query key formatting and URL construction for proper data fetching across all components
 - **Authentication Flow**: Stabilized OAuth session management with consistent cookie handling and user state synchronization
