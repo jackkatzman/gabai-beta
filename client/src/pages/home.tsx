@@ -67,10 +67,15 @@ export default function HomePage() {
   }
 
   const getCurrentPageComponent = () => {
+    console.log("HomePage - Current location:", location);
+    console.log("HomePage - User:", user);
+    
     switch (location) {
       case "/lists":
+        console.log("HomePage - Rendering SmartLists");
         return <SmartLists user={user} />;
       case "/calendar":
+        console.log("HomePage - Rendering CalendarPage");
         return <CalendarPage user={user} />;
       case "/contacts":
         return <ContactsPage />;
