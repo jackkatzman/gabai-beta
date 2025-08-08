@@ -223,7 +223,7 @@ function getPersonalizedWakeUpText(baseText: string, personality?: string): stri
 // Helper function to get ElevenLabs voice ID for personality
 function getVoiceIdForPersonality(personality?: string): string {
   const voiceMap = {
-    'drill-sergeant': 'onwK4e9ZLuTAKqWW03F9', // Daniel - deep authoritative male voice (better for drill sergeant)
+    'drill-sergeant': 'pNInz6obpgDQGcFmaJgB', // Adam - strong authoritative male voice for drill sergeant
     'gentle': '21m00Tcm4TlvDq8ikWAM', // Rachel - gentle female voice  
     'motivational': 'AZnzlk1XvdvUeBnXmlld', // Domi - energetic female voice
     'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual male voice

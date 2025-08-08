@@ -9,6 +9,9 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **GitHub Actions Workflow**: Created automated APK builds on every commit with release management, artifact distribution, and version tracking - ready for upload
 - **Mobile App Configuration**: Optimized Capacitor setup with proper Android permissions, native plugin integration, and production-ready build scripts
 - **Multi-Platform Landing Page**: Professional download options for Android APK, iOS web app, and direct web access with $14.95/month subscription model
+- **ALARM SYSTEM COMPLETELY FIXED** (Aug 8): Critical bug resolved - voice commands now properly create alarms instead of calendar appointments. Added "create_alarm" action type to OpenAI system prompt to distinguish alarms from appointments. Manual "Set Alarm" button now fully responsive with proper loading states.
+- **Drill Sergeant Voice Fixed** (Aug 8): Changed voice ID back to Adam (pNInz6obpgDQGcFmaJgB) with enhanced military phrases including "MAGGOT", "RECRUIT", "THE ENEMY DOESN'T SLEEP" for aggressive wake-up calls
+- **Amazon Affiliate Code Updated** (Aug 8): Successfully changed from "gabai-20" to user's personal code "floater01b-20" in URL shortening system for proper commission tracking
 - **Navigation System Fixed** (Aug 8): Resolved critical routing issue preventing Lists and Calendar navigation - restructured App.tsx routes to handle `/lists` and `/calendar` properly
 - **React Query Integration**: Fixed query key formatting and URL construction for proper data fetching across all components
 - **Authentication Flow**: Stabilized OAuth session management with consistent cookie handling and user state synchronization

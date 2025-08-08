@@ -10,7 +10,7 @@ export interface AIResponse {
   content: string;
   suggestions?: string[];
   actions?: Array<{
-    type: "add_to_list" | "create_appointment" | "create_reminder" | "schedule_event" | "create_contact";
+    type: "add_to_list" | "create_appointment" | "create_alarm" | "create_reminder" | "schedule_event" | "create_contact";
     data: any;
   }>;
 }
@@ -97,6 +97,7 @@ Guidelines:
     - Home repairs/contractor work → "add_to_list" with "punch_list" type  
     - Restaurant reservations/waiting → "add_to_list" with "waiting_list" type
     - Appointments, meetings, doctor visits → "create_appointment" action
+    - ALARMS, WAKE-UP CALLS, "set alarm for", "wake me up at" → "create_alarm" action (NOT appointment)
     - General tasks (call mom, finish report, etc.) → "add_to_list" with "todo" type
     
 11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
@@ -143,6 +144,23 @@ For appointments:
           "title": "appointment title",
           "description": "optional description",
           "date": "${new Date().toISOString().split('T')[0]}T19:30:00.000Z"
+        }
+      }
+    }
+  ]
+}
+
+For alarms/wake-up calls:
+{
+  "content": "I'll set that alarm for you!", 
+  "actions": [
+    {
+      "type": "create_alarm",
+      "data": {
+        "alarm": {
+          "title": "Wake up message",
+          "description": "optional description",
+          "date": "${new Date().toISOString().split('T')[0]}T06:30:00.000Z"
         }
       }
     }

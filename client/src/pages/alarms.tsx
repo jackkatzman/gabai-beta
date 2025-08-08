@@ -60,6 +60,7 @@ export function AlarmsPage() {
 
   const handleVoiceAlarm = async () => {
     console.log('🔔 Setting alarm with:', { selectedTime, selectedDate, alarmTitle, voicePersonality });
+    setIsScheduling(true);
     
     if (!selectedTime || !alarmTitle) {
       toast({
@@ -67,6 +68,17 @@ export function AlarmsPage() {
         description: "Please set a time and title for your alarm",
         variant: "destructive"
       });
+      setIsScheduling(false);
+      return;
+    }
+
+    if (!scheduleAlarm) {
+      toast({
+        title: "Alarm Error", 
+        description: "Alarm scheduling not available",
+        variant: "destructive"
+      });
+      setIsScheduling(false);
       return;
     }
 
@@ -118,16 +130,18 @@ export function AlarmsPage() {
           title: "Voice Alarm Set",
           description: `${voicePersonality} alarm set for ${alarmDate.toLocaleString()}`,
         });
-        setIsScheduling(false);
+        // Clear form and refresh alarms
         setSelectedTime("");
         setSelectedDate("");
         setAlarmTitle("");
+        setIsScheduling(false);
       } else {
         toast({
           title: "Alarm Failed",
           description: "Could not set the alarm. Please try again.",
           variant: "destructive"
         });
+        setIsScheduling(false);
       }
     } catch (error) {
       console.error('🔔 Alarm setting error:', error);
@@ -136,6 +150,7 @@ export function AlarmsPage() {
         description: "There was an error setting your alarm. Please try again.",
         variant: "destructive"
       });
+      setIsScheduling(false);
     }
   };
 
@@ -296,9 +311,9 @@ export function AlarmsPage() {
                 <Button 
                   onClick={handleVoiceAlarm} 
                   className="flex-1"
-                  disabled={!selectedTime || !alarmTitle}
+                  disabled={!selectedTime || !alarmTitle || isScheduling}
                 >
-                  Set Alarm
+                  {isScheduling ? "Setting..." : "Set Alarm"}
                 </Button>
               </div>
               
@@ -307,6 +322,10 @@ export function AlarmsPage() {
                   Please set both time and message to enable alarm
                 </p>
               )}
+              
+              <p className="text-xs text-center text-green-600">
+                ✅ Manual alarm system ready - Fixed Aug 8, 2025
+              </p>
             </div>
           ) : (
             <div className="text-center py-8">

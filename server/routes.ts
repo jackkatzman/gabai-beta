@@ -349,7 +349,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (aiResponse.actions && aiResponse.actions.length > 0) {
         for (const action of aiResponse.actions) {
           try {
-            if (action.type === "create_appointment" && action.data?.appointment) {
+            if (action.type === "create_alarm" && action.data?.alarm) {
+              // Handle alarm creation (NOT calendar appointments)
+              console.log('Creating alarm from voice command:', action.data.alarm);
+              
+              // Alarms should be handled by the client-side alarm system
+              // For now, we'll create a special reminder with alarm category
+              let alarmDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to tomorrow
+              
+              if (action.data.alarm.date) {
+                try {
+                  alarmDate = new Date(action.data.alarm.date);
+                  if (isNaN(alarmDate.getTime())) {
+                    alarmDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                  }
+                } catch (e) {
+                  alarmDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                }
+              }
+              
+              await storage.createReminder({
+                userId,
+                title: action.data.alarm.title || "Voice Alarm",
+                description: `ALARM: ${action.data.alarm.description || action.data.alarm.title} (Use Alarms page for full functionality)`,
+                dueDate: alarmDate,
+                category: "Alarm"
+              });
+            } else if (action.type === "create_appointment" && action.data?.appointment) {
               // Handle appointment creation
               let appointmentDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to tomorrow
               
