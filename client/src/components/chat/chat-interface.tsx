@@ -23,7 +23,7 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
 
   // Load the most recent conversation for this user
   const { data: conversations = [] } = useQuery({
-    queryKey: [`/api/conversations/${user.id}`],
+    queryKey: ["/api/conversations", user.id],
   });
 
   // Set current conversation to the most recent one if none is set
@@ -37,7 +37,7 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
 
   // Get messages for current conversation
   const { data: messages = [], isLoading } = useQuery<Message[]>({
-    queryKey: [`/api/messages/${currentConversationId}`],
+    queryKey: ["/api/messages", currentConversationId],
     enabled: !!currentConversationId,
     queryFn: async () => {
       if (!currentConversationId) return [];
@@ -56,14 +56,14 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       
       // Update messages cache with both user and assistant messages
       queryClient.setQueryData(
-        [`/api/messages/${response.conversationId}`],
+        ["/api/messages", response.conversationId],
         (oldMessages: Message[] = []) => [...oldMessages, response.message]
       );
 
       // Invalidate lists and reminders cache if AI performed actions
       if (response.actions && response.actions.length > 0) {
-        queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
       }
 
       // Show suggestions if any

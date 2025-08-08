@@ -129,7 +129,7 @@ export function SmartLists({ user }: SmartListsProps) {
 
   // Get smart lists
   const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
-    queryKey: [`/api/smart-lists/${user.id}`],
+    queryKey: ["/api/smart-lists", user.id],
   });
 
   // Create list mutation

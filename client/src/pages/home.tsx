@@ -1,6 +1,6 @@
 import { useUser } from "@/context/user-context";
 import { ChatInterface } from "@/components/chat/chat-interface";
-import { ShoppingLists } from "@/components/lists/shopping-lists";
+import { SmartLists } from "@/components/lists/smart-lists";
 import { RemindersPage } from "@/components/reminders/reminders-page";
 import { CalendarPage } from "@/components/calendar/calendar-page";
 import { ContactsPage } from "@/components/contacts/contacts-page";
@@ -69,7 +69,7 @@ export default function HomePage() {
   const getCurrentPageComponent = () => {
     switch (location) {
       case "/lists":
-        return <ShoppingLists user={user} />;
+        return <SmartLists user={user} />;
       case "/calendar":
         return <CalendarPage user={user} />;
       case "/contacts":
@@ -106,7 +106,7 @@ export default function HomePage() {
   const getPageTitle = () => {
     switch (location) {
       case "/lists":
-        return "Shopping Lists";
+        return "Smart Lists";
       case "/calendar":
         return "Calendar";
       case "/contacts":

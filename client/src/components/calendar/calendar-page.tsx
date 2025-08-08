@@ -46,7 +46,7 @@ export function CalendarPage({ user }: CalendarPageProps) {
 
   // Get reminders/appointments
   const { data: reminders = [], isLoading } = useQuery<Reminder[]>({
-    queryKey: [`/api/reminders/${user.id}`],
+    queryKey: ["/api/reminders", user.id],
   });
 
   // Create reminder mutation
