@@ -50,12 +50,7 @@ export function CalendarPage({ user }: CalendarPageProps) {
     enabled: !!user?.id, // Only fetch when user exists
   });
 
-  // Debug logging
-  console.log("CalendarPage - User ID:", user?.id);
-  console.log("CalendarPage - Query enabled:", !!user?.id);
-  console.log("CalendarPage - Loading:", isLoading);
-  console.log("CalendarPage - Error:", error);
-  console.log("CalendarPage - Data:", reminders);
+
 
   // Create reminder mutation
   const createReminderMutation = useMutation({

@@ -133,12 +133,7 @@ export function SmartLists({ user }: SmartListsProps) {
     enabled: !!user?.id, // Only fetch when user exists
   });
 
-  // Debug logging
-  console.log("SmartLists - User ID:", user?.id);
-  console.log("SmartLists - Query enabled:", !!user?.id);
-  console.log("SmartLists - Loading:", isLoading);
-  console.log("SmartLists - Error:", error);
-  console.log("SmartLists - Data:", lists);
+
 
   // Create list mutation
   const createListMutation = useMutation({
