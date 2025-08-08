@@ -18,7 +18,7 @@ const AFFILIATE_MAPPINGS = {
   'expedia.com': 'tpid=gabai2025',
   'kayak.com': 'aid=gabai',
   'hotels.com': 'aid=gabai2025',
-  'amazon.com': 'tag=gabai-20',
+  'amazon.com': 'tag=floater01b-20'
 };
 
 function addAffiliateParams(url: string): string {
