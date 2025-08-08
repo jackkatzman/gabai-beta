@@ -56,7 +56,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
 
   // Get shopping lists
   const { data: lists = [], isLoading } = useQuery<(SmartList & { items: ListItem[] })[]>({
-    queryKey: [`/api/smart-lists/${user.id}`],
+    queryKey: ["/api/smart-lists", user.id],
   });
 
   // Create list mutation
@@ -68,7 +68,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       categories: ["Produce", "Dairy", "Meat", "Pantry", "Frozen", "Beverages", "Household"]
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewListName("");
       toast({
         title: "List Created",
@@ -82,7 +82,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     mutationFn: ({ listId, name, category }: { listId: string; name: string; category?: string }) =>
       api.createListItem({ listId, name, category }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewItemName("");
       setNewItemCategory("");
       toast({
@@ -105,7 +105,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     mutationFn: ({ id, updates }: { id: string; updates: Partial<ListItem> }) =>
       api.updateListItem(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
     },
   });
 
@@ -113,7 +113,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const deleteItemMutation = useMutation({
     mutationFn: (id: string) => api.deleteListItem(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       toast({
         title: "Item Removed",
         description: "Item has been removed from your list.",
@@ -125,7 +125,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const shareListMutation = useMutation({
     mutationFn: (listId: string) => api.shareList(listId),
     onSuccess: (shareCode) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       toast({
         title: "List Shared!",
         description: "Your list is now shareable via the link below.",
@@ -145,7 +145,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     mutationFn: ({ listId, email }: { listId: string; email: string }) => 
       api.addCollaborator(listId, email),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/smart-lists/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setCollaboratorEmail("");
       setFoundUser(null);
       toast({

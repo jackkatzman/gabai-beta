@@ -49,7 +49,7 @@ export function SettingsPage({ user }: SettingsPageProps) {
     mutationFn: (updates: Partial<UserType>) => api.updateUser(user.id, updates),
     onSuccess: (updatedUser) => {
       setUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user.id] });
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",

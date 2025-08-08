@@ -53,7 +53,7 @@ export function CalendarPage({ user }: CalendarPageProps) {
   const createReminderMutation = useMutation({
     mutationFn: (reminderData: any) => api.createReminder(reminderData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
       setIsCreateDialogOpen(false);
       setNewReminder({
         title: "",
@@ -79,7 +79,7 @@ export function CalendarPage({ user }: CalendarPageProps) {
   const deleteReminderMutation = useMutation({
     mutationFn: (id: string) => api.deleteReminder(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/reminders/${user.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
       toast({
         title: "Appointment Deleted",
         description: "Your appointment has been removed from the calendar.",
