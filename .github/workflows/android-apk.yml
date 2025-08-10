@@ -35,7 +35,7 @@ jobs:
       run: npm install 
  
     - name: Build web application 
-      run: npm run build 
+      run: npx vite build 
  
     - name: Capacitor sync (requires Node 20+) 
       run: npx cap sync android 

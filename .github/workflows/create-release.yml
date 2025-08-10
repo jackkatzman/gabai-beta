@@ -36,7 +36,7 @@ jobs:
       run: npm ci
       
     - name: Build web application
-      run: npm run build
+      run: npx vite build
       
     - name: Sync Capacitor
       run: npx cap sync android
@@ -47,27 +47,9 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
         
-    - name: Create Release with APK
-      uses: softprops/action-gh-release@v1
+    - name: Upload APK as Artifact (No Release)
+      uses: actions/upload-artifact@v4
       with:
-        tag_name: v1.0.0-beta.${{ github.run_number }}
-        name: GabAi v1.0.0-beta.${{ github.run_number }}
-        body: |
-          🎯 **GabAi Mobile App - Production Ready**
-          
-          Download the APK below, enable "Install from unknown sources" on Android, and enjoy your voice-first AI assistant.
-          
-          **Features:**
-          - Voice-first AI with OpenAI GPT-4o
-          - Working affiliate monetization
-          - Smart lists and calendar
-          - OCR text extraction
-          - Native notifications and alarms
-          - ElevenLabs voice synthesis
-          
-          Ready for $14.95/month Google Play Store submission.
-        files: android/app/build/outputs/apk/debug/app-debug.apk
-        make_latest: true
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: gabai-beta-apk-${{ github.run_number }}
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
