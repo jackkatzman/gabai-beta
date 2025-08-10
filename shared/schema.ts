@@ -89,6 +89,15 @@ export const reminders = pgTable("reminders", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const shortLinks = pgTable("short_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shortCode: varchar("short_code").notNull().unique(),
+  originalUrl: text("original_url").notNull(),
+  clickCount: integer("click_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversations),
@@ -133,6 +142,9 @@ export const remindersRelations = relations(reminders, ({ one }) => ({
   }),
 }));
 
+export const shortLinksRelations = relations(shortLinks, ({ one }) => ({
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -169,6 +181,11 @@ export const insertReminderSchema = createInsertSchema(reminders).omit({
   updatedAt: true,
 });
 
+export const insertShortLinkSchema = createInsertSchema(shortLinks).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -188,6 +205,8 @@ export type ShoppingItem = ListItem;
 export type InsertShoppingItem = InsertListItem;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
+export type ShortLink = typeof shortLinks.$inferSelect;
+export type InsertShortLink = z.infer<typeof insertShortLinkSchema>;
 
 // Contacts table for business card storage
 export const contacts = pgTable("contacts", {

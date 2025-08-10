@@ -24,7 +24,7 @@ async function processUrlsInContent(content: string): Promise<string> {
         
         if (['amazon.com', 'booking.com', 'expedia.com', 'kayak.com', 'hotels.com', 'vrbo.com'].includes(domain)) {
           console.log(`🔗 Processing affiliate URL: ${url}`);
-          const { shortUrl } = createShortLink(url);
+          const { shortUrl } = await createShortLink(url);
           processedContent = processedContent.replace(url, shortUrl);
           console.log(`✅ Replaced with: ${shortUrl}`);
         }
@@ -1219,7 +1219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "URL is required" });
       }
       
-      const { shortCode, shortUrl } = createShortLink(url);
+      const { shortCode, shortUrl } = await createShortLink(url);
       res.json({ shortCode, shortUrl, originalUrl: url });
     } catch (error: any) {
       console.error("Link shortening error:", error);
@@ -1251,7 +1251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/l/:shortCode", async (req, res) => {
     try {
       const { shortCode } = req.params;
-      const longUrl = getLongUrl(shortCode);
+      const longUrl = await getLongUrl(shortCode);
       
       if (!longUrl) {
         return res.status(404).json({ message: "Link not found or expired" });
@@ -1268,7 +1268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Link analytics endpoint (optional)
   app.get("/api/link-stats", async (req, res) => {
     try {
-      const stats = getLinkStats();
+      const stats = await getLinkStats();
       res.json(stats);
     } catch (error: any) {
       console.error("Link stats error:", error);
@@ -1378,7 +1378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalUsers: await storage.getUserCount(),
         totalMessages: await storage.getMessageCount(),
         totalLists: await storage.getSmartListCount(),
-        linkClicks: getLinkStats().totalClicks,
+        linkClicks: (await getLinkStats()).totalClicks,
         timestamp: new Date().toISOString()
       };
 

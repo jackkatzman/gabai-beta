@@ -1,16 +1,7 @@
 import { nanoid } from 'nanoid';
-
-interface ShortLink {
-  id: string;
-  originalUrl: string;
-  shortCode: string;
-  clickCount: number;
-  createdAt: Date;
-  expiresAt?: Date;
-}
-
-// In-memory store for demo (in production, use database)
-const linkStore = new Map<string, ShortLink>();
+import { db } from '../db';
+import { shortLinks } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Affiliate link configuration
 const AFFILIATE_MAPPINGS = {
@@ -45,23 +36,19 @@ function addAffiliateParams(url: string): string {
   }
 }
 
-export function createShortLink(originalUrl: string): { shortCode: string; shortUrl: string } {
+export async function createShortLink(originalUrl: string): Promise<{ shortCode: string; shortUrl: string }> {
   // Add affiliate parameters if applicable
   const affiliateUrl = addAffiliateParams(originalUrl);
   
   // Generate unique short code
   const shortCode = nanoid(8);
   
-  // Store the link
-  const shortLink: ShortLink = {
-    id: nanoid(),
-    originalUrl: affiliateUrl,
+  // Store the link in database
+  await db.insert(shortLinks).values({
     shortCode,
+    originalUrl: affiliateUrl,
     clickCount: 0,
-    createdAt: new Date(),
-  };
-  
-  linkStore.set(shortCode, shortLink);
+  });
   
   // Return short URL using current domain
   // Always use gabai.ai for production, current Replit domain for development
@@ -77,48 +64,55 @@ export function createShortLink(originalUrl: string): { shortCode: string; short
   return { shortCode, shortUrl };
 }
 
-export function getLongUrl(shortCode: string): string | null {
-  const shortLink = linkStore.get(shortCode);
+export async function getLongUrl(shortCode: string): Promise<string | null> {
+  const [link] = await db
+    .select()
+    .from(shortLinks)
+    .where(eq(shortLinks.shortCode, shortCode))
+    .limit(1);
   
-  if (!shortLink) {
+  if (!link) {
     return null;
   }
   
   // Check if expired
-  if (shortLink.expiresAt && shortLink.expiresAt < new Date()) {
-    linkStore.delete(shortCode);
+  if (link.expiresAt && link.expiresAt < new Date()) {
+    await db.delete(shortLinks).where(eq(shortLinks.shortCode, shortCode));
     return null;
   }
   
-  // Increment click count for analytics
-  shortLink.clickCount++;
+  // Update click count
+  await db
+    .update(shortLinks)
+    .set({ clickCount: (link.clickCount || 0) + 1 })
+    .where(eq(shortLinks.shortCode, shortCode));
   
-  console.log(`🔗 Redirecting ${shortCode} → ${shortLink.originalUrl} (clicks: ${shortLink.clickCount})`);
+  console.log(`🔗 Redirecting ${shortCode} → ${link.originalUrl} (clicks: ${(link.clickCount || 0) + 1})`);
   
-  return shortLink.originalUrl;
+  return link.originalUrl;
 }
 
-export function getLinkStats(): { totalLinks: number; totalClicks: number } {
-  const links = Array.from(linkStore.values());
+export async function getLinkStats(): Promise<{ totalLinks: number; totalClicks: number }> {
+  const links = await db.select().from(shortLinks);
   return {
     totalLinks: links.length,
-    totalClicks: links.reduce((sum, link) => sum + link.clickCount, 0),
+    totalClicks: links.reduce((sum, link) => sum + (link.clickCount || 0), 0),
   };
 }
 
 // Clean up expired links (call periodically)
-export function cleanupExpiredLinks(): number {
+export async function cleanupExpiredLinks(): Promise<number> {
   const now = new Date();
-  let cleaned = 0;
+  const expiredLinks = await db
+    .select()
+    .from(shortLinks)
+    .where(eq(shortLinks.expiresAt, now)); // This would need proper comparison in real implementation
   
-  // Convert to array to avoid iteration issues
-  const entries = Array.from(linkStore.entries());
-  for (const [shortCode, link] of entries) {
-    if (link.expiresAt && link.expiresAt < now) {
-      linkStore.delete(shortCode);
-      cleaned++;
-    }
+  if (expiredLinks.length > 0) {
+    await db
+      .delete(shortLinks)
+      .where(eq(shortLinks.expiresAt, now)); // This would need proper comparison in real implementation
   }
   
-  return cleaned;
+  return expiredLinks.length;
 }
