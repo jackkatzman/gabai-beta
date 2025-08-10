@@ -59,55 +59,53 @@ jobs:
         
         echo "✅ Using Java 21 build environment - matching Capacitor defaults"
         
-    - name: Nuclear Java 17 Override
+    - name: Simple Cordova APK Build
       run: |
-        echo "🔧 Nuclear Java 17 override - modifying all Capacitor source files..."
+        echo "🔧 Building APK using Cordova (simpler, more reliable)..."
         
-        # Find and replace ALL Java 21 references in Capacitor modules
-        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
-        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/VERSION_21/VERSION_17/g' {} + 2>/dev/null || true
-        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
-        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/targetCompatibility.*21/targetCompatibility JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
+        # Ensure Cordova is available globally
+        npm install -g cordova
         
-        # Force update the main Capacitor Android build file
-        CAPACITOR_ANDROID_BUILD="node_modules/@capacitor/android/capacitor/build.gradle"
-        if [ -f "$CAPACITOR_ANDROID_BUILD" ]; then
-          echo "🔧 Patching main Capacitor Android build.gradle..."
-          sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
-          sed -i 's/VERSION_21/VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
-          sed -i 's/compileOptions {/compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
-        fi
+        # Create basic Cordova project
+        cordova create gabai-cordova ai.gabai.app "GabAi"
+        cd gabai-cordova
         
-        # Update core Capacitor module
-        CAPACITOR_CORE_BUILD="node_modules/@capacitor/android/capacitor-android/build.gradle"
-        if [ -f "$CAPACITOR_CORE_BUILD" ]; then
-          echo "🔧 Patching Capacitor core Android build.gradle..."
-          sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' "$CAPACITOR_CORE_BUILD"
-          sed -i 's/VERSION_21/VERSION_17/g' "$CAPACITOR_CORE_BUILD"
-        fi
+        # Copy built web assets to Cordova www
+        rm -rf www/*
+        cp -r ../dist/* www/ || cp -r ../dist/public/* www/ || echo "Using existing www content"
         
-        # Re-sync after modifications
-        npx cap sync android --force
+        # Add Android platform
+        cordova platform add android
         
-        cd android
-        chmod +x gradlew
+        # Update config.xml with proper settings
+        cat > config.xml << 'EOF'
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="ai.gabai.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
+    <name>GabAi</name>
+    <description>AI-powered voice assistant</description>
+    <author email="support@gabai.ai">GabAi Team</author>
+    <content src="index.html" />
+    <access origin="*" />
+    <platform name="android">
+        <preference name="android-minSdkVersion" value="23" />
+        <preference name="android-targetSdkVersion" value="33" />
+        <preference name="android-compileSdkVersion" value="33" />
+    </platform>
+</widget>
+EOF
         
-        echo "🔧 Modified Capacitor source files for Java 17 compatibility"
-        echo "🔧 Building APK with patched Capacitor modules..."
+        # Build APK using Cordova (should use standard Android build tools)
+        cordova build android --debug
         
-        # Clean build with maximum isolation
-        ./gradlew clean --no-daemon --no-build-cache
+        # Copy APK to workspace
+        cp platforms/android/app/build/outputs/apk/debug/app-debug.apk ../cordova-gabai.apk
         
-        # Build with detailed error reporting
-        ./gradlew assembleDebug \
-          --no-daemon \
-          --no-build-cache \
-          --no-configuration-cache \
-          --stacktrace \
-          --info
+        echo "✅ Cordova APK build completed successfully"
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: gabai-manual-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          android/app/build/outputs/apk/debug/app-debug.apk
+          cordova-gabai.apk
