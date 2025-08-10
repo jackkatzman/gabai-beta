@@ -1,0 +1,767 @@
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi - Your Personal Voice Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-strong': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-gentle': 'bounce 1s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            },
+            darkMode: 'class',
+        };
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- @COMPONENT: App -->
+    <div id="app" class="h-full flex flex-col">
+        
+        <!-- Onboarding Flow -->
+        <!-- @COMPONENT: OnboardingFlow -->
+        <div id="onboarding" class="hidden fixed inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col">
+            <!-- Onboarding Step 1: Welcome -->
+            <div id="onboarding-step-1" class="h-full flex flex-col">
+                <!-- Progress Indicator -->
+                <div class="px-6 pt-8 pb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Step 1 of 6</span>
+                        <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 16.67%"></div>
+                    </div>
+                </div>
+
+                <!-- Welcome Content -->
+                <div class="flex-1 flex flex-col items-center justify-center px-6">
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-microphone text-white text-3xl"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome to GabAi</h1>
+                        <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">Your personal voice assistant that learns about you to provide better, more personalized help.</p>
+                    </div>
+
+                    <!-- Features Preview -->
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-brain text-accent text-sm"></i>
+                            </div>
+                            <span class="text-gray-700 dark:text-gray-300">Smart conversations that remember your preferences</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-list text-accent text-sm"></i>
+                            </div>
+                            <span class="text-gray-700 dark:text-gray-300">Personalized shopping lists and reminders</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar text-accent text-sm"></i>
+                            </div>
+                            <span class="text-gray-700 dark:text-gray-300">Calendar integration and smart scheduling</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continue Button -->
+                <div class="p-6">
+                    <button data-event="click:nextOnboardingStep" class="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                        Let's Get Started
+                    </button>
+                </div>
+            </div>
+
+            <!-- Onboarding Step 2: Basic Info -->
+            <div id="onboarding-step-2" class="hidden h-full flex flex-col">
+                <div class="px-6 pt-8 pb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Step 2 of 6</span>
+                        <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 33.33%"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 px-6 py-4">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Tell me about yourself</h2>
+                    <p class="text-gray-600 dark:text-gray-300 mb-8">This helps me personalize our conversations</p>
+
+                    <form class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">What should I call you?</label>
+                            <input type="text" data-bind="user.name" placeholder="Your name" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Age (optional)</label>
+                            <input type="number" data-bind="user.age" placeholder="25" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
+                            <input type="text" data-bind="user.location" placeholder="City, Country" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profession (optional)</label>
+                            <input type="text" data-bind="user.profession" placeholder="Software Engineer" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="flex space-x-4 p-6">
+                    <button data-event="click:prevOnboardingStep" class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-4 px-6 rounded-xl transition-colors">
+                        Back
+                    </button>
+                    <button data-event="click:nextOnboardingStep" class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                        Continue
+                    </button>
+                </div>
+            </div>
+
+            <!-- Additional onboarding steps would follow similar patterns -->
+            <!-- @STATE: currentOnboardingStep:number = 1 -->
+        </div>
+        <!-- @END_COMPONENT: OnboardingFlow -->
+
+        <!-- Main App Header -->
+        <!-- @COMPONENT: AppHeader -->
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                    <i class="fas fa-microphone text-white text-sm"></i>
+                </div>
+                <h1 class="text-xl font-semibold text-gray-900 dark:text-white">GabAi</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-300"></i>
+                </button>
+                <!-- User Profile -->
+                <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-gray-600 dark:text-gray-300 text-sm"></i>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: AppHeader -->
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-hidden">
+            <!-- Chat Page (Default) -->
+            <!-- @COMPONENT: ChatPage -->
+            <div id="chat-page" class="h-full flex flex-col">
+                <!-- Chat Messages -->
+                <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                    <!-- Welcome Message -->
+                    <!-- @COMPONENT: MessageBubble [type: ai] -->
+                    <div class="flex items-start space-x-3 animate-fade-in">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm">
+                            <p class="text-gray-900 dark:text-white text-sm leading-relaxed" data-bind="ai.welcomeMessage">Hi! I'm GabAi, your personal assistant. I remember your preferences and help with your daily tasks. How can I help you today?</p>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">Just now</span>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: MessageBubble -->
+
+                    <!-- User Message Example -->
+                    <!-- @COMPONENT: MessageBubble [type: user] -->
+                    <div class="flex items-start space-x-3 justify-end">
+                        <div class="bg-primary rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
+                            <p class="text-white text-sm leading-relaxed" data-mock="true">Add milk to my shopping list</p>
+                            <span class="text-xs text-primary-200 mt-1 block">2:34 PM</span>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-gray-600 dark:text-gray-300 text-sm"></i>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: MessageBubble -->
+
+                    <!-- AI Response Example -->
+                    <div class="flex items-start space-x-3 animate-slide-up">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm">
+                            <p class="text-gray-900 dark:text-white text-sm leading-relaxed" data-mock="true">I've added milk to your shopping list! Since you mentioned you're lactose intolerant during setup, I also found some great oat milk alternatives on sale nearby. Would you like me to add those instead?</p>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">2:34 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- @MAP: messages.map(message => ( -->
+                    <!-- Dynamic messages would be rendered here -->
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Voice Input Area -->
+                <!-- @COMPONENT: VoiceInputArea -->
+                <div class="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                    <!-- @STATE: isRecording:boolean = false -->
+                    <!-- @STATE: isTranscribing:boolean = false -->
+                    <div class="flex items-center space-x-3">
+                        <!-- Text Input -->
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                placeholder="Type your message..."
+                                data-bind="messageText"
+                                class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            >
+                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+
+                        <!-- Voice Button -->
+                        <button 
+                            id="voice-btn"
+                            data-event="click:toggleVoiceRecording"
+                            class="w-14 h-14 bg-gradient-to-br from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg active:scale-95"
+                        >
+                            <i class="fas fa-microphone text-white text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Recording State Indicator -->
+                    <div id="recording-indicator" class="hidden mt-3 flex items-center justify-center space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse-strong"></div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Recording... Tap to stop</span>
+                        <div class="flex space-x-1">
+                            <div class="w-1 h-4 bg-red-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                            <div class="w-1 h-4 bg-red-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                            <div class="w-1 h-4 bg-red-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Transcribing State -->
+                    <div id="transcribing-indicator" class="hidden mt-3 flex items-center justify-center space-x-2">
+                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Processing your voice...</span>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: VoiceInputArea -->
+            </div>
+            <!-- @END_COMPONENT: ChatPage -->
+
+            <!-- Lists Page -->
+            <!-- @COMPONENT: ListsPage -->
+            <div id="lists-page" class="hidden h-full flex flex-col">
+                <!-- Lists Header -->
+                <div class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Shopping Lists</h2>
+                        <button data-event="click:createNewList" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-plus text-white"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Voice Add -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="flex items-center space-x-3">
+                        <button data-event="click:voiceAddToList" class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                            <i class="fas fa-microphone text-white"></i>
+                        </button>
+                        <div class="flex-1">
+                            <input 
+                                type="text" 
+                                placeholder="Add item to list..."
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shopping Lists -->
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Main Grocery List -->
+                    <!-- @COMPONENT: ShoppingList -->
+                    <div class="p-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Grocery List</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">5 items</p>
+                            </div>
+
+                            <!-- List Categories -->
+                            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Produce Section -->
+                                <div class="p-4">
+                                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                                        <i class="fas fa-apple-alt text-green-500 mr-2"></i>
+                                        Produce
+                                    </h4>
+                                    <div class="space-y-2">
+                                        <!-- @MAP: produceItems.map(item => ( -->
+                                        <div class="flex items-center space-x-3" data-mock="true">
+                                            <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                            <span class="text-gray-900 dark:text-white">Organic bananas</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3" data-mock="true">
+                                            <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                            <span class="text-gray-900 dark:text-white">Fresh spinach</span>
+                                        </div>
+                                        <!-- @END_MAP )) -->
+                                    </div>
+                                </div>
+
+                                <!-- Dairy Section -->
+                                <div class="p-4">
+                                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                                        <i class="fas fa-cheese text-yellow-500 mr-2"></i>
+                                        Dairy Alternatives
+                                        <span class="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Lactose-free</span>
+                                    </h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-3" data-mock="true">
+                                            <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                            <span class="text-gray-900 dark:text-white">Oat milk</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3" data-mock="true">
+                                            <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                            <span class="text-gray-900 dark:text-white">Vegan cheese</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ShoppingList -->
+
+                    <!-- @MAP: lists.map(list => ( -->
+                    <!-- Additional lists would be rendered here -->
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ListsPage -->
+
+            <!-- Reminders Page -->
+            <!-- @COMPONENT: RemindersPage -->
+            <div id="reminders-page" class="hidden h-full flex flex-col">
+                <div class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Reminders</h2>
+                        <button data-event="click:createReminder" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-plus text-white"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Voice Reminder -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
+                    <button data-event="click:voiceReminder" class="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                        <i class="fas fa-microphone"></i>
+                        <span>Set reminder with voice</span>
+                    </button>
+                </div>
+
+                <!-- Reminders List -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Upcoming Reminders -->
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Today</h3>
+                        
+                        <!-- @MAP: todayReminders.map(reminder => ( -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-3" data-mock="true">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 dark:text-white">Take vitamins</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">9:00 AM</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <span class="text-xs bg-accent/20 text-accent px-2 py-1 rounded">Health</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Daily</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="w-8 h-8 text-accent hover:bg-accent/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-sm"></i>
+                                    </button>
+                                    <button class="w-8 h-8 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700" data-mock="true">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 dark:text-white">Call Mom</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">6:00 PM</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Family</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Weekly</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="w-8 h-8 text-accent hover:bg-accent/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-sm"></i>
+                                    </button>
+                                    <button class="w-8 h-8 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+
+                    <!-- Tomorrow -->
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tomorrow</h3>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700" data-mock="true">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 dark:text-white">Team meeting</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">10:00 AM</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">Work</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="w-8 h-8 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: RemindersPage -->
+
+            <!-- Settings Page -->
+            <!-- @COMPONENT: SettingsPage -->
+            <div id="settings-page" class="hidden h-full overflow-y-auto">
+                <div class="p-4">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Settings</h2>
+
+                    <!-- Profile Section -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Your Profile</h3>
+                        
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white" data-bind="user.name" data-mock="true">Sarah</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400" data-mock="true">Software Engineer in San Francisco</p>
+                            </div>
+                        </div>
+
+                        <button data-event="click:editProfile" class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            Edit Profile
+                        </button>
+                    </div>
+
+                    <!-- Preferences -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Preferences</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="font-medium text-gray-900 dark:text-white">Voice Responses</label>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Hear AI responses aloud</p>
+                                </div>
+                                <input type="checkbox" checked class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="font-medium text-gray-900 dark:text-white">Smart Notifications</label>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Context-aware reminders</p>
+                                </div>
+                                <input type="checkbox" checked class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="font-medium text-gray-900 dark:text-white">Calendar Sync</label>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Integrate with your calendar</p>
+                                </div>
+                                <input type="checkbox" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy & Data -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Privacy & Data</h3>
+                        
+                        <div class="space-y-3">
+                            <button class="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-900 dark:text-white">Conversation History</span>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-900 dark:text-white">Data Export</span>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-red-600 dark:text-red-400">
+                                <span>Delete All Data</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">About</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-900 dark:text-white">Version</span>
+                                <span class="text-gray-500 dark:text-gray-400">1.0.0</span>
+                            </div>
+                            
+                            <button class="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-900 dark:text-white">Help & Support</span>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-900 dark:text-white">Privacy Policy</span>
+                                    <i class="fas fa-external-link-alt text-gray-400"></i>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: SettingsPage -->
+        </main>
+
+        <!-- Bottom Navigation -->
+        <!-- @COMPONENT: BottomNavigation -->
+        <nav class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+            <div class="flex items-center justify-around">
+                <button data-event="click:showPage" data-page="chat" class="nav-item active flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors">
+                    <i class="fas fa-comments text-xl"></i>
+                    <span class="text-xs font-medium">Chat</span>
+                </button>
+                
+                <button data-event="click:showPage" data-page="lists" class="nav-item flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors">
+                    <i class="fas fa-list text-xl"></i>
+                    <span class="text-xs font-medium">Lists</span>
+                </button>
+                
+                <button data-event="click:showPage" data-page="reminders" class="nav-item flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="text-xs font-medium">Reminders</span>
+                </button>
+                
+                <button data-event="click:showPage" data-page="settings" class="nav-item flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors">
+                    <i class="fas fa-cog text-xl"></i>
+                    <span class="text-xs font-medium">Settings</span>
+                </button>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: BottomNavigation -->
+
+        <!-- Toast Notifications -->
+        <!-- @COMPONENT: ToastContainer -->
+        <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2">
+            <!-- @MAP: toasts.map(toast => ( -->
+            <!-- Dynamic toast notifications would appear here -->
+            <!-- @END_MAP )) -->
+        </div>
+        <!-- @END_COMPONENT: ToastContainer -->
+    </div>
+    <!-- @END_COMPONENT: App -->
+
+    <script>
+        (function() {
+            // TODO: Implement business logic, API calls, and state management
+            
+            // App State Management
+            const appState = {
+                currentPage: 'chat',
+                isRecording: false,
+                isTranscribing: false,
+                theme: localStorage.getItem('theme') || 'light',
+                user: {
+                    name: '',
+                    preferences: {}
+                },
+                messages: [],
+                lists: [],
+                reminders: []
+            };
+
+            // Initialize theme
+            function initTheme() {
+                if (appState.theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            // Navigation handling
+            function showPage(pageId) {
+                // Hide all pages
+                const pages = ['chat-page', 'lists-page', 'reminders-page', 'settings-page'];
+                pages.forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+
+                // Show selected page
+                document.getElementById(pageId + '-page').classList.remove('hidden');
+
+                // Update navigation state
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+
+                appState.currentPage = pageId;
+            }
+
+            // Voice recording simulation
+            function toggleVoiceRecording() {
+                const voiceBtn = document.getElementById('voice-btn');
+                const recordingIndicator = document.getElementById('recording-indicator');
+                const transcribingIndicator = document.getElementById('transcribing-indicator');
+
+                if (!appState.isRecording) {
+                    // Start recording
+                    appState.isRecording = true;
+                    voiceBtn.classList.add('bg-red-500', 'animate-pulse-strong');
+                    voiceBtn.classList.remove('bg-gradient-to-br', 'from-primary', 'to-secondary');
+                    recordingIndicator.classList.remove('hidden');
+                    
+                    // TODO: Implement actual voice recording with Web Speech API
+                    
+                } else {
+                    // Stop recording
+                    appState.isRecording = false;
+                    appState.isTranscribing = true;
+                    
+                    voiceBtn.classList.remove('bg-red-500', 'animate-pulse-strong');
+                    voiceBtn.classList.add('bg-gradient-to-br', 'from-primary', 'to-secondary');
+                    recordingIndicator.classList.add('hidden');
+                    transcribingIndicator.classList.remove('hidden');
+                    
+                    // Simulate transcription
+                    setTimeout(() => {
+                        appState.isTranscribing = false;
+                        transcribingIndicator.classList.add('hidden');
+                        // TODO: Process transcription and send to AI
+                    }, 2000);
+                }
+            }
+
+            // Theme toggle
+            function toggleTheme() {
+                appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+                localStorage.setItem('theme', appState.theme);
+                initTheme();
+                
+                const themeIcon = document.querySelector('#theme-toggle i');
+                if (appState.theme === 'dark') {
+                    themeIcon.className = 'fas fa-sun text-gray-600 dark:text-gray-300';
+                } else {
+                    themeIcon.className = 'fas fa-moon text-gray-600 dark:text-gray-300';
+                }
+            }
+
+            // Event Listeners
+            document.addEventListener('DOMContentLoaded', function() {
+                initTheme();
+
+                // Navigation events
+                document.querySelectorAll('[data-event="click:showPage"]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const pageId = e.currentTarget.getAttribute('data-page');
+                        showPage(pageId);
+                    });
+                });
+
+                // Voice recording
+                document.getElementById('voice-btn').addEventListener('click', toggleVoiceRecording);
+
+                // Theme toggle
+                document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+                // TODO: Add event listeners for:
+                // - Onboarding flow navigation
+                // - List management
+                // - Reminder creation
+                // - Settings updates
+                // - Voice transcription
+                // - AI API integration
+            });
+
+            // Add active states for navigation
+            const style = document.createElement('style');
+            style.textContent = `
+                .nav-item {
+                    color: #6b7280;
+                }
+                .nav-item.active {
+                    color: #6366f1;
+                    background-color: #f0f4ff;
+                }
+                .dark .nav-item {
+                    color: #9ca3af;
+                }
+                .dark .nav-item.active {
+                    color: #6366f1;
+                    background-color: #1e1b4b;
+                }
+            `;
+            document.head.appendChild(style);
+
+        })();
+    </script>
+</body>
+</html>
