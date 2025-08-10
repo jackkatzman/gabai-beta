@@ -30,7 +30,8 @@ const config: CapacitorConfig = {
       keystoreAlias: '',
       keystoreAliasPassword: '',
       releaseType: 'APK'
-    }
+    },
+
   }
 };
 
