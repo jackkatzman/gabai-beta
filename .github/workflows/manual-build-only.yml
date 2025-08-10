@@ -59,24 +59,52 @@ jobs:
         
         echo "✅ Using Java 21 build environment - matching Capacitor defaults"
         
-    - name: Build APK with Capacitor Downgrade
+    - name: Nuclear Java 17 Override
       run: |
-        echo "🔧 Attempting APK build with Capacitor downgrade to stable version..."
+        echo "🔧 Nuclear Java 17 override - modifying all Capacitor source files..."
         
-        # Downgrade to Capacitor 6.x (more stable Java compatibility)
-        npm uninstall @capacitor/core @capacitor/cli @capacitor/android
-        npm install @capacitor/core@6.1.2 @capacitor/cli@6.1.2 @capacitor/android@6.1.2
+        # Find and replace ALL Java 21 references in Capacitor modules
+        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
+        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/VERSION_21/VERSION_17/g' {} + 2>/dev/null || true
+        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
+        find node_modules/@capacitor -name "*.gradle" -type f -exec sed -i 's/targetCompatibility.*21/targetCompatibility JavaVersion.VERSION_17/g' {} + 2>/dev/null || true
         
-        # Re-sync with downgraded version
-        npx cap sync android
+        # Force update the main Capacitor Android build file
+        CAPACITOR_ANDROID_BUILD="node_modules/@capacitor/android/capacitor/build.gradle"
+        if [ -f "$CAPACITOR_ANDROID_BUILD" ]; then
+          echo "🔧 Patching main Capacitor Android build.gradle..."
+          sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
+          sed -i 's/VERSION_21/VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
+          sed -i 's/compileOptions {/compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17/g' "$CAPACITOR_ANDROID_BUILD"
+        fi
+        
+        # Update core Capacitor module
+        CAPACITOR_CORE_BUILD="node_modules/@capacitor/android/capacitor-android/build.gradle"
+        if [ -f "$CAPACITOR_CORE_BUILD" ]; then
+          echo "🔧 Patching Capacitor core Android build.gradle..."
+          sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' "$CAPACITOR_CORE_BUILD"
+          sed -i 's/VERSION_21/VERSION_17/g' "$CAPACITOR_CORE_BUILD"
+        fi
+        
+        # Re-sync after modifications
+        npx cap sync android --force
         
         cd android
         chmod +x gradlew
         
-        # Clean and build with verbose logging
-        echo "🔧 Building with Capacitor 6.x (Java 17 compatible)..."
-        ./gradlew clean --no-daemon
-        ./gradlew assembleDebug --no-daemon --info --stacktrace
+        echo "🔧 Modified Capacitor source files for Java 17 compatibility"
+        echo "🔧 Building APK with patched Capacitor modules..."
+        
+        # Clean build with maximum isolation
+        ./gradlew clean --no-daemon --no-build-cache
+        
+        # Build with detailed error reporting
+        ./gradlew assembleDebug \
+          --no-daemon \
+          --no-build-cache \
+          --no-configuration-cache \
+          --stacktrace \
+          --info
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
