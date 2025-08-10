@@ -22,6 +22,11 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
+    
+    - name: Set JAVA_HOME Environment
+      run: |
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
