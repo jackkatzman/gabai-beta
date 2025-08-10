@@ -10,8 +10,8 @@ import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } f
 
 // Function to process URLs in content and add affiliate shortening
 async function processUrlsInContent(content: string): Promise<string> {
-  // Regex to find URLs in the content
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Regex to find URLs in the content - improved to handle punctuation at end
+  const urlRegex = /(https?:\/\/[^\s\)\]\}]+)/g;
   let processedContent = content;
   
   const matches = content.match(urlRegex);
