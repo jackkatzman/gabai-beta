@@ -1,14 +1,13 @@
-modules = ["nodejs-20", "web", "postgresql-16", "java-17"]
+modules = ["nodejs-20", "web", "bash", "swift-5.8"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "cloudrun"
-build = ["npm", "run", "build"]
-run = ["npm", "start"]
+run = ["sh", "-c", "npm run dev"]
 
 [env]
 PORT = "5000"
