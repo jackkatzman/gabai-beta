@@ -1,41 +1,42 @@
-// Global Gradle init script to embrace Java 21
-println "🔧 Init script: Embracing Java 21 globally"
+// Global Gradle init script to force Java 17
+println "🔧 Init script: Forcing Java 17 globally with extreme measures"
 
 gradle.beforeProject { project ->
-    project.ext.set("java.sourceCompatibility", "21")
-    project.ext.set("java.targetCompatibility", "21")
+    project.ext.set("java.sourceCompatibility", "17")
+    project.ext.set("java.targetCompatibility", "17")
 }
 
 allprojects { project ->
     project.tasks.withType(JavaCompile).configureEach { task ->
-        println "🔧 Configuring JavaCompile task ${task.name} for Java 21"
-        task.options.release = 21
-        task.sourceCompatibility = JavaVersion.VERSION_21
-        task.targetCompatibility = JavaVersion.VERSION_21
+        println "🔧 Configuring JavaCompile task ${task.name} for Java 17"
+        task.options.release = 17
+        task.sourceCompatibility = JavaVersion.VERSION_17
+        task.targetCompatibility = JavaVersion.VERSION_17
+        task.options.compilerArgs.clear()
         task.options.compilerArgs.addAll([
-            "-source", "21",
-            "-target", "21"
+            "-source", "17",
+            "-target", "17"
         ])
     }
     
     project.afterEvaluate {
         if (project.hasProperty('android')) {
-            println "🔧 Configuring Android project ${project.name} for Java 21"
+            println "🔧 Configuring Android project ${project.name} for Java 17"
             project.android {
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_21
-                    targetCompatibility JavaVersion.VERSION_21
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
                 }
             }
         }
         
         if (project.hasProperty('java')) {
             project.java {
-                sourceCompatibility = JavaVersion.VERSION_21
-                targetCompatibility = JavaVersion.VERSION_21
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
                 if (project.hasProperty('toolchain')) {
                     toolchain {
-                        languageVersion = JavaLanguageVersion.of(21)
+                        languageVersion = JavaLanguageVersion.of(17)
                     }
                 }
             }
