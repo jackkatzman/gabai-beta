@@ -17,18 +17,27 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Setup Java 21 (Match Capacitor Default)
+    - name: Setup Java 17 (Force Consistent Environment)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '17'
     
-    - name: Set JAVA_HOME Environment
+    - name: Kill All Gradle Daemons and Reset Environment
       run: |
+        # Kill any existing Gradle daemons with wrong Java version
+        pkill -f gradle || true
+        rm -rf ~/.gradle/daemon/ || true
+        
+        # Force consistent Java environment
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-        echo "GRADLE_OPTS=-Dorg.gradle.java.home=$JAVA_HOME -Dfile.encoding=UTF-8" >> $GITHUB_ENV
+        echo "GRADLE_OPTS=-Dorg.gradle.java.home=$JAVA_HOME -Dfile.encoding=UTF-8 -Dorg.gradle.daemon=false" >> $GITHUB_ENV
         echo "JAVA_OPTS=-Dfile.encoding=UTF-8" >> $GITHUB_ENV
+        
+        # Verify Java version
+        java -version
+        javac -version
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -50,16 +59,39 @@ jobs:
         
         echo "✅ Using Java 21 build environment - matching Capacitor defaults"
         
-    - name: Build APK with Java 17 Override
+    - name: Try Alternative Cordova Build (Fallback)
       run: |
-        cd android
-        chmod +x gradlew
-        echo "🔧 Java version check:"
-        java -version
-        echo "🔧 JAVA_HOME: $JAVA_HOME"
+        echo "🔧 Attempting Cordova build as Capacitor alternative..."
         
-        # Use init script to embrace Java 21 globally
-        ./gradlew --init-script init.gradle assembleDebug --no-daemon --info
+        # Copy built web assets to Cordova www
+        mkdir -p www
+        cp -r dist/public/* www/ || cp -r dist/* www/ || echo "Using existing www content"
+        
+        # Initialize Cordova if needed
+        if [ ! -f "config.xml" ]; then
+          cp cordova-config.xml config.xml
+          cordova platform add android || echo "Platform already added"
+        fi
+        
+        # Build with Cordova (simpler, more reliable)
+        cordova build android --release || cordova build android
+        
+        # If Cordova fails, try Capacitor with maximum overrides
+        if [ $? -ne 0 ]; then
+          echo "🔧 Cordova failed, trying Capacitor with extreme Java 17 enforcement..."
+          
+          cd android
+          chmod +x gradlew
+          
+          # Nuclear option: Replace ALL Java 21 references in ALL files
+          find . -type f -name "*.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} \;
+          find . -type f -name "*.gradle" -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
+          find node_modules/@capacitor -type f -name "*.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} \; 2>/dev/null || true
+          
+          # Build with no daemon and clean state
+          ./gradlew clean
+          ./gradlew assembleDebug --no-daemon --offline --no-build-cache
+        fi
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
