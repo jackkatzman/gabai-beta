@@ -59,36 +59,67 @@ jobs:
         
         echo "✅ Using Java 21 build environment - matching Capacitor defaults"
         
-    - name: Direct APK Build with Environment Control
+    - name: Build APK with Docker (Isolated Environment)
       run: |
-        echo "🔧 Building APK with complete environment control..."
+        echo "🔧 Building APK using Docker for complete isolation..."
         
-        # Set up Android SDK path explicitly
-        export ANDROID_HOME=/usr/local/lib/android/sdk
-        export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+        # Create Dockerfile for controlled build environment
+        cat > Dockerfile.android <<EOF
+        FROM openjdk:17-jdk-slim
         
-        cd android
-        chmod +x gradlew
+        # Install required packages
+        RUN apt-get update && apt-get install -y \
+          wget \
+          unzip \
+          git \
+          curl \
+          && rm -rf /var/lib/apt/lists/*
         
-        # Clean everything
-        ./gradlew clean --no-daemon
+        # Install Android SDK
+        ENV ANDROID_SDK_ROOT=/opt/android-sdk
+        ENV ANDROID_HOME=\$ANDROID_SDK_ROOT
+        ENV PATH=\$PATH:\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/cmdline-tools/latest/bin
         
-        # Force stop any existing daemons
-        ./gradlew --stop || true
+        RUN mkdir -p \$ANDROID_SDK_ROOT/cmdline-tools && \
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip && \
+          unzip commandlinetools-linux-8512546_latest.zip -d \$ANDROID_SDK_ROOT/cmdline-tools && \
+          mv \$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools \$ANDROID_SDK_ROOT/cmdline-tools/latest && \
+          rm commandlinetools-linux-8512546_latest.zip
         
-        # Build with explicit Java 17 and no daemon
-        JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.*/x64 \
-        ./gradlew assembleDebug \
-          --no-daemon \
-          --no-build-cache \
-          --no-configuration-cache \
-          --stacktrace \
-          -Dorg.gradle.java.home=$JAVA_HOME \
-          -Dfile.encoding=UTF-8
+        # Accept licenses and install SDK components
+        RUN yes | sdkmanager --licenses && \
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+        
+        WORKDIR /app
+        
+        # Set Java 17 environment
+        ENV JAVA_HOME=/usr/local/openjdk-17
+        ENV GRADLE_OPTS="-Dorg.gradle.java.home=\$JAVA_HOME -Dfile.encoding=UTF-8"
+        
+        # Copy project files
+        COPY . .
+        
+        # Make gradlew executable and build
+        RUN cd android && \
+          chmod +x gradlew && \
+          ./gradlew clean --no-daemon && \
+          ./gradlew assembleDebug --no-daemon --stacktrace
+        EOF
+        
+        # Build using Docker
+        docker build -f Dockerfile.android -t gabai-android-builder .
+        
+        # Extract APK from container
+        docker create --name gabai-extract gabai-android-builder
+        docker cp gabai-extract:/app/android/app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk
+        docker rm gabai-extract
+        
+        echo "✅ APK built successfully using Docker isolation"
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: gabai-manual-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          app-debug.apk
+          android/app/build/outputs/apk/debug/app-debug.apk
