@@ -46,7 +46,7 @@ jobs:
       run: npm install
       
     - name: Build web application
-      run: npm run build
+      run: npx vite build
       
     - name: Sync Capacitor Android
       run: npx cap sync android
@@ -63,26 +63,3 @@ jobs:
         name: gabai-java21-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
         
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: java21-${{ github.run_number }}
-        name: GabAi Complete Build ${{ github.run_number }}
-        body: |
-          🎯 **COMPLETE BUILD - All Issues Resolved**
-          
-          **Fixed:**
-          ✅ Node.js 20 compatibility 
-          ✅ Java 21 for Gradle 8.11.1
-          ✅ Capacitor Android build
-          
-          **Features:**
-          - Affiliate links (floater01b-20)
-          - Voice AI assistant
-          - Smart lists & calendar
-          - OCR text extraction
-          - Native notifications
-        files: android/app/build/outputs/apk/debug/app-debug.apk
-        prerelease: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
