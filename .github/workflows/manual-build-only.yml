@@ -17,11 +17,11 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Setup Java 17 (Required for Android)
+    - name: Setup Java 21 (Match Capacitor Default)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
     
     - name: Set JAVA_HOME Environment
       run: |
@@ -42,29 +42,13 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Force Java 17 Build Environment
+    - name: Embrace Java 21 Build Environment
       run: |
-        # Set Java 17 environment variables
+        # Set Java 21 environment variables
         export JAVA_OPTS="-Dfile.encoding=UTF-8"
         export GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8"
         
-        # Fix all Capacitor modules to use Java 17
-        find . -name "*.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
-        find . -name "build.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
-        
-        # Fix the main Capacitor Android module
-        if [ -f "node_modules/@capacitor/android/capacitor/build.gradle" ]; then
-          sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' node_modules/@capacitor/android/capacitor/build.gradle
-          echo "✅ Fixed core Capacitor Android module"
-        fi
-        
-        # Fix all Capacitor plugin modules  
-        find node_modules/@capacitor -name "build.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
-        
-        # Add Java 17 toolchain override to all build.gradle files
-        find . -name "build.gradle" -exec grep -l "android {" {} \; | xargs -I {} sed -i '/android {/a\\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }' {}
-        
-        echo "✅ Enforced Java 17 across entire build system"
+        echo "✅ Using Java 21 build environment - matching Capacitor defaults"
         
     - name: Build APK with Java 17 Override
       run: |
@@ -74,7 +58,7 @@ jobs:
         java -version
         echo "🔧 JAVA_HOME: $JAVA_HOME"
         
-        # Use init script to force Java 17 globally
+        # Use init script to embrace Java 21 globally
         ./gradlew --init-script init.gradle assembleDebug --no-daemon --info
 
     - name: Upload APK
