@@ -40,11 +40,22 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Fix Capacitor Java Version (Override)
+    - name: Fix All Capacitor Java Versions (Complete Override)
       run: |
-        # Force Java 17 in all Capacitor generated files
-        sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' android/app/capacitor.build.gradle
-        echo "✅ Fixed Capacitor Java version to 17"
+        # Fix all Capacitor modules to use Java 17
+        find . -name "*.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
+        find . -name "build.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
+        
+        # Fix the main Capacitor Android module
+        if [ -f "node_modules/@capacitor/android/capacitor/build.gradle" ]; then
+          sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' node_modules/@capacitor/android/capacitor/build.gradle
+          echo "✅ Fixed core Capacitor Android module"
+        fi
+        
+        # Fix all Capacitor plugin modules
+        find node_modules/@capacitor -name "build.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
+        
+        echo "✅ Fixed ALL Capacitor Java versions to 17"
         
     - name: Build APK
       run: |
