@@ -27,6 +27,8 @@ jobs:
       run: |
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+        echo "GRADLE_OPTS=-Dorg.gradle.java.home=$JAVA_HOME -Dfile.encoding=UTF-8" >> $GITHUB_ENV
+        echo "JAVA_OPTS=-Dfile.encoding=UTF-8" >> $GITHUB_ENV
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -64,11 +66,16 @@ jobs:
         
         echo "✅ Enforced Java 17 across entire build system"
         
-    - name: Build APK
+    - name: Build APK with Java 17 Override
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        echo "🔧 Java version check:"
+        java -version
+        echo "🔧 JAVA_HOME: $JAVA_HOME"
+        
+        # Use init script to force Java 17 globally
+        ./gradlew --init-script init.gradle assembleDebug --no-daemon --info
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
