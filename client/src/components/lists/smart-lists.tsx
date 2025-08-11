@@ -568,8 +568,14 @@ export function SmartLists({ user }: SmartListsProps) {
                           setNewItemName(e.target.value);
                         }}
                         placeholder="Add new item..."
-                        className="flex-1 text-base font-normal"
-                        style={{ fontSize: '16px', minHeight: '44px', lineHeight: '1.4' }}
+                        className="flex-1 text-base font-normal smart-list-input !text-base !min-h-[44px] !h-[44px] !py-3 !px-4"
+                        style={{ 
+                          fontSize: '16px !important', 
+                          minHeight: '44px !important', 
+                          height: '44px !important',
+                          lineHeight: '1.4 !important',
+                          padding: '12px 16px !important'
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && newItemName.trim()) {
                             e.preventDefault();
@@ -620,7 +626,12 @@ export function SmartLists({ user }: SmartListsProps) {
                           setNewItemAssignedTo(e.target.value);
                         }}
                         placeholder="Assign to (e.g., John the Plumber)"
-                        className="text-sm"
+                        className="text-sm smart-list-input"
+                        style={{ 
+                          fontSize: '16px !important', 
+                          minHeight: '44px !important', 
+                          height: '44px !important'
+                        }}
                       />
                     )}
                   </div>
