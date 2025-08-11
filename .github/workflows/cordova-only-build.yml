@@ -118,34 +118,62 @@ jobs:
         # Build APK with Gradle compatibility fixes
         echo "🔧 Building Android APK..."
         
-        # Fix Gradle and SDK compatibility issues
+        # Aggressively update all Android SDK references
         cd platforms/android
         
-        # Update gradle.properties for better compatibility
-        cat > gradle.properties << 'EOF'
-org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        echo "🔧 Updating all Android SDK configurations..."
+        
+        # Update project.properties
+        echo "target=android-35" > project.properties
+        
+        # Force update gradle.properties
+        cat > gradle.properties << 'GRADLEEOF'
+org.gradle.jvmargs=-Xmx3072m -Dfile.encoding=UTF-8
 android.useAndroidX=true
 android.enableJetifier=true
 android.compileSdkVersion=35
 android.targetSdkVersion=33
 android.minSdkVersion=21
-EOF
+GRADLEEOF
         
-        # Update build.gradle for SDK 35
-        if [ -f "app/build.gradle" ]; then
-          sed -i 's/compileSdkVersion [0-9]\+/compileSdkVersion 35/g' app/build.gradle
-          sed -i 's/targetSdkVersion [0-9]\+/targetSdkVersion 33/g' app/build.gradle
-          sed -i 's/minSdkVersion [0-9]\+/minSdkVersion 21/g' app/build.gradle
+        # Update ALL build.gradle files
+        find . -name "build.gradle" -type f -exec sed -i 's/compileSdkVersion [0-9]\+/compileSdkVersion 35/g' {} +
+        find . -name "build.gradle" -type f -exec sed -i 's/targetSdkVersion [0-9]\+/targetSdkVersion 33/g' {} +
+        find . -name "build.gradle" -type f -exec sed -i 's/minSdkVersion [0-9]\+/minSdkVersion 21/g' {} +
+        find . -name "build.gradle" -type f -exec sed -i 's/buildToolsVersion .*/buildToolsVersion "35.0.0"/g' {} +
+        
+        # Update CordovaLib build.gradle specifically
+        if [ -f "CordovaLib/build.gradle" ]; then
+          sed -i 's/android-[0-9]\+/android-35/g' CordovaLib/build.gradle
+          sed -i 's/compileSdkVersion [0-9]\+/compileSdkVersion 35/g' CordovaLib/build.gradle
         fi
         
-        # Update build tools and Gradle wrapper for stability
-        sed -i 's/buildToolsVersion .*/buildToolsVersion "35.0.0"/g' app/build.gradle 2>/dev/null || true
+        # Update variables.gradle if it exists
+        if [ -f "build-extras.gradle" ]; then
+          echo 'ext.cdvCompileSdkVersion=35' >> build-extras.gradle
+          echo 'ext.cdvTargetSdkVersion=33' >> build-extras.gradle
+          echo 'ext.cdvMinSdkVersion=21' >> build-extras.gradle
+        fi
+        
+        # Update Gradle wrapper to 8.0 for better SDK 35 support
         sed -i 's/distributionUrl=.*gradle-.*/distributionUrl=https\\://services.gradle.org/distributions/gradle-8.0-all.zip/g' gradle/wrapper/gradle-wrapper.properties 2>/dev/null || true
+        
+        # Clean any previous builds
+        ./gradlew clean --no-daemon 2>/dev/null || true
         
         cd ../..
         
-        # Build debug APK with explicit parameters to avoid release build
-        cordova build android --debug --device --verbose
+        # Build ONLY debug APK - never release
+        echo "🔧 Building debug APK only..."
+        cordova build android --debug --no-build
+        
+        # If cordova build fails, try direct Gradle build
+        if [ ! -f "platforms/android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+          echo "🔧 Trying direct Gradle assembleDebug..."
+          cd platforms/android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          cd ../..
+        fi
         
         # Copy APK to workspace (always debug for now to avoid Gradle issues)
         cp platforms/android/app/build/outputs/apk/debug/app-debug.apk $GITHUB_WORKSPACE/gabai-cordova-debug.apk
