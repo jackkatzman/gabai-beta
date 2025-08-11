@@ -24,13 +24,13 @@ This means your Google Console has:
 
 4. **ADD THESE 3 URLS (copy exactly):**
    ```
-   https://gab-ai-jack741.replit.app/api/auth/google/callback
-   https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback
+   https://gabai.ai/api/auth/google/callback
+   https://4e408980-d84b-4e08-8287-81c1cb50a366-00-2bj1dl6v36y0x.riker.replit.dev/api/auth/google/callback
    http://localhost:5000/api/auth/google/callback
    ```
 
 ## URGENT: The current error shows Google is rejecting this exact URL:
-**`https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback`**
+**`https://4e408980-d84b-4e08-8287-81c1cb50a366-00-2bj1dl6v36y0x.riker.replit.dev/api/auth/google/callback`**
 
 This URL MUST be added to your Google Cloud Console OAuth settings for login to work.
 
