@@ -1,56 +1,6 @@
 # Overview
 
-GabAi is a voice-first personal assistant web application designed to provide AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. It features real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continually learning from preferences for increasingly personalized responses. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
-
-## Recent Updates (August 2025)
-- **Affiliate Link System FIXED** (Aug 11): COMPLETELY RESOLVED! Fixed broken affiliate URLs that were ending with ")" and improved Amazon product link generation. Enhanced URL regex parsing to properly handle punctuation, updated AI prompts to generate specific product search terms (like "samsung+galaxy+z+flip+4+case+protective+cover") instead of generic searches, ensuring affiliate links lead to actual products.
-- **Voice Chat History ADDED** (Aug 11): NEW FEATURE! Voice input transcriptions now appear in chat history with 🎤 indicator so you can see exactly what was captured before the AI responds. Perfect for verifying voice accuracy and maintaining conversation context.
-- **Mobile & Voice Issues FIXED** (Aug 11): COMPLETELY RESOLVED ALL THREE ISSUES! 
-  ✅ Mobile address bar now completely hidden with fullscreen PWA mode and dynamic viewport height
-  ✅ ElevenLabs drill sergeant voice (DGzg6RaUqxGRTHSBjfgF) now uses latest eleven_turbo_v2_5 model with maximum style (1.0), stability (0.95), and similarity boost (1.0) for authentic military sound
-  ✅ Alarm text customization fixed - user's exact text like "go home" now spoken without modification or templates
-- **Voice & List Issues Fixed** (Aug 11): Fixed drill sergeant voice with maximum authenticity settings and resolved list input bug by removing selectedListId dependency - manual input now works immediately. APK version tested and working perfectly.
-- **Hold-to-Talk Voice Interface** (Aug 11): FULLY IMPLEMENTED! Press-and-hold voice button with auto-send functionality. Enhanced mobile touch handling to prevent system interference. Records while pressed, automatically transcribes and sends when released. Perfect for voice-first interactions on mobile.
-- **Enhanced Voice Interface** (Aug 11): REDESIGNED! Replaced small microphone button with large, prominent "Hold to Talk" button below text input. Added proper microphone icon display, better text direction support for multilingual input, and clearer voice recording states. Voice interface now more accessible and prominent for voice-first interactions.
-- **Smart AI List Naming** (Aug 11): NEW FEATURE! Added intelligent list naming using OpenAI - click "🧠 Smart Name" when creating lists and GabAi suggests contextual names based on user profession and activity. Perfect for real estate pros ("Parkview Apartments"), contractors, and any profession-specific work.
-- **Domain Connection Success** (Aug 11): COMPLETED! gabai.ai is now live and working perfectly with all mobile PWA fixes and Hebrew text support active. Updated routing to go directly to login instead of landing page for better user experience.
-- **Production Deployment Configuration** (Aug 11): DEPLOYMENT FIX READY! Resolved deployment error caused by development commands in .replit file. Production build process tested and working perfectly (103.6kb server bundle, optimized frontend assets). User needs to manually update Replit deployment settings: Build Command = `npm run build`, Run Command = `npm start`, Environment = `NODE_ENV=production`. All production scripts properly configured in package.json.
-- **Mobile PWA Experience Fixed** (Aug 11): COMPLETELY FIXED! Resolved mobile browser address bar visibility and horizontal scrolling issues. Updated PWA manifest to fullscreen mode, enhanced viewport configuration, and added CSS to prevent horizontal scrolling. Mobile web app now behaves like a native app with no address bar and proper full-screen experience.
-- **Mobile App Experience Enhanced** (Aug 11): IMPROVED! Fixed mobile app flow - native Android apps now skip landing page and go directly to login interface. Added native app detection with "Native Mobile App" badge and mobile-optimized messaging. APK correctly opens to sign-in screen instead of landing page for better user experience.
-- **APK Distribution Fix** (Aug 11): FIXED! GitHub repository had no releases published despite successful builds. Created unified `build-and-release.yml` workflow that builds APK and creates GitHub release in one step. The 404 error on download link fixed - releases will now be published automatically. APK build system ready for deployment with proper GitHub Actions automation.
-- **Complete APK Build Infrastructure** (Aug 8): Full Android APK build system ready for deployment with GitHub Actions automation, professional beta testing program, and comprehensive distribution setup - awaiting desktop upload of workflow file
-- **iOS Support Strategy**: Documented complete iOS deployment options including immediate web app access and future native app development path
-- **Beta Testing Program**: Enhanced landing page with prominent beta download section, comprehensive testing guide, and multi-channel feedback collection
-- **GitHub Actions Workflow**: Created automated APK builds on every commit with release management, artifact distribution, and version tracking - ready for upload
-- **Mobile App Configuration**: Optimized Capacitor setup with proper Android permissions, native plugin integration, and production-ready build scripts
-- **Multi-Platform Landing Page**: Professional download options for Android APK, iOS web app, and direct web access with $14.95/month subscription model
-- **AFFILIATE LINK SYSTEM COMPLETELY FIXED** (Aug 10): Critical monetization pipeline now fully operational - GabAi automatically generates affiliate links with proper URL processing, database persistence, and commission tracking. Users asking for shopping help now get shortened affiliate URLs that earn revenue.
-- **ALARM SYSTEM COMPLETELY FIXED** (Aug 8): Critical bug resolved - voice commands now properly create alarms instead of calendar appointments. Added "create_alarm" action type to OpenAI system prompt to distinguish alarms from appointments. Manual "Set Alarm" button now fully responsive with proper loading states.
-- **Drill Sergeant Voice Fixed** (Aug 11): COMPLETELY FIXED! Updated voice ID (DGzg6RaUqxGRTHSBjfgF) with proper ElevenLabs parameters - increased stability (0.85), similarity boost (0.9), and style (0.8) for authentic military drill sergeant voice. Enhanced military phrases including "MAGGOT", "RECRUIT", "THE ENEMY DOESN'T SLEEP" for aggressive wake-up calls
-- **Amazon Affiliate Code Updated** (Aug 8): Successfully changed from "gabai-20" to user's personal code "floater01b-20" in URL shortening system for proper commission tracking. Added automatic URL processing to AI chat responses - ALL Amazon links now automatically include affiliate code and get shortened to clean gabai.ai/l/xxxxx format
-- **Navigation System Fixed** (Aug 8): Resolved critical routing issue preventing Lists and Calendar navigation - restructured App.tsx routes to handle `/lists` and `/calendar` properly
-- **React Query Integration**: Fixed query key formatting and URL construction for proper data fetching across all components
-- **Authentication Flow**: Stabilized OAuth session management with consistent cookie handling and user state synchronization
-- **Smart Lists & Calendar**: Both sections now fully functional with real-time data display (shopping lists, to-do items, calendar reminders)
-- **OAuth Domain Issue**: Fixed login redirect with dynamic callback URLs - works on both gabai.ai and development domains
-- **Google Console Setup**: Web login requires adding development callback to OAuth settings: `https://4e408980-d84b-4e08-8287-81c1cb50a366-00-2bj1dl6v36y0x.riker.replit.dev/api/auth/google/callback`
-- **Calendar Timezone Fix**: Resolved calendar import time shifting issues by implementing floating time events and user timezone preferences
-- **Timezone Detection**: Auto-detect user timezone from browser with manual selection during onboarding
-- **URL Shortening Service**: Implemented clean "gabai.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
-- **Metabase Analytics**: Added plug-and-play business intelligence dashboard with 30-second Docker setup
-- **Affiliate Monetization**: Automatic URL shortening with click tracking for Booking.com, Amazon, Kayak, Expedia, Hotels.com
-- **Native Notifications**: Replaced web toast notifications with Capacitor native notifications for better mobile UX
-- **Native Scheduling**: Added Capacitor alarm system with date/time pickers, recurring alarms, and voice command integration
-- **Advanced Alarm Sounds**: Custom ringtones, voice notes, and ElevenLabs AI voices (drill sergeant, sweet grandma, angry mom, etc.)
-- **Production Ready**: Complete backend analytics and URL shortening APIs ready for $14.95/month subscription model
-
-## Mobile-First Approach
-- **Capacitor Integration**: Native iOS/Android app deployment capabilities
-- **Voice-First Design**: Optimized for hands-free voice interactions
-- **Native Notifications**: Platform-specific notification system for better user engagement
-- **Native Scheduling**: Capacitor alarms with recurring options, voice commands, and quick timer presets
-- **Advanced Alarm Sounds**: Custom ringtones, voice notes, and ElevenLabs AI drill sergeant wake-up calls
-- **Progressive Web App**: Offline capabilities and app-like experience
+GabAi is a voice-first personal assistant web application providing AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. Key capabilities include real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continuously learning from preferences for increased personalization. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 # User Preferences
 
@@ -70,6 +20,7 @@ VRBO affiliate link: https://www.dpbolvw.net/click-101504231-10697641 (configure
 - **Routing**: Wouter for client-side routing.
 - **Voice Features**: Web APIs for speech recognition and audio playback.
 - **Deployment**: Progressive Web App (PWA) with offline support and Capacitor integration for native iOS/Android app store distribution.
+- **Mobile-First Approach**: Optimized for hands-free voice interactions, native notifications, and Capacitor alarms.
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js.
@@ -79,15 +30,14 @@ VRBO affiliate link: https://www.dpbolvw.net/click-101504231-10697641 (configure
 - **Authentication**: Google OAuth for secure user authentication and session management.
 
 ## Core Features
-- **Voice Interaction**: Speech-to-text via OpenAI Whisper API with multilingual support.
+- **Voice Interaction**: Speech-to-text via OpenAI Whisper API with multilingual support; text-to-speech via ElevenLabs API. Includes hold-to-talk functionality.
 - **AI Conversations**: GPT-4o for personalized responses and automatic language detection.
-- **Text-to-Speech**: ElevenLabs API with OpenAI TTS fallback for natural voice synthesis.
-- **User Personalization**: Comprehensive preference system for user interests, dietary needs, and communication styles.
-- **Smart Lists**: Flexible, collaborative lists (shopping, punch lists, to-do) with real-time sharing and intelligent categorization. AI recognizes user profession for specialized list generation.
-- **Calendar & Reminders**: Scheduled notifications with recurring options, full native calendar sync (ICS export, live subscriptions), and timezone accuracy.
-- **OCR Text Extraction**: AI-powered image text extraction using OpenAI vision API for digitizing various documents (handwritten lists, receipts, business cards).
-- **Contact Management**: Creation of contacts from business card OCR with smart detection of contact information and vCard export.
-- **Monetization**: Automatic conversion of URLs to clickable affiliate links (e.g., Booking.com, Amazon) when users request purchasing help, supported by a custom URL shortening service with analytics.
+- **User Personalization**: Comprehensive preference system for interests, dietary needs, and communication styles.
+- **Smart Lists**: Flexible, collaborative lists (shopping, punch lists, to-do) with real-time sharing, intelligent categorization, and AI-suggested names based on user profession.
+- **Calendar & Reminders**: Scheduled notifications with recurring options, native calendar sync, and timezone accuracy. Supports custom alarm sounds and ElevenLabs AI voices.
+- **OCR Text Extraction**: AI-powered image text extraction using OpenAI Vision API for digitizing documents like handwritten lists, receipts, and business cards.
+- **Contact Management**: Creation of contacts from business card OCR with smart detection and vCard export.
+- **Monetization**: Automatic conversion of URLs to clickable affiliate links (e.g., Booking.com, Amazon) using a custom URL shortening service with analytics.
 - **Onboarding Flow**: Multi-step user setup for personalization.
 
 ## Data Models
@@ -106,7 +56,7 @@ VRBO affiliate link: https://www.dpbolvw.net/click-101504231-10697641 (configure
 # External Dependencies
 
 ## AI & Voice Services
-- **OpenAI**: GPT-4o (conversational AI, vision API) and Whisper (speech transcription).
+- **OpenAI**: GPT-4o (conversational AI, vision API), Whisper (speech transcription).
 - **ElevenLabs**: Text-to-speech synthesis.
 
 ## Database & Infrastructure

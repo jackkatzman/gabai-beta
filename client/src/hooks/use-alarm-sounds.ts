@@ -186,9 +186,9 @@ export function useAlarmSounds() {
 // Helper function to get ElevenLabs voice ID for personality
 function getVoiceIdForPersonality(personality?: string): string {
   const voiceMap = {
-    'drill-sergeant': 'DGzg6RaUqxGRTHSBjfgF', // Correct drill sergeant voice ID provided by user
+    'drill-sergeant': 'DGzg6RaUqxGRTHSBjfgF', // Adam - Masculine drill sergeant voice
     'gentle': '21m00Tcm4TlvDq8ikWAM', // Rachel - gentle female voice  
-    'motivational': 'AZnzlk1XvdvUeBnXmlld', // Domi - energetic female voice
+    'motivational': 'pNInz6obpgDQGcFmaJgB', // Adam - Deep masculine motivational voice
     'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual male voice
     'angry-mom': 'jsCqWAovK2LkecY7zXl4', // Freya - stern female voice
     'grandma': 'XB0fDUnXU5powFXDhCwa', // Charlotte - warm elderly female voice
