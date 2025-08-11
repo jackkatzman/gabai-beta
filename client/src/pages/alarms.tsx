@@ -154,6 +154,8 @@ export function AlarmsPage() {
     }
   };
 
+  const [currentTestAudio, setCurrentTestAudio] = useState<HTMLAudioElement | null>(null);
+
   const testVoice = async () => {
     if (!playAlarmSound) {
       toast({
@@ -164,13 +166,43 @@ export function AlarmsPage() {
       return;
     }
 
-    await playAlarmSound({
+    // Stop any currently playing test audio
+    if (currentTestAudio) {
+      currentTestAudio.pause();
+      currentTestAudio.currentTime = 0;
+      setCurrentTestAudio(null);
+    }
+
+    const result = await playAlarmSound({
       type: 'ai-voice',
       voiceOptions: {
         text: alarmTitle || "Wake up! Time to start your day!",
         personality: voicePersonality
       }
     });
+
+    // Track the audio element for cleanup
+    if (result && window.lastPlayedAudio) {
+      setCurrentTestAudio(window.lastPlayedAudio);
+      
+      // Auto-stop after 10 seconds for test
+      setTimeout(() => {
+        if (window.lastPlayedAudio) {
+          window.lastPlayedAudio.pause();
+          window.lastPlayedAudio.currentTime = 0;
+          setCurrentTestAudio(null);
+        }
+      }, 10000);
+    }
+  };
+
+  // Add stop test function
+  const stopTestVoice = () => {
+    if (currentTestAudio) {
+      currentTestAudio.pause();
+      currentTestAudio.currentTime = 0;
+      setCurrentTestAudio(null);
+    }
   };
 
   return (
@@ -302,11 +334,11 @@ export function AlarmsPage() {
               <div className="flex space-x-3">
                 <Button 
                   variant="outline" 
-                  onClick={testVoice} 
+                  onClick={currentTestAudio ? stopTestVoice : testVoice} 
                   className="flex-1"
                   disabled={!alarmTitle}
                 >
-                  Test Voice
+                  {currentTestAudio ? "Stop Test" : "Test Voice"}
                 </Button>
                 <Button 
                   onClick={handleVoiceAlarm} 

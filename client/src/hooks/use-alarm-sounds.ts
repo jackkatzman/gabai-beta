@@ -143,6 +143,9 @@ export function useAlarmSounds() {
         audio.loop = true;
         audio.volume = 0.8;
         
+        // Store reference globally for cleanup
+        (window as any).lastPlayedAudio = audio;
+        
         // For mobile, try to play with user interaction context
         const playPromise = audio.play();
         
@@ -153,6 +156,9 @@ export function useAlarmSounds() {
           setTimeout(() => {
             audio.pause();
             audio.currentTime = 0;
+            if ((window as any).lastPlayedAudio === audio) {
+              (window as any).lastPlayedAudio = null;
+            }
           }, 60000);
         }
         

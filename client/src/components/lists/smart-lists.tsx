@@ -568,7 +568,8 @@ export function SmartLists({ user }: SmartListsProps) {
                           setNewItemName(e.target.value);
                         }}
                         placeholder="Add new item..."
-                        className="flex-1 text-sm"
+                        className="flex-1 text-base font-normal"
+                        style={{ fontSize: '16px', minHeight: '44px', lineHeight: '1.4' }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && newItemName.trim()) {
                             e.preventDefault();
