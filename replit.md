@@ -2,6 +2,10 @@
 
 GabAi is a voice-first personal assistant web application providing AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. Key capabilities include real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continuously learning from preferences for increased personalization. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
+## Recent Updates (August 2025)
+- **Alarm System FULLY OPERATIONAL** (Aug 11): COMPLETELY FIXED! Resolved stuck "Scheduling..." button issue and enabled proper alarm creation. Fixed TypeScript errors in scheduling components, improved error handling with user feedback, and ensured alarms can be successfully set with both native and web fallback systems.
+- **ElevenLabs Voice System Fixed** (Aug 11): COMPLETELY FIXED! All alarm voices now use pure ElevenLabs voice IDs without artificial manipulation. Drill sergeant voice (DGzg6RaUqxGRTHSBjfgF) uses natural voice characteristics as selected from ElevenLabs library. Removed forced masculinity/femininity settings - voices sound authentic and distinct as intended by ElevenLabs voice design.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

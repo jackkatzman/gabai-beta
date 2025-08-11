@@ -26,7 +26,7 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
   const handleDatePicker = async (mode: 'date' | 'time' | 'datetime') => {
     const date = await showDatePicker({
       mode,
-      theme: 'auto',
+      theme: 'light' as const,
       min: new Date(), // Can't schedule in the past
     });
     
@@ -49,8 +49,7 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
         date: selectedDate,
         recurring,
         vibration,
-        sound: soundConfig.source || 'default',
-        soundConfig
+        sound: soundConfig.source || 'default'
       });
 
       if (alarmId) {
@@ -67,9 +66,13 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
         console.log(`✅ Alarm scheduled for ${selectedDate.toLocaleString()}`);
       } else {
         console.error('Failed to schedule alarm');
+        // Show user-friendly error message
+        alert('Failed to schedule alarm. Please try again.');
       }
     } catch (error) {
       console.error('Scheduling error:', error);
+      // Show user-friendly error message
+      alert(`Error scheduling alarm: ${error}`);
     } finally {
       setIsScheduling(false);
     }
@@ -154,7 +157,7 @@ export function NativeScheduler({ onScheduled }: NativeSchedulerProps) {
             <Repeat className="h-4 w-4" />
             Repeat
           </Label>
-          <Select value={recurring} onValueChange={setRecurring}>
+          <Select value={recurring} onValueChange={(value: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly') => setRecurring(value)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
