@@ -167,7 +167,20 @@ export function LandingPage() {
                     <Button 
                       size="lg" 
                       className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2"
-                      onClick={() => window.open('/downloads/gabai-beta.apk', '_blank')}
+                      onClick={() => {
+                        // Check if APK exists locally, otherwise redirect to GitHub releases
+                        fetch('/downloads/gabai-beta.apk')
+                          .then(response => {
+                            if (response.ok) {
+                              window.open('/downloads/gabai-beta.apk', '_blank');
+                            } else {
+                              window.open('https://github.com/jackkatzman/gabai-beta/releases/latest', '_blank');
+                            }
+                          })
+                          .catch(() => {
+                            window.open('https://github.com/jackkatzman/gabai-beta/releases/latest', '_blank');
+                          });
+                      }}
                     >
                       <Download className="h-5 w-5" />
                       <span>Download Beta APK</span>
