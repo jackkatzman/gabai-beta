@@ -9,6 +9,7 @@ interface VoiceAlarmOptions {
   personality?: 'drill-sergeant' | 'gentle' | 'motivational' | 'funny' | 'angry-mom' | 'grandma';
   speed?: number;
   stability?: number;
+  similarityBoost?: number;
 }
 
 interface CustomSoundOptions {
@@ -59,9 +60,9 @@ export function useAlarmSounds() {
         body: JSON.stringify({
           text: options.text, // Use user's exact text without modification
           voiceId: options.voiceId || getVoiceIdForPersonality(options.personality),
-          speed: options.personality === 'drill-sergeant' ? 1.1 : (options.speed || 1.0),
-          stability: options.personality === 'drill-sergeant' ? 0.95 : (options.stability || 0.75),
-          similarityBoost: options.personality === 'drill-sergeant' ? 1.0 : 0.75
+          speed: options.speed || 1.0,
+          stability: options.stability || 0.75,
+          similarityBoost: options.similarityBoost || 0.75
         })
       });
 
@@ -186,12 +187,12 @@ export function useAlarmSounds() {
 // Helper function to get ElevenLabs voice ID for personality
 function getVoiceIdForPersonality(personality?: string): string {
   const voiceMap = {
-    'drill-sergeant': 'DGzg6RaUqxGRTHSBjfgF', // Adam - Masculine drill sergeant voice
-    'gentle': '21m00Tcm4TlvDq8ikWAM', // Rachel - gentle female voice  
-    'motivational': 'pNInz6obpgDQGcFmaJgB', // Adam - Deep masculine motivational voice
-    'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual male voice
-    'angry-mom': 'jsCqWAovK2LkecY7zXl4', // Freya - stern female voice
-    'grandma': 'XB0fDUnXU5powFXDhCwa', // Charlotte - warm elderly female voice
+    'drill-sergeant': 'DGzg6RaUqxGRTHSBjfgF', // Your selected drill sergeant voice from ElevenLabs library
+    'gentle': '21m00Tcm4TlvDq8ikWAM', // Rachel - gentle voice  
+    'motivational': 'pNInz6obpgDQGcFmaJgB', // Your selected motivational voice from ElevenLabs library
+    'funny': 'TxGEqnHWrfWFTfGW9XjX', // Josh - casual voice
+    'angry-mom': 'jsCqWAovK2LkecY7zXl4', // Freya - stern voice
+    'grandma': 'XB0fDUnXU5powFXDhCwa', // Charlotte - warm elderly voice
   };
 
   return voiceMap[personality as keyof typeof voiceMap] || voiceMap['gentle'];
