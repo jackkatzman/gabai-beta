@@ -135,14 +135,13 @@ function AppContent() {
             return <OnboardingPage />;
           }
 
-          // For native mobile apps, go directly to login instead of landing page
-          if (isNativeMobileApp()) {
-            return <LoginPage />;
-          }
-
-          return <LandingPage />;
+          // Go directly to login for better user experience
+          return <LoginPage />;
         }}
       </Route>
+      
+      {/* Landing page available at /landing for marketing */}
+      <Route path="/landing" component={LandingPage} />
       <Route component={NotFound} />
     </Switch>
   );

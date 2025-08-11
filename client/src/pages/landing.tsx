@@ -84,12 +84,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* DOMAIN CONNECTION NOTICE */}
-            <div className="bg-green-500 text-white p-8 rounded-lg mb-8 shadow-lg">
-              <h2 className="text-3xl font-bold mb-4">✅ DEPLOYMENT CONFIRMED WORKING!</h2>
-              <p className="text-xl">Deployment is live at: gabai-beta-jack741.replit.app</p>
-              <p className="text-lg mt-2">Next step: Connect gabai.ai domain to this deployment</p>
-            </div>
+
 
             {/* Main Headline */}
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
