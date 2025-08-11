@@ -41,12 +41,8 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure Google OAuth strategy - use gabai.ai for all environments
+  // Configure Google OAuth strategy - dynamic callback URL
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Always use gabai.ai for OAuth callback in production
-    const callbackURL = `https://gabai.ai/api/auth/google/callback`;
-    
-    console.log('🎯 OAuth callback URL:', callbackURL);
     console.log('🌐 Environment:', process.env.NODE_ENV);
     console.log('🔑 Client ID:', process.env.GOOGLE_CLIENT_ID);
     console.log('🔒 Client Secret configured:', !!process.env.GOOGLE_CLIENT_SECRET);
@@ -54,7 +50,7 @@ export function setupAuth(app: Express) {
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: callbackURL
+      callbackURL: '/api/auth/google/callback' // Relative URL - will use current host
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         console.log('🔥 GOOGLE OAUTH CALLBACK TRIGGERED!');
@@ -117,9 +113,7 @@ export function setupAuth(app: Express) {
     console.log('🌐 Request hostname:', req.hostname);
     console.log('🔗 Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
     console.log('🔑 Using Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...');
-    console.log('📍 Callback URL configured for current domain:', `https://${req.get('host')}/api/auth/google/callback`);
-    console.log('🔍 Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('🔍 User-Agent:', req.get('User-Agent'));
+    console.log('📍 Callback URL will use current host:', `${req.protocol}://${req.get('host')}/api/auth/google/callback`);
     
     const authenticator = passport.authenticate('google', { 
       scope: ['profile', 'email'],
