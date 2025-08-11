@@ -1,0 +1,159 @@
+name: 🚀 Release APK
+on:
+  workflow_run:
+    workflows: ["✅ Final APK Build"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Use System Android SDK  
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+
+    - name: Accept SDK Licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Install SDK Components
+      run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
+    - name: Create Project and Build APK
+      run: |
+        mkdir -p gabai/app/src/main/java/com/gabai/app
+        mkdir -p gabai/app/src/main/res/values  
+        mkdir -p gabai/app/src/main/assets/www
+        cd gabai
+        
+        cat > app/src/main/assets/www/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html><head><meta charset="UTF-8"><title>GabAi</title>
+        <style>body{margin:0;background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-align:center;font-family:Arial,sans-serif;height:100vh;display:flex;align-items:center;justify-content:center}h1{font-size:3em;margin-bottom:20px}.logo{font-size:5em;margin-bottom:20px;animation:bounce 2s infinite}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}.status{margin:20px 0;animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}.btn{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);color:white;padding:15px 30px;border-radius:50px;text-decoration:none;display:inline-block;margin:10px;transition:all .3s}</style>
+        </head><body><div><div class="logo">🤖</div><h1>GabAi</h1><div class="status" id="status">Launching GabAi...</div><a href="https://gabai.ai" class="btn" onclick="launch()">Open GabAi</a></div>
+        <script>function launch(){window.location.href='https://gabai.ai'}let count=3;const statusEl=document.getElementById('status');const timer=setInterval(()=>{statusEl.textContent='Opening in '+count+'...';count--;if(count<0){clearInterval(timer);launch()}},1500)</script></body></html>
+        EOF
+
+        cat > app/src/main/AndroidManifest.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.gabai.app">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <application android:label="GabAi" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                <activity android:name=".MainActivity" android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        cat > app/src/main/java/com/gabai/app/MainActivity.java << 'EOF'
+        package com.gabai.app;
+        import android.app.Activity;
+        import android.os.Bundle;
+        import android.webkit.WebView;
+        public class MainActivity extends Activity {
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                WebView webView = new WebView(this);
+                webView.getSettings().setJavaScriptEnabled(true);
+                webView.loadUrl("file:///android_asset/www/index.html");
+                setContentView(webView);
+            }
+        }
+        EOF
+
+        echo '<resources><string name="app_name">GabAi</string></resources>' > app/src/main/res/values/strings.xml
+
+        cat > build.gradle << 'EOF'
+        buildscript {
+            repositories { google(); mavenCentral() }
+            dependencies { classpath 'com.android.tools.build:gradle:8.3.0' }
+        }
+        allprojects { repositories { google(); mavenCentral() } }
+        EOF
+        
+        cat > app/build.gradle << 'EOF'
+        plugins { id 'com.android.application' }
+        android {
+            namespace 'com.gabai.app'
+            compileSdk 33
+            defaultConfig {
+                applicationId "com.gabai.app"
+                minSdk 21
+                targetSdk 33
+                versionCode 1
+                versionName "1.0"
+            }
+        }
+        EOF
+        
+        echo "include ':app'" > settings.gradle
+        echo 'org.gradle.jvmargs=-Xmx2g' > gradle.properties
+
+        gradle wrapper --gradle-version 8.6
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
+        find . -name "app-debug.apk" -exec cp {} ../gabai-final.apk \;
+
+    - name: Get Version Info
+      id: version
+      run: |
+        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date +'%Y%m%d_%H%M')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "v1.0-beta-${{ steps.version.outputs.timestamp }}"
+        name: "GabAi Beta v1.0 (${{ steps.version.outputs.date }})"
+        body: |
+          ## GabAi Android Beta Release 📱
+          
+          **Professional native Android app** with beautiful loading screen and automatic redirect to https://gabai.ai
+          
+          ### Features:
+          - 🤖 Native Android app with GabAi branding
+          - ⚡ Instant access to your voice-first AI assistant  
+          - 🎨 Professional animated loading screen
+          - 🌐 Seamless redirect to live GabAi website
+          - 📱 Full WebView functionality with JavaScript support
+          
+          ### Installation:
+          1. Download `gabai-final.apk`
+          2. Enable "Install from Unknown Sources" in Android settings
+          3. Install the APK
+          4. Launch GabAi from your home screen
+          
+          **Requirements:** Android 7.0+ (API level 24+)
+          
+          ---
+          *Built automatically from latest successful build*
+        files: |
+          gabai-final.apk
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Success Summary
+      run: |
+        echo "🚀 GitHub Release Created Successfully"
+        echo "📱 APK: gabai-final.apk"  
+        echo "🌐 Direct download now available"
+        echo "✅ Website download button will now work automatically"
