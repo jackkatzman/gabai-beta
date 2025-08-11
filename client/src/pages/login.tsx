@@ -7,6 +7,7 @@ import { Download, Smartphone, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { useState, useEffect } from "react";
+import { isNativeMobileApp } from "@/utils/capacitor";
 
 export default function LoginPage() {
   const { login, devLogin, isLoggingIn, isDevLoggingIn } = useAuth();
@@ -67,8 +68,18 @@ export default function LoginPage() {
           <div>
             <CardTitle className="text-2xl font-bold">Welcome to GabAi</CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              Your voice-first smart assistant for managing lists, appointments, and daily tasks
+              {isNativeMobileApp() ? (
+                <>Welcome to the GabAi mobile app! Sign in to access your voice-first AI assistant</>
+              ) : (
+                <>Your voice-first smart assistant for managing lists, appointments, and daily tasks</>
+              )}
             </CardDescription>
+            {isNativeMobileApp() && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                <Smartphone className="w-3 h-3 mr-1" />
+                Native Mobile App
+              </Badge>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

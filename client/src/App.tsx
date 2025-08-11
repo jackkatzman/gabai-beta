@@ -18,6 +18,7 @@ import { ContactsPage } from "@/components/contacts/contacts-page";
 import { AlarmsPage } from "@/pages/alarms";
 import { LandingPage } from "@/pages/landing";
 import AnalyticsPage from "@/pages/analytics";
+import { isNativeMobileApp } from "@/utils/capacitor";
 
 import NotFound from "@/pages/not-found";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -132,6 +133,11 @@ function AppContent() {
 
           if (user && !user.onboardingCompleted) {
             return <OnboardingPage />;
+          }
+
+          // For native mobile apps, go directly to login instead of landing page
+          if (isNativeMobileApp()) {
+            return <LoginPage />;
           }
 
           return <LandingPage />;
