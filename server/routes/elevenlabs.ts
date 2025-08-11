@@ -21,6 +21,15 @@ router.post('/generate-alarm', isAuthenticated, async (req, res) => {
   try {
     const { text, voiceId, speed = 1.0, stability = 0.75, similarityBoost = 0.75 } = req.body;
 
+    // Debug logging to show exactly what text is being sent to ElevenLabs
+    console.log('🎤 ElevenLabs Request:', {
+      text: text,
+      voiceId: voiceId,
+      speed: speed,
+      stability: stability,
+      similarityBoost: similarityBoost
+    });
+
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
     }

@@ -181,51 +181,7 @@ export function useAlarmSounds() {
   };
 }
 
-// Helper function to get personalized wake-up text based on personality
-function getPersonalizedWakeUpText(baseText: string, personality?: string): string {
-  const templates = {
-    'drill-sergeant': [
-      `GET UP NOW SOLDIER! ${baseText}! DROP AND GIVE ME TWENTY PUSH-UPS!`,
-      `WAKE UP RECRUIT! ${baseText}! THE ENEMY DOESN'T SLEEP AND NEITHER SHOULD YOU!`,
-      `MOVE IT MOVE IT MOVE IT! ${baseText}! I'VE SEEN DEAD FISH WITH MORE ENERGY!`,
-      `ON YOUR FEET MAGGOT! ${baseText}! NO EXCUSES, NO SNOOZE BUTTON, JUST DISCIPLINE!`
-    ],
-    'gentle': [
-      `Good morning sunshine. ${baseText}. Time to start your beautiful day.`,
-      `Wake up slowly and peacefully. ${baseText}. You've got this.`,
-      `Gentle rise and shine. ${baseText}. Take your time, you're doing great.`
-    ],
-    'motivational': [
-      `Champions don't sleep in! ${baseText}! Today is your day to shine!`,
-      `Success starts now! ${baseText}! Get up and seize the day!`,
-      `You're destined for greatness! ${baseText}! Make today amazing!`
-    ],
-    'funny': [
-      `Wakey wakey eggs and bakey! ${baseText}! Even your coffee is judging you right now.`,
-      `Rise and grind! Or just rise... we'll take what we can get. ${baseText}!`,
-      `Your bed called, it wants a divorce. ${baseText}! Time to get up!`
-    ],
-    'angry-mom': [
-      `GET UP RIGHT NOW! ${baseText}! I didn't raise you to be late!`,
-      `DON'T MAKE ME COME UP THERE! ${baseText}! Move it!`,
-      `You're going to be late AGAIN! ${baseText}! Get moving this instant!`
-    ],
-    'grandma': [
-      `Good morning sweetheart! ${baseText}. Grandma made your favorite breakfast, but it's getting cold!`,
-      `Rise and shine my dear! ${baseText}. Don't make your old grandma worry about you sleeping too much.`,
-      `Wake up precious! ${baseText}. Grandma has fresh cookies waiting, but only if you get up now!`,
-      `Time to get up honey bunny! ${baseText}. Your grandma loves you so much, now don't be late!`
-    ]
-  };
-
-  const personalityTemplates = templates[personality as keyof typeof templates];
-  if (personalityTemplates) {
-    const randomTemplate = personalityTemplates[Math.floor(Math.random() * personalityTemplates.length)];
-    return randomTemplate;
-  }
-
-  return `Wake up! ${baseText}`;
-}
+// REMOVED: Text modification function - user's text should be used exactly as typed
 
 // Helper function to get ElevenLabs voice ID for personality
 function getVoiceIdForPersonality(personality?: string): string {
