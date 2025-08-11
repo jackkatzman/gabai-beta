@@ -1,13 +1,13 @@
 # 🚀 How to Build Your GabAi Android APK
 
-## Recommended: Manual Gradle Build (Latest)
+## Recommended: Direct APK Build (Latest - Works!)
 
 1. **Go to your repository**: https://github.com/[your-username]/gabai-beta
 2. **Click "Actions" tab** (next to "Code", "Issues", "Pull requests")
-3. **Select "Manual Gradle APK Build"** from the left sidebar
+3. **Select "Direct APK Build (No Frontend Build)"** from the left sidebar
 4. **Click the blue "Run workflow" button**
 5. **Click "Run workflow"** to start building (no options needed)
-6. **Wait 3-5 minutes** for the build to complete
+6. **Wait 2-3 minutes** for the build to complete
 7. **Download your APK** from the "Artifacts" section
 
 ## Backup: Cordova Build
@@ -54,15 +54,19 @@ gh run list --workflow="Cordova APK Build (No Capacitor)"
 
 ## Build Artifacts
 
-### Manual Gradle Build
-- **APK File**: `gabai-manual-debug.apk`
-- **Technology**: Pure Android Studio + WebView
-- **Build Time**: ~3 minutes
+### Direct APK Build (RECOMMENDED)
+- **APK File**: `gabai-direct.apk`
+- **Technology**: Pure Android Studio + WebView redirect
+- **Build Time**: ~2 minutes
+- **Status**: No npm/build dependencies - guaranteed to work!
 
-### Cordova Build  
+### Manual Gradle Build (OLD)
+- **APK File**: `gabai-manual-debug.apk`
+- **Status**: Has npm build issues - use Direct APK Build instead
+
+### Cordova Build (BACKUP)
 - **APK File**: `gabai-cordova-debug.apk`
-- **Technology**: Cordova framework
-- **Build Time**: ~5 minutes
+- **Status**: Framework conflicts - use Direct APK Build instead
 
 Both provide:
 - **Build Logs**: Detailed execution information
