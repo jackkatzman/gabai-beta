@@ -17,8 +17,8 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        api-level: 35
-        build-tools: 35.0.0
+        api-level: 33
+        build-tools: 33.0.2
 
     - name: Create Project Structure
       run: |
@@ -130,36 +130,62 @@ jobs:
         cd /tmp/gabai
         cat > build.gradle << 'EOF'
         buildscript {
-            repositories { google(); mavenCentral() }
-            dependencies { classpath 'com.android.tools.build:gradle:8.0.2' }
+            repositories { 
+                google()
+                mavenCentral()
+            }
+            dependencies { 
+                classpath 'com.android.tools.build:gradle:7.4.2'
+            }
         }
-        allprojects { repositories { google(); mavenCentral() } }
+        allprojects { 
+            repositories { 
+                google()
+                mavenCentral()
+            } 
+        }
         EOF
         
         cat > app/build.gradle << 'EOF'
-        plugins { id 'com.android.application' }
+        apply plugin: 'com.android.application'
         android {
-            compileSdk 35
+            compileSdkVersion 33
             defaultConfig {
                 applicationId "com.gabai.app"
-                minSdk 21
-                targetSdk 33
+                minSdkVersion 21
+                targetSdkVersion 33
                 versionCode 1
                 versionName "1.0"
             }
-            buildTypes { debug { minifyEnabled false } }
+            buildTypes {
+                debug {
+                    minifyEnabled false
+                }
+            }
         }
-        dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+        }
         EOF
         
-        echo 'org.gradle.jvmargs=-Xmx2048m' > gradle.properties
-        echo 'android.useAndroidX=true' >> gradle.properties
+        cat > gradle.properties << 'EOF'
+        org.gradle.jvmargs=-Xmx2048m
+        android.useAndroidX=true
+        android.enableJetifier=true
+        EOF
+        
         echo "include ':app'" > settings.gradle
 
     - name: Build APK
       run: |
         cd /tmp/gabai
-        gradle assembleDebug --no-daemon
+        chmod +x ./gradlew || echo "No gradlew found, using gradle"
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug --no-daemon
+        else
+          gradle wrapper
+          ./gradlew assembleDebug --no-daemon
+        fi
         find . -name "app-debug.apk" -exec cp {} /tmp/gabai-simple.apk \;
         ls -la /tmp/gabai-simple.apk
 
