@@ -50,6 +50,8 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [searchingUser, setSearchingUser] = useState(false);
   const [foundUser, setFoundUser] = useState<{id: string, email: string, firstName?: string, lastName?: string} | null>(null);
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editingListName, setEditingListName] = useState("");
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -162,6 +164,21 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     },
   });
 
+  // Update list mutation
+  const updateListMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<SmartList> }) => 
+      api.updateSmartList(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      setEditingListId(null);
+      setEditingListName("");
+      toast({
+        title: "List Updated",
+        description: "List name has been updated successfully.",
+      });
+    },
+  });
+
   // Voice input for adding items
   const { isRecording, isTranscribing, toggleRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
@@ -217,6 +234,29 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
       id: item.id,
       updates: { completed: !item.completed },
     });
+  };
+
+  const handleDeleteItem = (id: string) => {
+    deleteItemMutation.mutate(id);
+  };
+
+  const handleEditListName = (list: SmartList & { items: ListItem[] }) => {
+    setEditingListId(list.id);
+    setEditingListName(list.name);
+  };
+
+  const handleSaveListName = () => {
+    if (editingListId && editingListName.trim()) {
+      updateListMutation.mutate({
+        id: editingListId,
+        updates: { name: editingListName.trim() }
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingListId(null);
+    setEditingListName("");
   };
 
   const handleVoiceAddItem = async (listId: string) => {
@@ -390,9 +430,10 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
               user={user}
               onAddItem={handleAddItem}
               onToggleItem={handleToggleItem}
-              onDeleteItem={(id) => deleteItemMutation.mutate(id)}
+              onDeleteItem={handleDeleteItem}
               onVoiceAdd={handleVoiceAddItem}
               onShare={() => handleShareList(list)}
+              onEditName={() => handleEditListName(list)}
               newItemName={selectedListId === list.id ? newItemName : ""}
               setNewItemName={setNewItemName}
               newItemCategory={newItemCategory}
@@ -400,6 +441,11 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
               isVoiceMode={isVoiceAddingItem && selectedListId === list.id}
               isRecording={isRecording}
               isTranscribing={isTranscribing}
+              editingListId={editingListId}
+              editingListName={editingListName}
+              setEditingListName={setEditingListName}
+              onSaveListName={handleSaveListName}
+              onCancelEdit={handleCancelEdit}
             />
           ))
         )}
@@ -563,6 +609,7 @@ interface ShoppingListCardProps {
   onDeleteItem: (id: string) => void;
   onVoiceAdd: (listId: string) => void;
   onShare: () => void;
+  onEditName: () => void;
   newItemName: string;
   setNewItemName: (name: string) => void;
   newItemCategory: string;
@@ -570,6 +617,11 @@ interface ShoppingListCardProps {
   isVoiceMode: boolean;
   isRecording: boolean;
   isTranscribing: boolean;
+  editingListId: string | null;
+  editingListName: string;
+  setEditingListName: (name: string) => void;
+  onSaveListName: () => void;
+  onCancelEdit: () => void;
 }
 
 function ShoppingListCard({
@@ -580,6 +632,7 @@ function ShoppingListCard({
   onDeleteItem,
   onVoiceAdd,
   onShare,
+  onEditName,
   newItemName,
   setNewItemName,
   newItemCategory,
@@ -587,6 +640,11 @@ function ShoppingListCard({
   isVoiceMode,
   isRecording,
   isTranscribing,
+  editingListId,
+  editingListName,
+  setEditingListName,
+  onSaveListName,
+  onCancelEdit,
 }: ShoppingListCardProps) {
   const groupedItems = groupItemsByCategory(list.items);
   const completedCount = list.items.filter(item => item.completed).length;
@@ -597,11 +655,39 @@ function ShoppingListCard({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              {list.name}
-              {list.userId !== user.id && (
-                <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full">
-                  Shared with me
-                </span>
+              {editingListId === list.id ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <Input
+                    value={editingListName}
+                    onChange={(e) => setEditingListName(e.target.value)}
+                    dir="auto"
+                    style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}
+                    className="text-lg font-semibold"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        onSaveListName();
+                      } else if (e.key === "Escape") {
+                        onCancelEdit();
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <Button size="sm" onClick={onSaveListName} disabled={!editingListName.trim()}>
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={onCancelEdit}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span onClick={onEditName} className="cursor-pointer hover:text-blue-600">{list.name}</span>
+                  {list.userId !== user.id && (
+                    <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full">
+                      Shared with me
+                    </span>
+                  )}
+                </div>
               )}
             </CardTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -642,6 +728,8 @@ function ShoppingListCard({
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Add item to list..."
+              dir="auto"
+              style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
                   onAddItem(list.id);

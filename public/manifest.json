@@ -3,7 +3,7 @@
   "short_name": "GabAi",
   "description": "Your intelligent voice-first personal assistant with smart lists, calendar integration, and multilingual support",
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",

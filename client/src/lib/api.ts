@@ -134,6 +134,11 @@ export const api = {
     return response.json();
   },
 
+  async updateSmartList(id: string, updates: Partial<SmartList>): Promise<SmartList> {
+    const response = await apiRequest(`/api/smart-lists/${id}`, "PATCH", updates);
+    return response.json();
+  },
+
   async shareList(listId: string): Promise<{ shareCode: string }> {
     const response = await apiRequest(`/api/smart-lists/${listId}/share`, "POST");
     return response.json();
