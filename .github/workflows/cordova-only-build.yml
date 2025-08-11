@@ -70,7 +70,7 @@ jobs:
           echo "✅ Copied built public assets"
         else
           echo "⚠️ Using fallback HTML content"
-          cat > www/index.html << 'EOF'
+          cat > www/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -120,11 +120,11 @@ jobs:
     </script>
 </body>
 </html>
-EOF
+HTMLEOF
         fi
 
         # Configure for Android
-        cat > config.xml << 'EOF'
+        cat > config.xml << 'XMLEOF'
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="ai.gabai.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
     <name>GabAi</name>
@@ -151,7 +151,7 @@ EOF
     
     <plugin name="cordova-plugin-whitelist" version="1" />
 </widget>
-EOF
+XMLEOF
 
         # Add Android platform
         cordova platform add android
