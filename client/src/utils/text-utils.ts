@@ -1,14 +1,26 @@
 // Text rendering utilities to prevent backwards or broken text display
 
+export function detectTextDirection(text: string): 'ltr' | 'rtl' | 'auto' {
+  if (!text) return 'auto';
+  
+  // Hebrew unicode range: \u0590-\u05FF
+  // Arabic unicode range: \u0600-\u06FF
+  const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF]/;
+  
+  if (rtlRegex.test(text)) {
+    return 'rtl';
+  }
+  
+  return 'ltr';
+}
+
 export function safeTextRender(text: string | null | undefined): string {
   if (!text) return '';
   if (typeof text !== 'string') return String(text);
   
-  // Ensure proper text direction and remove any RTL/LTR override characters
+  // Only remove harmful control characters, keep natural RTL/LTR for proper languages
   return text
-    .replace(/[\u202A-\u202E\u2066-\u2069]/g, '') // Remove directional formatting chars
-    .replace(/\u200E/g, '') // Remove left-to-right mark
-    .replace(/\u200F/g, '') // Remove right-to-left mark
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
     .trim();
 }
 

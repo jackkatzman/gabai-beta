@@ -4,7 +4,7 @@ import { Volume2, VolumeX } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { LogoBubble } from "@/components/ui/logo-spinner";
 import { linkifyText } from "@/utils/linkify";
-import { safeTextRender, isTextReady } from "@/utils/text-utils";
+import { safeTextRender, isTextReady, detectTextDirection } from "@/utils/text-utils";
 import type { Message } from "@/types";
 
 interface MessageBubbleProps {
@@ -31,16 +31,16 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
   };
 
   if (isUser) {
+    const textDirection = detectTextDirection(message.content || '');
     return (
       <div className="flex items-start space-x-3 justify-end animate-slideUp">
         <div className="bg-blue-500 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
           <p 
             className="text-white text-sm leading-relaxed" 
-            dir="ltr" 
+            dir={textDirection}
             style={{ 
-              unicodeBidi: 'embed',
-              direction: 'ltr',
-              textAlign: 'left',
+              unicodeBidi: 'plaintext',
+              textAlign: textDirection === 'rtl' ? 'right' : 'left',
               writingMode: 'horizontal-tb',
               wordWrap: 'break-word'
             }}
@@ -60,17 +60,17 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     );
   }
 
+  const aiTextDirection = detectTextDirection(message.content || '');
   return (
     <div className="flex items-start space-x-3 animate-slideUp">
       <LogoBubble size="sm" />
       <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
         <div 
           className="text-gray-900 dark:text-white text-sm leading-relaxed" 
-          dir="ltr" 
+          dir={aiTextDirection}
           style={{ 
-            unicodeBidi: 'embed',
-            direction: 'ltr',
-            textAlign: 'left',
+            unicodeBidi: 'plaintext',
+            textAlign: aiTextDirection === 'rtl' ? 'right' : 'left',
             writingMode: 'horizontal-tb',
             wordWrap: 'break-word'
           }}
