@@ -16,7 +16,8 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   const { isRecording, isTranscribing, startRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
       if (text.trim()) {
-        onSendMessage(text.trim());
+        // Add voice indicator to transcribed message
+        onSendMessage(`🎤 ${text.trim()}`);
       }
     }
   });

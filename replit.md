@@ -3,6 +3,7 @@
 GabAi is a voice-first personal assistant web application designed to provide AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. It features real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continually learning from preferences for increasingly personalized responses. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 ## Recent Updates (August 2025)
+- **Voice Chat History ADDED** (Aug 11): NEW FEATURE! Voice input transcriptions now appear in chat history with 🎤 indicator so you can see exactly what was captured before the AI responds. Perfect for verifying voice accuracy and maintaining conversation context.
 - **Mobile & Voice Issues FIXED** (Aug 11): COMPLETELY RESOLVED ALL THREE ISSUES! 
   ✅ Mobile address bar now completely hidden with fullscreen PWA mode and dynamic viewport height
   ✅ ElevenLabs drill sergeant voice (DGzg6RaUqxGRTHSBjfgF) now uses latest eleven_turbo_v2_5 model with maximum style (1.0), stability (0.95), and similarity boost (1.0) for authentic military sound

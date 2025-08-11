@@ -54,10 +54,20 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
       // Save conversation ID to localStorage
       localStorage.setItem(`gabai_conversation_${user.id}`, response.conversationId);
       
-      // Update messages cache with both user and assistant messages
+      // Update messages cache with server response (includes both user and AI messages)
       queryClient.setQueryData(
         ["/api/messages", response.conversationId],
-        (oldMessages: Message[] = []) => [...oldMessages, response.message]
+        (oldMessages: Message[] = []) => {
+          // For new conversations or when temp message exists, use server data
+          // For existing conversations, remove temp and add server response
+          const hasTemp = oldMessages.some(msg => msg.id.toString().startsWith('temp-'));
+          if (hasTemp) {
+            const filteredMessages = oldMessages.filter(msg => !msg.id.toString().startsWith('temp-'));
+            return [...filteredMessages, response.message];
+          }
+          // For new conversations, server response includes both user and AI messages
+          return [...oldMessages, response.message];
+        }
       );
 
       // Invalidate lists and reminders cache if AI performed actions
@@ -84,6 +94,25 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
   });
 
   const handleSendMessage = (message: string) => {
+    // First, add user message to chat history immediately (for existing conversations)
+    if (currentConversationId) {
+      queryClient.setQueryData(
+        ["/api/messages", currentConversationId],
+        (oldMessages: Message[] = []) => [
+          ...oldMessages,
+          {
+            id: `temp-${Date.now()}`, // Temporary ID until server responds
+            content: message,
+            role: 'user',
+            createdAt: new Date(),
+            conversationId: currentConversationId,
+            audioUrl: null
+          }
+        ]
+      );
+    }
+    
+    // Then send to AI
     sendMessageMutation.mutate(message);
   };
 
