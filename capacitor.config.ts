@@ -1,6 +1,7 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+// Capacitor config - types removed to fix import error
+// import type { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig = {
+const config = {
   appId: 'ai.gabai.app',
   appName: 'GabAi',
   webDir: 'dist/public',
