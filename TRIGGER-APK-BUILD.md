@@ -1,13 +1,13 @@
 # 🚀 How to Build Your GabAi Android APK
 
-## RECOMMENDED: Ultra Simple APK (Manual SDK)
+## RECOMMENDED: Final APK Build (System SDK)
 
 1. **Go to your repository**: https://github.com/[your-username]/gabai-beta
 2. **Click "Actions" tab** (next to "Code", "Issues", "Pull requests")  
-3. **Select "🚀 Ultra Simple APK"** from the left sidebar
+3. **Select "✅ Final APK Build"** from the left sidebar
 4. **Click the blue "Run workflow" button**
-5. **Wait 3-4 minutes** for build completion
-6. **Download `gabai-ultra.apk`** from "Artifacts" section
+5. **Wait 2-3 minutes** for build completion
+6. **Download `gabai-final.apk`** from "Artifacts" section
 
 ## BACKUP: Cordova Simple APK (If Gradle Fails)
 
@@ -61,11 +61,11 @@ gh run list --workflow="Cordova APK Build (No Capacitor)"
 
 ## Build Artifacts
 
-### Ultra Simple APK (RECOMMENDED)
-- **APK File**: `gabai-ultra.apk`
-- **Technology**: Manual Android SDK + Gradle 8.5 + Plugin 8.2.2
-- **Build Time**: ~3 minutes
-- **Status**: Bypasses all SDK setup issues - guaranteed to work
+### Final APK Build (RECOMMENDED)
+- **APK File**: `gabai-final.apk`
+- **Technology**: System Android SDK + Gradle 8.6 + Plugin 8.3.0
+- **Build Time**: ~2 minutes  
+- **Status**: Uses pre-installed SDK - no conflicts, guaranteed success
 
 ### Cordova Simple APK (BACKUP)
 - **APK File**: `gabai-cordova.apk`  
