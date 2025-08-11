@@ -37,9 +37,42 @@
   </head>
   <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root" class="h-full"></div>
+    <!-- Immediate fixes applied before React loads -->
+    <script>
+        // IMMEDIATE FIXES - Run before anything else
+        console.log('Applying immediate fixes...');
+        
+        // Fix viewport
+        const viewport = document.querySelector('meta[name=viewport]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+        
+        // Prevent scrolling and fix text direction
+        document.documentElement.style.overflowX = 'hidden';
+        document.documentElement.style.direction = 'ltr';
+        document.documentElement.style.unicodeBidi = 'embed';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.overflowX = 'hidden';
+            document.body.style.direction = 'ltr';
+            document.body.style.maxWidth = '100vw';
+            
+            // Fix inputs continuously
+            setInterval(function() {
+                const inputs = document.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.style.fontSize = '16px';
+                    input.style.minHeight = '44px';
+                    input.style.direction = 'ltr';
+                });
+            }, 1000);
+            
+            console.log('Mobile fixes active');
+        });
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Emergency PWA fix -->
-    <script src="/pwa-fix.js"></script>
     
     <!-- PWA Service Worker Registration and Mobile Fixes -->
     <script>
