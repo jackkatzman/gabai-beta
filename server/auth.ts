@@ -43,8 +43,9 @@ export function setupAuth(app: Express) {
 
   // Configure Google OAuth strategy - use gabai.ai for all environments
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Always use gabai.ai callback URL since that's your production domain
-    const callbackURL = 'https://gabai.ai/api/auth/google/callback';
+    // Use the current deployment URL for OAuth callback
+    const currentDomain = process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',')[0] : 'gabai.ai';
+    const callbackURL = `https://${currentDomain}/api/auth/google/callback`;
     
     console.log('🎯 OAuth callback URL:', callbackURL);
     console.log('🌐 Environment:', process.env.NODE_ENV);
