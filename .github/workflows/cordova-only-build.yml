@@ -70,88 +70,47 @@ jobs:
           echo "✅ Copied built public assets"
         else
           echo "⚠️ Using fallback HTML content"
-          cat > www/index.html << 'HTMLEOF'
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GabAi - Voice Assistant</title>
-    <style>
-        body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white; text-align: center; min-height: 100vh; display: flex;
-          align-items: center; justify-content: center;
-        }
-        .container { max-width: 400px; }
-        .logo { font-size: 4em; margin-bottom: 20px; }
-        h1 { font-size: 2.5em; margin-bottom: 10px; }
-        .tagline { font-size: 1.2em; opacity: 0.9; margin-bottom: 30px; }
-        .version { opacity: 0.7; font-size: 0.9em; }
-        .features { text-align: left; margin: 30px 0; }
-        .features li { margin: 10px 0; opacity: 0.9; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo">🎤</div>
-        <h1>GabAi</h1>
-        <p class="tagline">AI-Powered Voice Assistant</p>
-        
-        <ul class="features">
-            <li>🗣️ Voice conversations</li>
-            <li>📝 Smart lists & reminders</li>
-            <li>🔗 Affiliate link generation</li>
-            <li>📅 Calendar integration</li>
-            <li>🎯 Personalized responses</li>
-        </ul>
-        
-        <div class="version">
-            <p>APK Build: Successful ✅</p>
-            <p>Version: 1.0.0</p>
-        </div>
-    </div>
-    
-    <script>
-      document.addEventListener('deviceready', function() {
-        console.log('GabAi Cordova app ready');
-      }, false);
-    </script>
-</body>
-</html>
-HTMLEOF
+          echo '<!DOCTYPE html>' > www/index.html
+          echo '<html><head><meta charset="utf-8">' >> www/index.html
+          echo '<meta name="viewport" content="width=device-width, initial-scale=1">' >> www/index.html
+          echo '<title>GabAi - Voice Assistant</title>' >> www/index.html
+          echo '<style>' >> www/index.html
+          echo 'body{font-family:Arial,sans-serif;margin:0;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;text-align:center;min-height:100vh;display:flex;align-items:center;justify-content:center}' >> www/index.html
+          echo '.container{max-width:400px}.logo{font-size:4em;margin-bottom:20px}h1{font-size:2.5em;margin-bottom:10px}.tagline{font-size:1.2em;opacity:0.9;margin-bottom:30px}' >> www/index.html
+          echo '.version{opacity:0.7;font-size:0.9em}.features{text-align:left;margin:30px 0}.features li{margin:10px 0;opacity:0.9}' >> www/index.html
+          echo '</style></head><body>' >> www/index.html
+          echo '<div class="container"><div class="logo">🎤</div><h1>GabAi</h1>' >> www/index.html
+          echo '<p class="tagline">AI-Powered Voice Assistant</p>' >> www/index.html
+          echo '<ul class="features"><li>🗣️ Voice conversations</li><li>📝 Smart lists & reminders</li>' >> www/index.html
+          echo '<li>🔗 Affiliate link generation</li><li>📅 Calendar integration</li><li>🎯 Personalized responses</li></ul>' >> www/index.html
+          echo '<div class="version"><p>APK Build: Successful ✅</p><p>Version: 1.0.0</p></div>' >> www/index.html
+          echo '</div><script>document.addEventListener("deviceready",function(){console.log("GabAi Cordova app ready")},false);</script>' >> www/index.html
+          echo '</body></html>' >> www/index.html
         fi
 
         # Configure for Android
-        cat > config.xml << 'XMLEOF'
-<?xml version='1.0' encoding='utf-8'?>
-<widget id="ai.gabai.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
-    <name>GabAi</name>
-    <description>AI-powered voice assistant for smart conversations and lists</description>
-    <author email="support@gabai.ai" href="https://gabai.ai">
-        GabAi Team
-    </author>
-    <content src="index.html" />
-    <access origin="*" />
-    <allow-intent href="http://*/*" />
-    <allow-intent href="https://*/*" />
-    <allow-intent href="tel:*" />
-    <allow-intent href="sms:*" />
-    <allow-intent href="mailto:*" />
-    
-    <platform name="android">
-        <allow-intent href="market:*" />
-        <preference name="android-minSdkVersion" value="21" />
-        <preference name="android-targetSdkVersion" value="30" />
-        <preference name="android-compileSdkVersion" value="30" />
-        <preference name="Fullscreen" value="false" />
-        <preference name="Orientation" value="default" />
-    </platform>
-    
-    <plugin name="cordova-plugin-whitelist" version="1" />
-</widget>
-XMLEOF
+        echo '<?xml version="1.0" encoding="utf-8"?>' > config.xml
+        echo '<widget id="ai.gabai.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">' >> config.xml
+        echo '  <name>GabAi</name>' >> config.xml
+        echo '  <description>AI-powered voice assistant for smart conversations and lists</description>' >> config.xml
+        echo '  <author email="support@gabai.ai" href="https://gabai.ai">GabAi Team</author>' >> config.xml
+        echo '  <content src="index.html" />' >> config.xml
+        echo '  <access origin="*" />' >> config.xml
+        echo '  <allow-intent href="http://*/*" />' >> config.xml
+        echo '  <allow-intent href="https://*/*" />' >> config.xml
+        echo '  <allow-intent href="tel:*" />' >> config.xml
+        echo '  <allow-intent href="sms:*" />' >> config.xml
+        echo '  <allow-intent href="mailto:*" />' >> config.xml
+        echo '  <platform name="android">' >> config.xml
+        echo '    <allow-intent href="market:*" />' >> config.xml
+        echo '    <preference name="android-minSdkVersion" value="21" />' >> config.xml
+        echo '    <preference name="android-targetSdkVersion" value="30" />' >> config.xml
+        echo '    <preference name="android-compileSdkVersion" value="30" />' >> config.xml
+        echo '    <preference name="Fullscreen" value="false" />' >> config.xml
+        echo '    <preference name="Orientation" value="default" />' >> config.xml
+        echo '  </platform>' >> config.xml
+        echo '  <plugin name="cordova-plugin-whitelist" version="1" />' >> config.xml
+        echo '</widget>' >> config.xml
 
         # Add Android platform
         cordova platform add android
