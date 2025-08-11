@@ -4,6 +4,7 @@ import { Volume2, VolumeX } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { LogoBubble } from "@/components/ui/logo-spinner";
 import { linkifyText } from "@/utils/linkify";
+import { safeTextRender, isTextReady } from "@/utils/text-utils";
 import type { Message } from "@/types";
 
 interface MessageBubbleProps {
@@ -33,8 +34,8 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     return (
       <div className="flex items-start space-x-3 justify-end animate-slideUp">
         <div className="bg-blue-500 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
-          <p className="text-white text-sm leading-relaxed">
-            {message.content}
+          <p className="text-white text-sm leading-relaxed" dir="ltr" style={{ unicodeBidi: 'embed' }}>
+            {isTextReady(message.content) ? safeTextRender(message.content) : "Loading..."}
           </p>
           <span className="text-xs text-blue-200 mt-1 block">
             {formatTime(message.createdAt)}
@@ -53,8 +54,8 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     <div className="flex items-start space-x-3 animate-slideUp">
       <LogoBubble size="sm" />
       <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="text-gray-900 dark:text-white text-sm leading-relaxed">
-          {linkifyText(message.content)}
+        <div className="text-gray-900 dark:text-white text-sm leading-relaxed" dir="ltr" style={{ unicodeBidi: 'embed' }}>
+          {isTextReady(message.content) ? linkifyText(safeTextRender(message.content)) : <span>Loading...</span>}
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">

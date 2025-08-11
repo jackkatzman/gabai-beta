@@ -18,6 +18,22 @@ input[type="text"], input[type="email"], input[type="password"], textarea, selec
   padding: 12px 16px !important;
 }
 
+/* Fix text rendering direction and prevent backwards display */
+* {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* Ensure proper text flow in chat messages */
+.chat-message-text {
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Override shadcn input styles for mobile */
 .smart-list-input,
 input.smart-list-input {

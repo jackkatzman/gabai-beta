@@ -50,17 +50,27 @@ const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 
 // Function to convert text with URLs to JSX with clickable links
 export function linkifyText(text: string): JSX.Element {
+  if (!text || typeof text !== 'string') {
+    return <span>{text}</span>;
+  }
+
   const parts = text.split(URL_REGEX);
   
   return (
     <>
       {parts.map((part, index) => {
+        // Skip empty parts
+        if (!part) return null;
+        
         // Check if this part is a URL
         if (URL_REGEX.test(part)) {
+          // Reset regex for next iteration
+          URL_REGEX.lastIndex = 0;
+          
           // Use the original URL for display, shortening happens server-side
           return (
             <a
-              key={index}
+              key={`link-${index}`}
               href={part}
               target="_blank"
               rel="noopener noreferrer"
@@ -79,7 +89,7 @@ export function linkifyText(text: string): JSX.Element {
         
         // Reset regex for next iteration
         URL_REGEX.lastIndex = 0;
-        return part;
+        return <span key={`text-${index}`}>{part}</span>;
       })}
     </>
   );
@@ -87,15 +97,25 @@ export function linkifyText(text: string): JSX.Element {
 
 // Alternative function for simple link detection without affiliate conversion
 export function linkifyTextSimple(text: string): JSX.Element {
+  if (!text || typeof text !== 'string') {
+    return <span>{text}</span>;
+  }
+
   const parts = text.split(URL_REGEX);
   
   return (
     <>
       {parts.map((part, index) => {
+        // Skip empty parts
+        if (!part) return null;
+        
         if (URL_REGEX.test(part)) {
+          // Reset regex for next iteration
+          URL_REGEX.lastIndex = 0;
+          
           return (
             <a
-              key={index}
+              key={`simple-link-${index}`}
               href={part}
               target="_blank"
               rel="noopener noreferrer"
@@ -108,7 +128,7 @@ export function linkifyTextSimple(text: string): JSX.Element {
         }
         
         URL_REGEX.lastIndex = 0;
-        return part;
+        return <span key={`simple-text-${index}`}>{part}</span>;
       })}
     </>
   );
