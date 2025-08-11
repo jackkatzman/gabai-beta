@@ -1,14 +1,21 @@
 # 🚀 How to Build Your GabAi Android APK
 
-## Recommended: Minimal APK Build (Works!)
+## PRIMARY: Minimal APK Build (Version-Locked)
 
 1. **Go to your repository**: https://github.com/[your-username]/gabai-beta
 2. **Click "Actions" tab** (next to "Code", "Issues", "Pull requests")
 3. **Select "📱 Minimal APK Build"** from the left sidebar
 4. **Click the blue "Run workflow" button**
-5. **Click "Run workflow"** to start building (no options needed)
-6. **Wait 2-3 minutes** for the build to complete
-7. **Download your APK** from the "Artifacts" section
+5. **Wait 2-3 minutes** for build completion
+6. **Download your APK** from "Artifacts" section
+
+## BACKUP: Cordova Simple APK (If Gradle Fails)
+
+1. **Same repository and Actions tab**
+2. **Select "📱 Cordova Simple APK"** from the left sidebar
+3. **Click "Run workflow"**
+4. **Wait 2-3 minutes** for build completion
+5. **Download APK** from "Artifacts"
 
 ## Backup: Cordova Build
 
@@ -54,11 +61,17 @@ gh run list --workflow="Cordova APK Build (No Capacitor)"
 
 ## Build Artifacts
 
-### Minimal APK Build (RECOMMENDED)
+### Minimal APK Build (PRIMARY)
 - **APK File**: `gabai-minimal.apk`
-- **Technology**: Compatible Gradle 6.9.4 + Android Plugin 4.2.2
+- **Technology**: Version-locked Gradle 6.9.4 + Android Plugin 4.2.2
 - **Build Time**: ~2 minutes
-- **Status**: Version-locked compatibility - guaranteed to work!
+- **Status**: Version-locked compatibility
+
+### Cordova Simple APK (BACKUP)
+- **APK File**: `gabai-cordova.apk`  
+- **Technology**: Cordova 10.0.0 + Android 8.1.0
+- **Build Time**: ~2 minutes
+- **Status**: Stable legacy framework - reliable fallback
 
 ### Manual Gradle Build (OLD)
 - **APK File**: `gabai-manual-debug.apk`
