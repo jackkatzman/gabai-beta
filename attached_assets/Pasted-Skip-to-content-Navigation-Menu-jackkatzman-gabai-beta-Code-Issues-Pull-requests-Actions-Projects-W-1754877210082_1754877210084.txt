@@ -1,0 +1,64 @@
+Skip to content
+Navigation Menu
+jackkatzman
+gabai-beta
+
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+📱 Minimal APK Build
+📱 Minimal APK Build #1
+Jobs
+Run details
+Annotations
+1 warning
+build
+failed 3 minutes ago in 9s
+Search logs
+2s
+0s
+3s
+Warning: Unexpected input(s) 'api-level', 'build-tools', valid inputs are ['cmdline-tools-version', 'accept-android-sdk-licenses', 'log-accepted-android-sdk-licenses', 'packages']
+Run android-actions/setup-android@v3
+Found preinstalled sdkmanager in /usr/local/lib/android/sdk/cmdline-tools/latest with following source.properties:
+Pkg.Revision=12.0
+Pkg.Path=cmdline-tools;12.0
+Pkg.Desc=Android SDK Command-line Tools
+
+Wrong version in preinstalled sdkmanager
+Downloading commandline tools from https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
+/usr/bin/unzip -o -q /home/runner/work/_temp/016cf5b3-7d90-4f5b-97ba-318410eec60f
+Accepting Android SDK licenses
+/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager --licenses
+This tool requires JDK 17 or later. Your version was detected as 11.0.28.
+To override this check, set SKIP_JDK_VERSION_CHECK.
+/home/runner/work/_actions/android-actions/setup-android/v3/dist/index.js:1823
+                error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+                        ^
+
+Error: The process '/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager' failed with exit code 1
+    at ExecState._setResult (/home/runner/work/_actions/android-actions/setup-android/v3/dist/index.js:1823:25)
+    at ExecState.CheckComplete (/home/runner/work/_actions/android-actions/setup-android/v3/dist/index.js:1806:18)
+    at ChildProcess.<anonymous> (/home/runner/work/_actions/android-actions/setup-android/v3/dist/index.js:1700:27)
+    at ChildProcess.emit (node:events:524:28)
+    at maybeClose (node:internal/child_process:1104:16)
+    at Socket.<anonymous> (node:internal/child_process:456:11)
+    at Socket.emit (node:events:524:28)
+    at Pipe.<anonymous> (node:net:343:12)
+
+Node.js v20.19.3
+0s
+0s
+0s
+0s
+0s
+0s
+0s
+0s
+0s
