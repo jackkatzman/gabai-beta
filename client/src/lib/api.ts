@@ -139,6 +139,15 @@ export const api = {
     return response.json();
   },
 
+  async generateListName(user: User): Promise<{ name: string }> {
+    const response = await apiRequest("/api/generate-list-name", "POST", { 
+      userId: user.id,
+      userPreferences: user.preferences,
+      profession: user.profession || "general"
+    });
+    return response.json();
+  },
+
   async shareList(listId: string): Promise<{ shareCode: string }> {
     const response = await apiRequest(`/api/smart-lists/${listId}/share`, "POST");
     return response.json();

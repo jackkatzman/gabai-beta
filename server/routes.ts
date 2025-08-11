@@ -6,7 +6,7 @@ import { storage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage } from "./services/openai";
+import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage, generateSmartListName } from "./services/openai";
 
 // Function to process URLs in content and add affiliate shortening
 async function processUrlsInContent(content: string): Promise<string> {
@@ -935,6 +935,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Single event export error:", error);
       res.status(500).json({ message: "Failed to export event" });
+    }
+  });
+
+  // Generate Smart List Name endpoint  
+  app.post("/api/generate-list-name", async (req, res) => {
+    try {
+      const { userId, profession } = req.body;
+      
+      // Get user data for context
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get recent user activity for context (last 5 lists)
+      const recentLists = await storage.getSmartLists(userId);
+      const recentActivity = recentLists
+        .slice(0, 5)
+        .map(list => list.name);
+
+      const result = await generateSmartListName(user, recentActivity);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error generating smart list name:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 

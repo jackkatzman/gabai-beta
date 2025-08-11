@@ -52,6 +52,7 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
   const [foundUser, setFoundUser] = useState<{id: string, email: string, firstName?: string, lastName?: string} | null>(null);
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingListName, setEditingListName] = useState("");
+  const [isGeneratingName, setIsGeneratingName] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -259,6 +260,27 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
     setEditingListName("");
   };
 
+  const generateSmartListName = async () => {
+    setIsGeneratingName(true);
+    try {
+      const response = await api.generateListName(user);
+      setNewListName(response.name);
+      toast({
+        title: "Smart Name Generated",
+        description: `Suggested: "${response.name}"`,
+      });
+    } catch (error) {
+      console.error("Failed to generate list name:", error);
+      toast({
+        title: "Name Generation Failed",
+        description: "Using default name instead",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingName(false);
+    }
+  };
+
   const handleVoiceAddItem = async (listId: string) => {
     try {
       // Force stop any existing recording with cleanup
@@ -392,14 +414,33 @@ export function ShoppingLists({ user }: ShoppingListsProps) {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="list-name">List Name</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="list-name">List Name</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={generateSmartListName}
+                      disabled={isGeneratingName}
+                      className="text-xs h-6 px-2"
+                    >
+                      {isGeneratingName ? "Generating..." : "🧠 Smart Name"}
+                    </Button>
+                  </div>
                   <Input
                     id="list-name"
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
-                    placeholder="e.g., Grocery List"
+                    placeholder="e.g., Parkview Apartments"
+                    dir="auto"
+                    style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}
                     className="mt-1"
                   />
+                  {isGeneratingName && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      GabAi is analyzing your activity to suggest a smart list name...
+                    </p>
+                  )}
                 </div>
                 <Button 
                   onClick={handleCreateList}

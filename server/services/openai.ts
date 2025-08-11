@@ -299,6 +299,56 @@ export async function extractTextFromImage(base64Image: string): Promise<string>
   }
 }
 
+export async function generateSmartListName(user: User, recentActivity?: string[]): Promise<{ name: string }> {
+  try {
+    const profession = user.profession || "general";
+    const preferences = user.preferences || {};
+    const currentDate = new Date().toLocaleDateString();
+    
+    const systemPrompt = `You are an AI assistant that generates smart, contextual names for lists based on user activity and profession.
+
+User Profile:
+- Name: ${user.name || "User"}
+- Profession: ${profession}
+- Interests: ${preferences.interests?.join(", ") || "Not specified"}
+- Current Date: ${currentDate}
+
+Recent Activity Context:
+${recentActivity?.length ? recentActivity.join(", ") : "No recent activity"}
+
+Generate a smart, specific list name that would be relevant for this user's profession and current context. 
+
+Examples:
+- For real estate: "Parkview Apartments Measurements", "Downtown Properties Showings", "Client Property Tours"
+- For contractors: "Kitchen Renovation Materials", "Bathroom Fixture Install", "Electrical Repair Supplies"
+- For general use: "Weekly Grocery Run", "Weekend Project Items", "Party Planning Checklist"
+
+Return ONLY a JSON object with a "name" field containing the suggested list name. Make it professional, specific, and contextually relevant.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { 
+          role: "user", 
+          content: `Generate a smart list name for a ${profession} professional. Consider today is ${currentDate} and they may be working on projects related to their field.`
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.8,
+      max_tokens: 100,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"name": "My List"}');
+    return {
+      name: result.name || "My List"
+    };
+  } catch (error: any) {
+    console.error("Smart list name generation error:", error);
+    return { name: "My List" };
+  }
+}
+
 export async function generateSpeech(text: string): Promise<Buffer> {
   try {
     const response = await openai.audio.speech.create({
