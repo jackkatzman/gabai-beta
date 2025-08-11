@@ -58,9 +58,10 @@ export function useAlarmSounds() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: getPersonalizedWakeUpText(options.text, options.personality),
-          voiceId: getVoiceIdForPersonality(options.personality),
-          speed: options.speed || 1.0,
-          stability: options.stability || 0.75
+          voiceId: options.voiceId || getVoiceIdForPersonality(options.personality),
+          speed: options.personality === 'drill-sergeant' ? 1.1 : (options.speed || 1.0),
+          stability: options.personality === 'drill-sergeant' ? 0.85 : (options.stability || 0.75),
+          similarityBoost: options.personality === 'drill-sergeant' ? 0.9 : 0.75
         })
       });
 

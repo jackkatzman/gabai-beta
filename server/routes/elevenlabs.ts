@@ -19,7 +19,7 @@ const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 // Generate alarm voice using ElevenLabs
 router.post('/generate-alarm', isAuthenticated, async (req, res) => {
   try {
-    const { text, voiceId, speed = 1.0, stability = 0.75 } = req.body;
+    const { text, voiceId, speed = 1.0, stability = 0.75, similarityBoost = 0.75 } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
@@ -37,8 +37,8 @@ router.post('/generate-alarm', isAuthenticated, async (req, res) => {
       model_id: 'eleven_monolingual_v1',
       voice_settings: {
         stability: Math.max(0, Math.min(1, stability)),
-        similarity_boost: 0.8,
-        style: 0.2,
+        similarity_boost: Math.max(0, Math.min(1, similarityBoost)),
+        style: voiceId === 'DGzg6RaUqxGRTHSBjfgF' ? 0.8 : 0.2, // Higher style for drill sergeant
         use_speaker_boost: true
       }
     };
@@ -98,6 +98,7 @@ router.get('/voices', isAuthenticated, async (req, res) => {
       return res.json({
         voices: [
           { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Gentle)' },
+          { voice_id: 'DGzg6RaUqxGRTHSBjfgF', name: 'Drill Sergeant (Military)' },
           { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Strong)' },
           { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi (Energetic)' },
           { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh (Casual)' },
