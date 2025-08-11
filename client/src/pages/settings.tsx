@@ -9,13 +9,85 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import type { User as UserType } from "@shared/schema";
 
 export default function SettingsPage() {
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState(user?.name || "");
   const [editEmail, setEditEmail] = useState(user?.email || "");
+  const [editAge, setEditAge] = useState(user?.age?.toString() || "");
+  const [editLocation, setEditLocation] = useState(user?.location || "");
+  const [editProfession, setEditProfession] = useState(user?.profession || "");
+  const [editInterests, setEditInterests] = useState(user?.interests?.join(", ") || "");
+  const [editDietaryRestrictions, setEditDietaryRestrictions] = useState(user?.dietary?.join(", ") || "");
+  const [editFamilyDetails, setEditFamilyDetails] = useState(user?.familyDetails || "");
+  const [editCommunicationStyle, setEditCommunicationStyle] = useState(user?.communicationStyle || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Mutation for updating user profile
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updates: any) => {
+      const response = await apiRequest(`/api/users/${user?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      });
+      setIsEditingProfile(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const updates: any = {
+        name: editName.trim() || undefined,
+        email: editEmail.trim() || undefined,
+        age: editAge ? parseInt(editAge) : undefined,
+        location: editLocation.trim() || undefined,
+        profession: editProfession.trim() || undefined,
+        interests: editInterests ? editInterests.split(',').map(i => i.trim()).filter(Boolean) : [],
+        dietary: editDietaryRestrictions ? editDietaryRestrictions.split(',').map(d => d.trim()).filter(Boolean) : [],
+        familyDetails: editFamilyDetails.trim() || undefined,
+        communicationStyle: editCommunicationStyle || undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(updates).forEach(key => {
+        if (updates[key] === undefined) {
+          delete updates[key];
+        }
+      });
+
+      await updateProfileMutation.mutateAsync(updates);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,10 +195,106 @@ export default function SettingsPage() {
                         placeholder="your.email@example.com"
                       />
                     </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="edit-age">Age</Label>
+                        <Input 
+                          id="edit-age"
+                          type="number"
+                          value={editAge}
+                          onChange={(e) => setEditAge(e.target.value)}
+                          placeholder="Your age"
+                          min="13"
+                          max="120"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-location">Location</Label>
+                        <Input 
+                          id="edit-location"
+                          value={editLocation}
+                          onChange={(e) => setEditLocation(e.target.value)}
+                          placeholder="City, Country"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-profession">Profession</Label>
+                      <Input 
+                        id="edit-profession"
+                        value={editProfession}
+                        onChange={(e) => setEditProfession(e.target.value)}
+                        placeholder="Your job title or profession"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Help GabAi create profession-specific lists and provide relevant suggestions
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-interests">Interests & Hobbies</Label>
+                      <Textarea 
+                        id="edit-interests"
+                        value={editInterests}
+                        onChange={(e) => setEditInterests(e.target.value)}
+                        placeholder="Cooking, travel, technology, sports, music, etc. (separate with commas)"
+                        rows={2}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-dietary">Dietary Restrictions</Label>
+                      <Textarea 
+                        id="edit-dietary"
+                        value={editDietaryRestrictions}
+                        onChange={(e) => setEditDietaryRestrictions(e.target.value)}
+                        placeholder="Vegetarian, gluten-free, dairy-free, etc. (separate with commas)"
+                        rows={2}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-communication">Communication Style</Label>
+                      <Select value={editCommunicationStyle} onValueChange={setEditCommunicationStyle}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your preferred style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="casual">Casual & Friendly</SelectItem>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="concise">Brief & Concise</SelectItem>
+                          <SelectItem value="detailed">Detailed & Thorough</SelectItem>
+                          <SelectItem value="encouraging">Encouraging & Supportive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-family">Family Details (Optional)</Label>
+                      <Textarea 
+                        id="edit-family"
+                        value={editFamilyDetails}
+                        onChange={(e) => setEditFamilyDetails(e.target.value)}
+                        placeholder="Family members, relationships, pets, etc."
+                        rows={2}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This helps GabAi personalize suggestions and reminders
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="flex gap-2 pt-2">
-                    <Button className="flex-1">Save Changes</Button>
+                    <Button 
+                      onClick={handleSaveProfile} 
+                      disabled={isSaving || updateProfileMutation.isPending}
+                      className="flex-1"
+                    >
+                      {isSaving || updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
                     <Button 
                       variant="outline" 
                       onClick={() => setIsEditingProfile(false)}
@@ -137,19 +305,70 @@ export default function SettingsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{user.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {user.email || "No email set"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">{user.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {user.email || "No email set"}
-                    </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {user.age && (
+                      <div>
+                        <Label className="text-xs text-gray-500">Age</Label>
+                        <p className="text-sm">{user.age}</p>
+                      </div>
+                    )}
                     {user.location && (
-                      <p className="text-sm text-gray-500">{user.location}</p>
+                      <div>
+                        <Label className="text-xs text-gray-500">Location</Label>
+                        <p className="text-sm">{user.location}</p>
+                      </div>
+                    )}
+                    {user.profession && (
+                      <div className="md:col-span-2">
+                        <Label className="text-xs text-gray-500">Profession</Label>
+                        <p className="text-sm">{user.profession}</p>
+                      </div>
+                    )}
+                    {user.interests && user.interests.length > 0 && (
+                      <div className="md:col-span-2">
+                        <Label className="text-xs text-gray-500">Interests</Label>
+                        <p className="text-sm">{user.interests.join(", ")}</p>
+                      </div>
+                    )}
+                    {user.dietary && user.dietary.length > 0 && (
+                      <div className="md:col-span-2">
+                        <Label className="text-xs text-gray-500">Dietary Restrictions</Label>
+                        <p className="text-sm">{user.dietary.join(", ")}</p>
+                      </div>
+                    )}
+                    {user.communicationStyle && (
+                      <div>
+                        <Label className="text-xs text-gray-500">Communication Style</Label>
+                        <p className="text-sm">{user.communicationStyle}</p>
+                      </div>
+                    )}
+                    {user.familyDetails && (
+                      <div className="md:col-span-2">
+                        <Label className="text-xs text-gray-500">Family Details</Label>
+                        <p className="text-sm">{user.familyDetails}</p>
+                      </div>
                     )}
                   </div>
+                  
+                  {(!user.profession && !user.interests?.length && !user.dietary?.length) && (
+                    <div className="text-center py-4 text-sm text-gray-500">
+                      <p>Click "Edit" to add your profession and interests.</p>
+                      <p>This helps GabAi provide more personalized suggestions!</p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
