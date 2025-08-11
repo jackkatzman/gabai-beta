@@ -38,7 +38,7 @@ router.post('/generate-alarm', isAuthenticated, async (req, res) => {
       voice_settings: {
         stability: Math.max(0, Math.min(1, stability)),
         similarity_boost: Math.max(0, Math.min(1, similarityBoost)),
-        style: voiceId === 'DGzg6RaUqxGRTHSBjfgF' ? 0.8 : 0.2, // Higher style for drill sergeant
+        style: voiceId === 'DGzg6RaUqxGRTHSBjfgF' ? 0.95 : 0.2, // Maximum style for authentic drill sergeant
         use_speaker_boost: true
       }
     };

@@ -562,11 +562,8 @@ export function SmartLists({ user }: SmartListsProps) {
                   <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center space-x-2 mb-2">
                       <Input
-                        value={selectedListId === list.id ? newItemName : ""}
-                        onChange={(e) => {
-                          setSelectedListId(list.id);
-                          setNewItemName(e.target.value);
-                        }}
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
                         placeholder="Add new item..."
                         className="flex-1 text-base font-normal smart-list-input !text-base !min-h-[44px] !h-[44px] !py-3 !px-4"
                         style={{ 
@@ -584,11 +581,8 @@ export function SmartLists({ user }: SmartListsProps) {
                         }}
                       />
                       <Select 
-                        value={selectedListId === list.id ? newItemCategory : ""} 
-                        onValueChange={(value) => {
-                          setSelectedListId(list.id);
-                          setNewItemCategory(value);
-                        }}
+                        value={newItemCategory} 
+                        onValueChange={setNewItemCategory}
                       >
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Category" />
@@ -612,7 +606,7 @@ export function SmartLists({ user }: SmartListsProps) {
                       <Button
                         size="sm"
                         onClick={() => handleAddItem(list.id)}
-                        disabled={selectedListId !== list.id || !newItemName.trim()}
+                        disabled={!newItemName.trim()}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -620,11 +614,8 @@ export function SmartLists({ user }: SmartListsProps) {
                     
                     {list.type === "punch_list" && (
                       <Input
-                        value={selectedListId === list.id ? newItemAssignedTo : ""}
-                        onChange={(e) => {
-                          setSelectedListId(list.id);
-                          setNewItemAssignedTo(e.target.value);
-                        }}
+                        value={newItemAssignedTo}
+                        onChange={(e) => setNewItemAssignedTo(e.target.value)}
                         placeholder="Assign to (e.g., John the Plumber)"
                         className="text-sm smart-list-input"
                         style={{ 
