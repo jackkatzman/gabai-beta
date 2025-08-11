@@ -10,21 +10,24 @@ import { generatePersonalizedResponse, transcribeAudio, extractTextFromImage, ge
 
 // Function to process URLs in content and add affiliate shortening
 async function processUrlsInContent(content: string): Promise<string> {
-  // Regex to find URLs in the content - improved to handle punctuation at end
-  const urlRegex = /(https?:\/\/[^\s\)\]\}]+)/g;
+  // Regex to find URLs in the content - improved to handle punctuation properly
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
   let processedContent = content;
   
   const matches = content.match(urlRegex);
   if (matches) {
     for (const url of matches) {
       try {
+        // Clean the URL - remove trailing punctuation that shouldn't be part of the URL
+        let cleanUrl = url.replace(/[.,;:!?)\]}]+$/, '');
+        
         // Check if it's a supported affiliate domain
-        const urlObj = new URL(url);
+        const urlObj = new URL(cleanUrl);
         const domain = urlObj.hostname.replace(/^www\./, '');
         
         if (['amazon.com', 'booking.com', 'expedia.com', 'kayak.com', 'hotels.com', 'vrbo.com'].includes(domain)) {
-          console.log(`🔗 Processing affiliate URL: ${url}`);
-          const { shortUrl } = await createShortLink(url);
+          console.log(`🔗 Processing affiliate URL: ${cleanUrl}`);
+          const { shortUrl } = await createShortLink(cleanUrl);
           processedContent = processedContent.replace(url, shortUrl);
           console.log(`✅ Replaced with: ${shortUrl}`);
         }
