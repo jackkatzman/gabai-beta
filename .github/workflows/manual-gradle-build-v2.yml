@@ -1,0 +1,178 @@
+name: 🔧 Manual Gradle APK Build
+on:
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  manual-gradle-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Build Frontend and Setup Android Project
+      run: |
+        echo "Building frontend..."
+        npm ci
+        npm run build
+        
+        echo "Creating Android project..."
+        mkdir -p /tmp/android-build/app/src/main/{java/com/gabai/app,res/{drawable,layout,values},assets/www}
+        
+        # Copy web assets
+        cp -r dist/* /tmp/android-build/app/src/main/assets/www/
+        
+        cd /tmp/android-build
+
+    - name: Generate Android Files
+      run: |
+        cd /tmp/android-build
+        
+        # Android Manifest
+        cat > app/src/main/AndroidManifest.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.gabai.app">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <application android:allowBackup="true" android:icon="@drawable/ic_launcher" android:label="GabAi" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+EOF
+        
+        # MainActivity
+        cat > app/src/main/java/com/gabai/app/MainActivity.java << 'EOF'
+package com.gabai.app;
+import android.app.Activity;
+import android.os.Bundle;
+import android.webkit.WebView;
+import android.webkit.WebSettings;
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        WebView webView = new WebView(this);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        webView.loadUrl("file:///android_asset/www/index.html");
+        setContentView(webView);
+    }
+}
+EOF
+
+        # Layout
+        mkdir -p app/src/main/res/layout
+        echo '<?xml version="1.0" encoding="utf-8"?><LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent"></LinearLayout>' > app/src/main/res/layout/activity_main.xml
+        
+        # Resources
+        echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">GabAi</string></resources>' > app/src/main/res/values/strings.xml
+        
+        # Simple icon
+        cat > app/src/main/res/drawable/ic_launcher.xml << 'EOF'
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+  <path android:fillColor="#6366F1" android:pathData="M24,4C35.05,4 44,12.95 44,24C44,35.05 35.05,44 24,44C12.95,44 4,35.05 4,24C4,12.95 12.95,4 24,4Z"/>
+  <path android:fillColor="#FFFFFF" android:pathData="M24,12C29.52,12 34,16.48 34,22C34,27.52 29.52,32 24,32C18.48,32 14,27.52 14,22C14,16.48 18.48,12 24,12Z"/>
+</vector>
+EOF
+
+    - name: Generate Gradle Files
+      run: |
+        cd /tmp/android-build
+        
+        # Root build.gradle
+        cat > build.gradle << 'EOF'
+buildscript {
+    repositories { google(); mavenCentral() }
+    dependencies { classpath 'com.android.tools.build:gradle:8.0.2' }
+}
+allprojects {
+    repositories { google(); mavenCentral() }
+}
+EOF
+        
+        # App build.gradle
+        cat > app/build.gradle << 'EOF'
+plugins { id 'com.android.application' }
+android {
+    compileSdkVersion 35
+    defaultConfig {
+        applicationId "com.gabai.app"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        debug { minifyEnabled false }
+    }
+}
+dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
+EOF
+        
+        # Gradle properties
+        echo 'org.gradle.jvmargs=-Xmx2048m' > gradle.properties
+        echo 'android.useAndroidX=true' >> gradle.properties
+        
+        # Settings
+        echo "include ':app'" > settings.gradle
+
+    - name: Build APK
+      run: |
+        cd /tmp/android-build
+        echo "Building APK..."
+        gradle assembleDebug --no-daemon
+        
+        if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+          cp app/build/outputs/apk/debug/app-debug.apk $GITHUB_WORKSPACE/gabai-manual.apk
+          echo "APK built successfully"
+        else
+          echo "APK build failed"
+          find . -name "*.apk" -type f
+        fi
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: gabai-manual-apk
+        path: gabai-manual.apk
+        retention-days: 30
+
+    - name: Summary
+      run: |
+        echo "## Manual Gradle Build Complete" >> $GITHUB_STEP_SUMMARY
+        if [ -f "$GITHUB_WORKSPACE/gabai-manual.apk" ]; then
+          echo "✅ APK: gabai-manual.apk" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Build failed" >> $GITHUB_STEP_SUMMARY
+        fi
