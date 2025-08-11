@@ -35,8 +35,8 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        api-level: 30
-        build-tools: 30.0.3
+        api-level: 35
+        build-tools: 35.0.0
         ndk-version: 21.4.7075529
 
     - name: Install frontend dependencies and build
@@ -104,8 +104,8 @@ jobs:
         echo '  <platform name="android">' >> config.xml
         echo '    <allow-intent href="market:*" />' >> config.xml
         echo '    <preference name="android-minSdkVersion" value="21" />' >> config.xml
-        echo '    <preference name="android-targetSdkVersion" value="30" />' >> config.xml
-        echo '    <preference name="android-compileSdkVersion" value="30" />' >> config.xml
+        echo '    <preference name="android-targetSdkVersion" value="33" />' >> config.xml
+        echo '    <preference name="android-compileSdkVersion" value="35" />' >> config.xml
         echo '    <preference name="Fullscreen" value="false" />' >> config.xml
         echo '    <preference name="Orientation" value="default" />' >> config.xml
         echo '  </platform>' >> config.xml
@@ -118,20 +118,34 @@ jobs:
         # Build APK with Gradle compatibility fixes
         echo "🔧 Building Android APK..."
         
-        # Fix Gradle compatibility issues
+        # Fix Gradle and SDK compatibility issues
         cd platforms/android
-        echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m" >> gradle.properties
-        echo "android.useAndroidX=true" >> gradle.properties
-        echo "android.enableJetifier=true" >> gradle.properties
         
-        # Use older, more stable Android tools
-        sed -i 's/gradle:8\.[0-9]\.[0-9]/gradle:7.4.2/g' build.gradle 2>/dev/null || true
-        sed -i 's/distributionUrl=.*gradle-8\.[0-9]\.[0-9]/distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6.4-all.zip/g' gradle/wrapper/gradle-wrapper.properties 2>/dev/null || true
+        # Update gradle.properties for better compatibility
+        cat > gradle.properties << 'EOF'
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+android.enableJetifier=true
+android.compileSdkVersion=35
+android.targetSdkVersion=33
+android.minSdkVersion=21
+EOF
+        
+        # Update build.gradle for SDK 35
+        if [ -f "app/build.gradle" ]; then
+          sed -i 's/compileSdkVersion [0-9]\+/compileSdkVersion 35/g' app/build.gradle
+          sed -i 's/targetSdkVersion [0-9]\+/targetSdkVersion 33/g' app/build.gradle
+          sed -i 's/minSdkVersion [0-9]\+/minSdkVersion 21/g' app/build.gradle
+        fi
+        
+        # Update build tools and Gradle wrapper for stability
+        sed -i 's/buildToolsVersion .*/buildToolsVersion "35.0.0"/g' app/build.gradle 2>/dev/null || true
+        sed -i 's/distributionUrl=.*gradle-.*/distributionUrl=https\\://services.gradle.org/distributions/gradle-8.0-all.zip/g' gradle/wrapper/gradle-wrapper.properties 2>/dev/null || true
         
         cd ../..
         
-        # Build with debug instead of release for better compatibility
-        cordova build android --debug --verbose
+        # Build debug APK with explicit parameters to avoid release build
+        cordova build android --debug --device --verbose
         
         # Copy APK to workspace (always debug for now to avoid Gradle issues)
         cp platforms/android/app/build/outputs/apk/debug/app-debug.apk $GITHUB_WORKSPACE/gabai-cordova-debug.apk
@@ -153,7 +167,8 @@ jobs:
         echo "**Build Type:** debug (stable)" >> $GITHUB_STEP_SUMMARY
         echo "**APK Name:** gabai-cordova-debug.apk" >> $GITHUB_STEP_SUMMARY
         echo "**Technology:** Pure Cordova (No Capacitor)" >> $GITHUB_STEP_SUMMARY
-        echo "**Target SDK:** Android 30" >> $GITHUB_STEP_SUMMARY
+        echo "**Compile SDK:** Android 35" >> $GITHUB_STEP_SUMMARY
+        echo "**Target SDK:** Android 33" >> $GITHUB_STEP_SUMMARY
         echo "**Min SDK:** Android 21" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "🎉 Your GabAi Android APK is ready for download!" >> $GITHUB_STEP_SUMMARY
