@@ -57,7 +57,7 @@ export function useAlarmSounds() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: getPersonalizedWakeUpText(options.text, options.personality),
+          text: options.text, // Use user's exact text without modification
           voiceId: options.voiceId || getVoiceIdForPersonality(options.personality),
           speed: options.personality === 'drill-sergeant' ? 1.1 : (options.speed || 1.0),
           stability: options.personality === 'drill-sergeant' ? 0.95 : (options.stability || 0.75),

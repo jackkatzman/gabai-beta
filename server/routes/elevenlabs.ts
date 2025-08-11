@@ -34,11 +34,11 @@ router.post('/generate-alarm', isAuthenticated, async (req, res) => {
 
     const requestBody = {
       text: text,
-      model_id: 'eleven_monolingual_v1',
+      model_id: 'eleven_turbo_v2_5', // Updated to latest model for better quality
       voice_settings: {
         stability: Math.max(0, Math.min(1, stability)),
         similarity_boost: Math.max(0, Math.min(1, similarityBoost)),
-        style: voiceId === 'DGzg6RaUqxGRTHSBjfgF' ? 0.95 : 0.2, // Maximum style for authentic drill sergeant
+        style: voiceId === 'DGzg6RaUqxGRTHSBjfgF' ? 1.0 : 0.0, // Maximum style for authentic drill sergeant
         use_speaker_boost: true
       }
     };
