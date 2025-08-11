@@ -51,16 +51,36 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    // Prevent context menu and system behaviors
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.userSelect = 'none';
     handleMouseDown();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    // Restore user selection
+    document.body.style.webkitUserSelect = '';
+    document.body.style.userSelect = '';
+    handleMouseUp();
+  };
+
+  const handleTouchCancel = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Restore user selection
+    document.body.style.webkitUserSelect = '';
+    document.body.style.userSelect = '';
     handleMouseUp();
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 space-y-3">
+    <div 
+      className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 space-y-3"
+      style={{ touchAction: 'manipulation' }}
+    >
       {/* Text Input Row */}
       <div className="flex items-center space-x-3">
         <div className="flex-1 relative">
@@ -95,8 +115,14 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           onMouseLeave={handleMouseUp}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           disabled={disabled || isTranscribing}
+          style={{ 
+            touchAction: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
+          }}
           className={`w-full max-w-md h-14 rounded-full transition-all duration-200 shadow-lg select-none flex items-center justify-center space-x-3 font-medium text-lg ${
             isRecording 
               ? "bg-red-500 hover:bg-red-600 animate-pulse text-white scale-95" 
