@@ -2,15 +2,18 @@
 <html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>GabAi - Voice-First AI Assistant</title>
     <meta name="description" content="Your intelligent voice-first personal assistant with smart lists, calendar integration, and multilingual support" />
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags for Full-Screen Experience -->
     <meta name="theme-color" content="#3b82f6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="GabAi" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="format-detection" content="telephone=no" />
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -36,7 +39,7 @@
     <div id="root" class="h-full"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker Registration and Mobile Fixes -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -49,6 +52,31 @@
             });
         });
       }
+
+      // Prevent horizontal scrolling and zoom
+      document.addEventListener('DOMContentLoaded', function() {
+        // Prevent horizontal scrolling
+        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.overflowX = 'hidden';
+        
+        // Prevent zooming
+        document.addEventListener('gesturestart', function (e) {
+          e.preventDefault();
+        });
+        
+        // Fix viewport on mobile
+        const viewport = document.querySelector('meta[name=viewport]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+        
+        // Force PWA mode styling
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone || 
+            document.referrer.includes('android-app://')) {
+          document.body.classList.add('pwa-mode');
+        }
+      });
     </script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
