@@ -11,10 +11,13 @@ interface VoiceInputProps {
 
 export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   const [message, setMessage] = useState("");
+  const [isHolding, setIsHolding] = useState(false);
   
-  const { isRecording, isTranscribing, toggleRecording } = useVoice({
+  const { isRecording, isTranscribing, startRecording, stopRecording } = useVoice({
     onTranscriptionComplete: (text) => {
-      setMessage(text);
+      if (text.trim()) {
+        onSendMessage(text.trim());
+      }
     }
   });
 
@@ -30,6 +33,30 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleMouseDown = () => {
+    if (!disabled && !isTranscribing) {
+      setIsHolding(true);
+      startRecording();
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isHolding && isRecording) {
+      setIsHolding(false);
+      stopRecording();
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseDown();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseUp();
   };
 
   return (
@@ -63,27 +90,32 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
       <div className="flex justify-center">
         <Button
           size="lg"
-          onClick={toggleRecording}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           disabled={disabled || isTranscribing}
-          className={`w-full max-w-md h-14 rounded-full transition-all duration-200 shadow-lg active:scale-95 flex items-center justify-center space-x-3 font-medium text-lg ${
+          className={`w-full max-w-md h-14 rounded-full transition-all duration-200 shadow-lg select-none flex items-center justify-center space-x-3 font-medium text-lg ${
             isRecording 
-              ? "bg-red-500 hover:bg-red-600 animate-pulse text-white" 
-              : "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              ? "bg-red-500 hover:bg-red-600 animate-pulse text-white scale-95" 
+              : "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white active:scale-95"
           }`}
         >
           <Mic className="h-6 w-6" />
           <span className="font-semibold">
-            {isRecording ? "Stop Recording" : isTranscribing ? "Processing..." : "Hold to Talk"}
+            {isRecording ? "Release to Send" : isTranscribing ? "Processing..." : "Hold to Talk"}
           </span>
         </Button>
       </div>
 
       {/* Recording State Indicator */}
       {isRecording && (
-        <div className="mt-3 flex items-center justify-center space-x-2 animate-fadeIn">
+        <div className="mt-2 flex items-center justify-center space-x-2 animate-fadeIn">
           <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Recording... Tap to stop
+            Recording... Release to send your message
           </span>
           <div className="flex space-x-1">
             <div className="w-1 h-4 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
@@ -95,10 +127,10 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
       {/* Transcribing State */}
       {isTranscribing && (
-        <div className="mt-3 flex items-center justify-center space-x-2 animate-fadeIn">
+        <div className="mt-2 flex items-center justify-center space-x-2 animate-fadeIn">
           <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Processing your voice...
+            Processing and sending your message...
           </span>
         </div>
       )}
