@@ -3,6 +3,8 @@
 GabAi is a voice-first personal assistant web application designed to provide AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. It features real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continually learning from preferences for increasingly personalized responses. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 ## Recent Updates (August 2025)
+- **Voice & List Issues Fixed** (Aug 11): COMPLETELY RESOLVED! Fixed drill sergeant voice with maximum authenticity settings (stability 0.95, similarity boost 1.0, style 0.95) for proper masculine military sound. Resolved list input bug by removing selectedListId dependency - manual input now works immediately. APK version tested and working perfectly.
+- **Hold-to-Talk Voice Interface** (Aug 11): FULLY IMPLEMENTED! Press-and-hold voice button with auto-send functionality. Enhanced mobile touch handling to prevent system interference. Records while pressed, automatically transcribes and sends when released. Perfect for voice-first interactions on mobile.
 - **Enhanced Voice Interface** (Aug 11): REDESIGNED! Replaced small microphone button with large, prominent "Hold to Talk" button below text input. Added proper microphone icon display, better text direction support for multilingual input, and clearer voice recording states. Voice interface now more accessible and prominent for voice-first interactions.
 - **Smart AI List Naming** (Aug 11): NEW FEATURE! Added intelligent list naming using OpenAI - click "🧠 Smart Name" when creating lists and GabAi suggests contextual names based on user profession and activity. Perfect for real estate pros ("Parkview Apartments"), contractors, and any profession-specific work.
 - **Domain Connection Success** (Aug 11): COMPLETED! gabai.ai is now live and working perfectly with all mobile PWA fixes and Hebrew text support active. Updated routing to go directly to login instead of landing page for better user experience.
@@ -24,8 +26,8 @@ GabAi is a voice-first personal assistant web application designed to provide AI
 - **React Query Integration**: Fixed query key formatting and URL construction for proper data fetching across all components
 - **Authentication Flow**: Stabilized OAuth session management with consistent cookie handling and user state synchronization
 - **Smart Lists & Calendar**: Both sections now fully functional with real-time data display (shopping lists, to-do items, calendar reminders)
-- **OAuth Domain Issue**: Fixed login redirect pointing to wrong domain - now uses dynamic REPLIT_DOMAINS
-- **Google Console Setup**: Development URL must be added to OAuth callback: `https://399006af-98ce-4004-809a-fd955a60de01-00-11d3bac8de4bw.worf.replit.dev/api/auth/google/callback`
+- **OAuth Domain Issue**: Fixed login redirect with dynamic callback URLs - works on both gabai.ai and development domains
+- **Google Console Setup**: Web login requires adding development callback to OAuth settings: `https://4e408980-d84b-4e08-8287-81c1cb50a366-00-2bj1dl6v36y0x.riker.replit.dev/api/auth/google/callback`
 - **Calendar Timezone Fix**: Resolved calendar import time shifting issues by implementing floating time events and user timezone preferences
 - **Timezone Detection**: Auto-detect user timezone from browser with manual selection during onboarding
 - **URL Shortening Service**: Implemented clean "gabai.ai/l/xxxxxxxx" format to replace messy 12-line affiliate URLs
