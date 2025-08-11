@@ -77,18 +77,18 @@ export function LandingPage() {
                 <Brain className="h-12 w-12 text-white" />
               </div>
               <div className="ml-4">
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-yellow-600 bg-clip-text text-transparent">
-                  🔥 DEPLOYMENT TEST - GabAi 🔥
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  GabAi
                 </h1>
-                <p className="text-lg text-red-600 dark:text-red-400 font-bold">🚨 TESTING DEPLOYMENT CONNECTION - August 11th 🚨</p>
+                <p className="text-lg text-gray-600 dark:text-gray-300">Your Voice-First AI Assistant</p>
               </div>
             </div>
 
-            {/* DEPLOYMENT TEST MESSAGE */}
-            <div className="bg-red-500 text-white p-8 rounded-lg mb-8 shadow-lg">
-              <h2 className="text-3xl font-bold mb-4">🔥 DEPLOYMENT TEST ACTIVE 🔥</h2>
-              <p className="text-xl">If you can see this red banner on gabai.ai, the deployment is working!</p>
-              <p className="text-lg mt-2">Built: August 11th, 2025 - 11:30 AM EST</p>
+            {/* DOMAIN CONNECTION NOTICE */}
+            <div className="bg-green-500 text-white p-8 rounded-lg mb-8 shadow-lg">
+              <h2 className="text-3xl font-bold mb-4">✅ DEPLOYMENT CONFIRMED WORKING!</h2>
+              <p className="text-xl">Deployment is live at: gabai-beta-jack741.replit.app</p>
+              <p className="text-lg mt-2">Next step: Connect gabai.ai domain to this deployment</p>
             </div>
 
             {/* Main Headline */}
