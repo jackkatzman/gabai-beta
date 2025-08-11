@@ -33,7 +33,8 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+    <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 space-y-3">
+      {/* Text Input Row */}
       <div className="flex items-center space-x-3">
         <div className="flex-1 relative">
           <Input
@@ -42,6 +43,8 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             disabled={disabled}
+            dir="auto"
+            style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}
             className="pr-12"
           />
           <Button
@@ -54,18 +57,24 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             <Send className="h-5 w-5" />
           </Button>
         </div>
+      </div>
 
+      {/* Large Talk Button */}
+      <div className="flex justify-center">
         <Button
           size="lg"
           onClick={toggleRecording}
           disabled={disabled || isTranscribing}
-          className={`w-14 h-14 rounded-full transition-all duration-200 shadow-lg active:scale-95 ${
+          className={`w-full max-w-md h-14 rounded-full transition-all duration-200 shadow-lg active:scale-95 flex items-center justify-center space-x-3 font-medium text-lg ${
             isRecording 
-              ? "bg-red-500 hover:bg-red-600 animate-pulse" 
-              : "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              ? "bg-red-500 hover:bg-red-600 animate-pulse text-white" 
+              : "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
           }`}
         >
-          <Mic className="h-6 w-6 text-white" />
+          <Mic className="h-6 w-6" />
+          <span className="font-semibold">
+            {isRecording ? "Stop Recording" : isTranscribing ? "Processing..." : "Hold to Talk"}
+          </span>
         </Button>
       </div>
 
