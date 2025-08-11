@@ -34,18 +34,33 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        
+    - name: Install Global Dependencies
+      run: |
+        npm install -g vite esbuild
 
     - name: Build Frontend and Setup Android Project
       run: |
+        echo "Installing dependencies..."
+        npm ci --legacy-peer-deps
+        
         echo "Building frontend..."
-        npm ci
         npm run build
         
         echo "Creating Android project..."
         mkdir -p /tmp/android-build/app/src/main/{java/com/gabai/app,res/{drawable,layout,values},assets/www}
         
-        # Copy web assets
-        cp -r dist/* /tmp/android-build/app/src/main/assets/www/
+        # Copy web assets - check if dist exists
+        if [ -d "dist" ]; then
+          cp -r dist/* /tmp/android-build/app/src/main/assets/www/
+          echo "Copied dist folder to Android assets"
+        elif [ -d "client/dist" ]; then
+          cp -r client/dist/* /tmp/android-build/app/src/main/assets/www/
+          echo "Copied client/dist folder to Android assets"
+        else
+          echo "Creating fallback HTML..."
+          echo '<html><head><title>GabAi</title></head><body><h1>GabAi Loading...</h1><script>window.location.href="https://gabai.ai"</script></body></html>' > /tmp/android-build/app/src/main/assets/www/index.html
+        fi
         
         cd /tmp/android-build
 
@@ -150,15 +165,31 @@ EOF
     - name: Build APK
       run: |
         cd /tmp/android-build
-        echo "Building APK..."
-        gradle assembleDebug --no-daemon
+        echo "Building APK with Gradle..."
         
+        # Try system gradle first
+        if command -v gradle &> /dev/null; then
+          gradle assembleDebug --no-daemon --stacktrace
+        else
+          echo "System gradle not found, using gradlew..."
+          # Create gradlew if needed
+          if [ ! -f "gradlew" ]; then
+            echo "Creating gradle wrapper..."
+            gradle wrapper --gradle-version 8.0
+          fi
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+        fi
+        
+        # Find and copy APK
         if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
           cp app/build/outputs/apk/debug/app-debug.apk $GITHUB_WORKSPACE/gabai-manual.apk
           echo "APK built successfully"
+          ls -la $GITHUB_WORKSPACE/gabai-manual.apk
         else
-          echo "APK build failed"
-          find . -name "*.apk" -type f
+          echo "APK build failed, searching for any APK files..."
+          find . -name "*.apk" -type f -exec ls -la {} \;
+          exit 1
         fi
 
     - name: Upload APK
