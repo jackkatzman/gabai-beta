@@ -1,14 +1,22 @@
 # 🚀 How to Build Your GabAi Android APK
 
-## Quick Start (GitHub Web Interface)
+## Recommended: Manual Gradle Build (Latest)
 
 1. **Go to your repository**: https://github.com/[your-username]/gabai-beta
 2. **Click "Actions" tab** (next to "Code", "Issues", "Pull requests")
+3. **Select "Manual Gradle APK Build"** from the left sidebar
+4. **Click the blue "Run workflow" button**
+5. **Click "Run workflow"** to start building (no options needed)
+6. **Wait 3-5 minutes** for the build to complete
+7. **Download your APK** from the "Artifacts" section
+
+## Backup: Cordova Build
+
+1. **Go to your repository**: https://github.com/[your-username]/gabai-beta
+2. **Click "Actions" tab** 
 3. **Select "Cordova APK Build (No Capacitor)"** from the left sidebar
 4. **Click the blue "Run workflow" button**
-5. **Choose build type**:
-   - `debug` - For testing (recommended first run)
-   - `release` - For final distribution
+5. **Choose build type**: debug (recommended)
 6. **Click "Run workflow"** to start building
 7. **Wait 5-10 minutes** for the build to complete
 8. **Download your APK** from the "Artifacts" section
@@ -31,18 +39,32 @@ gh workflow run "Cordova APK Build (No Capacitor)" -f build_type=release
 gh run list --workflow="Cordova APK Build (No Capacitor)"
 ```
 
-## What This Build Does
+## What These Builds Do
 
-✅ **Pure Cordova Build** - Bypasses all Capacitor Java 21 conflicts
-✅ **Uses Your Web App** - Packages your actual GabAi application  
-✅ **Clean Environment** - Builds in isolated directory with no dependency conflicts
-✅ **Conservative Android Targets** - SDK 30, minimum SDK 21 for broad compatibility
-✅ **Professional Branding** - Proper app name, icon, and metadata
+### Manual Gradle Build (Recommended)
+✅ **Pure Android Studio Build** - Bypasses ALL framework conflicts (Cordova + Capacitor)
+✅ **Latest Android SDK** - Uses SDK 35 for maximum compatibility
+✅ **Fastest Build Time** - 2-3 minutes typical completion
+✅ **Direct WebView** - Clean implementation without framework overhead
+
+### Cordova Build (Backup)
+✅ **Pure Cordova Build** - Bypasses Capacitor Java 21 conflicts
+✅ **Framework Approach** - Traditional mobile app packaging
+✅ **Stable Fallback** - If manual build has issues
 
 ## Build Artifacts
 
-After successful build, you'll get:
-- **APK File**: `gabai-cordova-apk-[debug/release].apk`
+### Manual Gradle Build
+- **APK File**: `gabai-manual-debug.apk`
+- **Technology**: Pure Android Studio + WebView
+- **Build Time**: ~3 minutes
+
+### Cordova Build  
+- **APK File**: `gabai-cordova-debug.apk`
+- **Technology**: Cordova framework
+- **Build Time**: ~5 minutes
+
+Both provide:
 - **Build Logs**: Detailed execution information
 - **30-day retention**: Artifacts stored for a month
 
