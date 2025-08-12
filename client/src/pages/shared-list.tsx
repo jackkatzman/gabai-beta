@@ -136,6 +136,14 @@ export function SharedListPage() {
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Add item to shared list..."
+              className="smart-list-input"
+              style={{ 
+                fontSize: '16px',
+                minHeight: '44px',
+                direction: 'ltr',
+                unicodeBidi: 'normal',
+                textAlign: 'left'
+              }}
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
                   handleAddItem();
@@ -172,7 +180,7 @@ export function SharedListPage() {
                     onCheckedChange={() => handleToggleItem(item)}
                   />
                   <span
-                    className={`flex-1 ${
+                    className={`flex-1 shared-list-item ${
                       item.completed
                         ? "line-through text-gray-500 dark:text-gray-400"
                         : "text-gray-900 dark:text-white"
