@@ -70,6 +70,12 @@ export function ContactsPage() {
           <User className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <p>Loading your contacts...</p>
         </div>
+        
+        {/* Bottom Navigation */}
+        <div className="h-20" />
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <BottomNav />
+        </div>
       </div>
     );
   }
@@ -107,6 +113,12 @@ export function ContactsPage() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Bottom Navigation */}
+        <div className="h-20" />
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <BottomNav />
+        </div>
       </div>
     );
   }

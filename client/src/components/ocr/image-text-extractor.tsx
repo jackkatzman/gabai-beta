@@ -166,8 +166,47 @@ export function ImageTextExtractor() {
     }
     
     try {
-      const messageText = `Please process this text I extracted from an image:\n\n${extractedText}`;
-      sendMessageMutation.mutate(messageText);
+      // Check if this might be a business card by looking for contact information
+      const hasContactInfo = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/) || // email
+                            extractedText.match(/(\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/) || // phone
+                            extractedText.toLowerCase().includes('ceo') ||
+                            extractedText.toLowerCase().includes('manager') ||
+                            extractedText.toLowerCase().includes('director');
+      
+      if (hasContactInfo && selectedFile) {
+        // Process as business card
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        formData.append('userId', user.id);
+        
+        const response = await fetch('/api/ocr/business-card', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          toast({
+            title: "Contact created!",
+            description: `${result.contact.firstName || 'New contact'} has been added to your contacts with a follow-up reminder.`,
+          });
+          
+          // Also send to chat for AI interaction
+          const messageText = `I just scanned a business card and created a contact for ${result.contact.firstName || 'someone'}. Here's the info: ${extractedText}`;
+          sendMessageMutation.mutate(messageText);
+          
+          // Invalidate contacts cache to refresh the contacts page
+          queryClient.invalidateQueries({ queryKey: ["/api/contacts", user.id] });
+        } else {
+          // Fallback to regular chat if business card processing fails
+          const messageText = `Please process this text I extracted from an image:\n\n${extractedText}`;
+          sendMessageMutation.mutate(messageText);
+        }
+      } else {
+        // Use the extracted text to interact with the AI normally
+        const messageText = `Please process this text I extracted from an image:\n\n${extractedText}`;
+        sendMessageMutation.mutate(messageText);
+      }
       
       toast({
         title: "Sent to GabAi",
