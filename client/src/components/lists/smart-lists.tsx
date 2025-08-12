@@ -41,7 +41,8 @@ import {
   Circle,
   DollarSign,
   Calculator,
-  Edit3
+  Edit3,
+  Hash
 } from "lucide-react";
 import {
   DndContext,
@@ -349,6 +350,8 @@ export function SmartLists({ user }: SmartListsProps) {
   const [newItemPriority, setNewItemPriority] = useState(1);
   const [newItemAssignedTo, setNewItemAssignedTo] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
+  const [newItemQuantity, setNewItemQuantity] = useState("1");
+  const [newItemUnit, setNewItemUnit] = useState("");
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareCode, setShareCode] = useState("");
@@ -417,13 +420,15 @@ export function SmartLists({ user }: SmartListsProps) {
 
   // Create item mutation
   const createItemMutation = useMutation({
-    mutationFn: ({ listId, name, category, assignedTo, amount, currency }: {
+    mutationFn: ({ listId, name, category, assignedTo, amount, currency, quantity, unit }: {
       listId: string;
       name: string;
       category: string;
       assignedTo?: string;
       amount?: number | null;
       currency?: string;
+      quantity?: number;
+      unit?: string;
     }) => {
       return api.createListItem({
         listId,
@@ -434,6 +439,8 @@ export function SmartLists({ user }: SmartListsProps) {
         addedBy: user.name || user.id,
         amount,
         currency,
+        quantity,
+        unit,
       });
     },
     onSuccess: () => {
@@ -442,6 +449,8 @@ export function SmartLists({ user }: SmartListsProps) {
       setNewItemCategory("");
       setNewItemAssignedTo("");
       setNewItemAmount("");
+      setNewItemQuantity("1");
+      setNewItemUnit("");
       setSelectedListId(null);
       toast({
         title: "Item added!",
@@ -742,7 +751,9 @@ export function SmartLists({ user }: SmartListsProps) {
       category,
       assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined,
       amount: amount,
-      currency: amount ? "USD" : undefined
+      currency: amount ? "USD" : undefined,
+      quantity: selectedList.type === "shopping" && newItemQuantity ? parseInt(newItemQuantity) : undefined,
+      unit: selectedList.type === "shopping" && newItemUnit ? newItemUnit : undefined,
     });
   };
 
@@ -1229,6 +1240,43 @@ export function SmartLists({ user }: SmartListsProps) {
                           }}
                           placeholder="Amount (e.g., 150.00)"
                           className="text-sm smart-list-input"
+                          style={{ 
+                            fontSize: '16px', 
+                            minHeight: '44px', 
+                            height: '44px',
+                            direction: 'ltr',
+                            unicodeBidi: 'normal',
+                            textAlign: 'left'
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Quantity and Unit Input for Shopping Lists */}
+                    {list.type === "shopping" && (
+                      <div className="flex items-center space-x-2">
+                        <Hash className="h-4 w-4 text-gray-500" />
+                        <Input
+                          value={newItemQuantity}
+                          onChange={(e) => setNewItemQuantity(e.target.value)}
+                          placeholder="Qty (e.g., 2)"
+                          className="text-sm smart-list-input w-20"
+                          type="number"
+                          min="1"
+                          style={{ 
+                            fontSize: '16px', 
+                            minHeight: '44px', 
+                            height: '44px',
+                            direction: 'ltr',
+                            unicodeBidi: 'normal',
+                            textAlign: 'left'
+                          }}
+                        />
+                        <Input
+                          value={newItemUnit}
+                          onChange={(e) => setNewItemUnit(e.target.value)}
+                          placeholder="Unit (e.g., lbs, pieces)"
+                          className="text-sm smart-list-input flex-1"
                           style={{ 
                             fontSize: '16px', 
                             minHeight: '44px', 

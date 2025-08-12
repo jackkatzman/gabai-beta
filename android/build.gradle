@@ -22,54 +22,6 @@ allprojects {
         google()
         mavenCentral()
     }
-    
-    // Force Java 17 for ALL modules including Capacitor
-    afterEvaluate { project ->
-        if (project.hasProperty("android")) {
-            android {
-                compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_17
-                    targetCompatibility JavaVersion.VERSION_17
-                }
-            }
-        }
-    }
-    
-    // Global Java 17 enforcement for all subprojects
-    subprojects {
-        afterEvaluate {
-            if (it.hasProperty('android')) {
-                it.android {
-                    compileOptions {
-                        sourceCompatibility JavaVersion.VERSION_17
-                        targetCompatibility JavaVersion.VERSION_17
-                    }
-                }
-            }
-            
-            // Force Kotlin to target JVM 17 to match Java
-            if (it.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
-                it.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                    kotlinOptions {
-                        jvmTarget = "17"
-                    }
-                }
-            }
-        }
-        
-        // Java 17 toolchain for all modules
-        tasks.withType(JavaCompile).configureEach {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
-        
-        // Kotlin JVM target alignment
-        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-    }
 }
 
 task clean(type: Delete) {

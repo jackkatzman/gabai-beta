@@ -74,6 +74,8 @@ export const listItems = pgTable("list_items", {
   position: integer("position").default(0), // for custom ordering
   amount: integer("amount"), // amount in cents (e.g., $12.50 = 1250 cents)
   currency: varchar("currency").default("USD"), // currency code
+  quantity: integer("quantity").default(1), // For shopping lists - how many items
+  unit: varchar("unit"), // For shopping lists - unit of measure (lbs, oz, pieces, etc.)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
