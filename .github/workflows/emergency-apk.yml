@@ -1,0 +1,100 @@
+name: 🚨 Emergency APK Build
+on:
+  workflow_dispatch:
+
+jobs:
+  emergency-build:
+    name: Emergency APK Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build web application
+      run: npm run build
+
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+
+    - name: Capacitor sync
+      run: npx cap sync android
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 33
+        build-tools: 33.0.2
+
+    - name: Accept SDK licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Grant execute permission
+      run: chmod +x android/gradlew
+
+    - name: Clean and build with minimal flags
+      run: |
+        cd android
+        ./gradlew clean --quiet
+        ./gradlew assembleDebug --quiet --no-daemon
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+        GRADLE_OPTS: "-Xmx3g"
+
+    - name: Verify APK exists
+      run: |
+        find android -name "*.apk" -type f
+        ls -la android/app/build/outputs/apk/debug/
+
+    - name: Upload Emergency APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: gabai-emergency-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
+
+    - name: Create Emergency Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: emergency-${{ github.run_number }}
+        name: "GabAi Emergency Build ${{ github.run_number }}"
+        body: |
+          ## 🚨 Emergency APK Build
+          
+          This is an emergency build created to get a working APK while resolving build issues.
+          
+          ### Features
+          - Voice-first AI assistant
+          - Smart lists with quantity tracking
+          - Payment calculation with currency support
+          - Drag & drop reordering
+          - AI duplicate prevention
+          - Smart list relabeling
+          - Native Android experience
+          
+          ### Installation
+          1. Download APK below
+          2. Enable "Install from Unknown Sources"
+          3. Install and test
+          
+          Build: ${{ github.sha }}
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
