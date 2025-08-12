@@ -140,12 +140,24 @@ const listTypeTemplates = {
 };
 
 const categoryIcons = {
+  // Shopping categories
   produce: Apple,
   dairy: Milk,
+  meat: Wheat,
+  pantry: Wheat,
+  bakery: Wheat,
+  frozen: Apple,
+  beverages: Milk,
+  household: Apple,
+  snacks: Apple,
   grains: Wheat,
+  // Work categories
   plumber: Wrench,
   painter: Paintbrush,
   electrician: Hammer,
+  plumbing: Wrench,
+  electrical: Hammer,
+  painting: Paintbrush
 };
 
 const getCategoryIcon = (category: string) => {
@@ -712,9 +724,13 @@ export function SmartLists({ user }: SmartListsProps) {
     if (selectedList.type === "shopping") {
       const foodCategories = {
         "Produce": ["apple", "banana", "orange", "lettuce", "tomato", "potato", "onion", "carrot", "spinach", "broccoli", "cucumber", "bell pepper", "mushroom", "avocado", "strawberry", "grape", "lemon", "lime", "garlic", "ginger"],
-        "Dairy": ["milk", "cheese", "yogurt", "butter", "cream", "egg", "sour cream", "cottage cheese"],
-        "Meat": ["chicken", "beef", "pork", "turkey", "fish", "salmon", "ground beef", "bacon", "sausage", "pastrami"],
-        "Pantry": ["bread", "pasta", "rice", "flour", "sugar", "oil", "salt", "pepper", "sauce", "cereal"],
+        "Dairy": ["milk", "cheese", "yogurt", "butter", "cream", "egg", "eggs", "sour cream", "cottage cheese"],
+        "Meat": ["chicken", "beef", "pork", "turkey", "fish", "salmon", "ground beef", "bacon", "sausage", "pastrami", "meat"],
+        "Pantry": ["bread", "pasta", "rice", "flour", "sugar", "oil", "salt", "pepper", "sauce", "cereal", "can", "jar", "box"],
+        "Bakery": ["bread", "bagel", "muffin", "croissant", "cake", "pastry", "donut", "roll"],
+        "Frozen": ["frozen", "ice cream", "pizza", "vegetables", "fruit", "ice"],
+        "Beverages": ["water", "juice", "soda", "coffee", "tea", "beer", "wine", "milk", "drink"],
+        "Household": ["soap", "detergent", "paper", "towel", "toilet paper", "cleaner", "shampoo", "toothpaste"],
         "Snacks": ["chocolate", "twizzlers", "chips", "crackers", "nuts", "candy", "cookies"]
       };
       

@@ -70,11 +70,15 @@ function isPaymentItem(itemName: string): boolean {
 
 function isShoppingItem(itemName: string): boolean {
   const shoppingKeywords = [
+    // Food items
     'milk', 'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'grocery', 'food', 'snack', 'drink', 
     'pastrami', 'deli', 'produce', 'chocolate', 'candy', 'sugar', 'flour', 'eggs', 'butter',
     'coffee', 'tea', 'juice', 'soda', 'water', 'beer', 'wine', 'alcohol', 'cereal', 'pasta',
     'rice', 'beans', 'nuts', 'oil', 'spice', 'sauce', 'condiment', 'frozen', 'canned', 'fresh',
-    'organic', 'buy', 'purchase', 'get', 'need', 'want', 'shop', 'store'
+    'organic', 'apple', 'banana', 'orange', 'chicken', 'beef', 'fish', 'yogurt',
+    // Shopping actions
+    'buy', 'purchase', 'get', 'need', 'want', 'shop', 'store', 'shopping', 'groceries', 'grocery',
+    'pick up', 'grab', 'supermarket', 'market'
   ];
   return shoppingKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
 }
@@ -298,6 +302,16 @@ function getListConfig(type: string) {
       name: "Gift Ideas",
       type: "gifts" as const,
       categories: ["Birthday", "Holiday", "Anniversary", "Wedding", "Baby Shower", "Graduation"]
+    },
+    payments: {
+      name: "Payment Schedule",
+      type: "payments" as const,
+      categories: ["Bills", "Invoices", "Contractors", "Services", "Recurring"]
+    },
+    budget: {
+      name: "Budget Tracker",
+      type: "budget" as const,
+      categories: ["Housing", "Transportation", "Food", "Utilities", "Entertainment", "Healthcare"]
     }
   };
   
@@ -647,6 +661,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    list.name.toLowerCase().includes("grocery") || 
                    list.name.toLowerCase().includes("food"))
                 ) || lists.find(list => list.type === "shopping");
+              } else if (requestedType === "payments") {
+                targetList = lists.find(list => 
+                  list.type === "payments" || list.type === "budget"
+                );
               } else {
                 targetList = lists.find(list => list.type === requestedType);
               }
@@ -687,8 +705,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else if (isWaitingListItem(itemName)) {
                   targetList = lists.find(list => list.type === "waiting_list");
                 } else {
-                  // Default to todo for general tasks, or shopping if it seems like a shopping item
-                  if (itemName.includes('buy') || itemName.includes('get') || itemName.includes('purchase')) {
+                  // Default to shopping for general shopping mentions, otherwise todo
+                  if (itemName.includes('buy') || itemName.includes('get') || itemName.includes('purchase') || 
+                      itemName.includes('shop') || itemName.includes('grocery') || itemName.includes('store') ||
+                      itemName.includes('need') || itemName.includes('pick up')) {
                     targetList = lists.find(list => list.type === "shopping");
                   } else {
                     targetList = lists.find(list => list.type === "todo");
