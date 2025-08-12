@@ -72,6 +72,8 @@ export const listItems = pgTable("list_items", {
   addedBy: text("added_by"), // user who added this item
   dueDate: timestamp("due_date"),
   position: integer("position").default(0), // for custom ordering
+  amount: integer("amount"), // amount in cents (e.g., $12.50 = 1250 cents)
+  currency: varchar("currency").default("USD"), // currency code
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

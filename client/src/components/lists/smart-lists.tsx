@@ -38,7 +38,9 @@ import {
   MessageSquare,
   Mail,
   X,
-  Circle
+  Circle,
+  DollarSign,
+  Calculator
 } from "lucide-react";
 import {
   DndContext,
@@ -64,6 +66,7 @@ import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { User, SmartList, ListItem } from "@shared/schema";
+import { formatCurrency, parseCurrency, formatCurrencyInput, calculateTotal, isValidCurrency } from "@/utils/currency";
 
 interface SmartListsProps {
   user: User;
@@ -117,6 +120,20 @@ const listTypeTemplates = {
     categories: ["Birthday", "Holiday", "Anniversary", "Wedding", "Baby Shower", "Graduation"],
     icon: Gift,
     color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200"
+  },
+  payments: {
+    name: "Payment Schedule",
+    categories: ["Bills", "Contractors", "Vendors", "Employees", "Suppliers", "Services"],
+    icon: DollarSign,
+    color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+    supportsCurrency: true
+  },
+  budget: {
+    name: "Budget Tracker",
+    categories: ["Income", "Expenses", "Savings", "Investments", "Emergency Fund", "Goals"],
+    icon: Calculator,
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    supportsCurrency: true
   }
 };
 
@@ -154,9 +171,10 @@ interface SortableItemProps {
   item: ListItem;
   onToggle: () => void;
   onDelete: () => void;
+  showCurrency?: boolean;
 }
 
-function SortableItem({ item, onToggle, onDelete }: SortableItemProps) {
+function SortableItem({ item, onToggle, onDelete, showCurrency = false }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -209,9 +227,16 @@ function SortableItem({ item, onToggle, onDelete }: SortableItemProps) {
       />
       
       <div className="flex-1">
-        <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
-          {item.name}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
+            {item.name}
+          </p>
+          {showCurrency && item.amount && (
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              {formatCurrency(item.amount, item.currency)}
+            </span>
+          )}
+        </div>
         {item.assignedTo && (
           <p className="text-xs text-gray-500">
             Assigned to: {item.assignedTo}
@@ -250,6 +275,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemPriority, setNewItemPriority] = useState(1);
   const [newItemAssignedTo, setNewItemAssignedTo] = useState("");
+  const [newItemAmount, setNewItemAmount] = useState("");
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareCode, setShareCode] = useState("");
@@ -314,11 +340,13 @@ export function SmartLists({ user }: SmartListsProps) {
 
   // Create item mutation
   const createItemMutation = useMutation({
-    mutationFn: ({ listId, name, category, assignedTo }: {
+    mutationFn: ({ listId, name, category, assignedTo, amount, currency }: {
       listId: string;
       name: string;
       category: string;
       assignedTo?: string;
+      amount?: number | null;
+      currency?: string;
     }) => {
       return api.createListItem({
         listId,
@@ -327,6 +355,8 @@ export function SmartLists({ user }: SmartListsProps) {
         priority: 1,
         assignedTo: assignedTo || undefined,
         addedBy: user.name || user.id,
+        amount,
+        currency,
       });
     },
     onSuccess: () => {
@@ -334,6 +364,7 @@ export function SmartLists({ user }: SmartListsProps) {
       setNewItemName("");
       setNewItemCategory("");
       setNewItemAssignedTo("");
+      setNewItemAmount("");
       setSelectedListId(null);
       toast({
         title: "Item added!",
@@ -508,11 +539,16 @@ export function SmartLists({ user }: SmartListsProps) {
 
     setSelectedListId(listId);
     
+    const template = listTypeTemplates[selectedList.type as keyof typeof listTypeTemplates];
+    const amount = template?.supportsCurrency ? parseCurrency(newItemAmount) : null;
+    
     createItemMutation.mutate({
       listId,
       name: newItemName,
       category,
-      assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined
+      assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined,
+      amount: amount,
+      currency: amount ? "USD" : undefined
     });
   };
 
@@ -811,6 +847,11 @@ export function SmartLists({ user }: SmartListsProps) {
                       <Badge variant="outline" className="text-xs">
                         {list.items.length} items
                       </Badge>
+                      {template?.supportsCurrency && (
+                        <Badge variant="outline" className="text-xs text-emerald-600 dark:text-emerald-400">
+                          Total: {formatCurrency(calculateTotal(list.items.map(item => item.amount)))}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -889,6 +930,37 @@ export function SmartLists({ user }: SmartListsProps) {
                         }}
                       />
                     )}
+                    
+                    {/* Currency Input for Payment/Budget Lists */}
+                    {template?.supportsCurrency && (
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4 text-gray-500" />
+                        <Input
+                          value={newItemAmount}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (isValidCurrency(value) || value === '') {
+                              setNewItemAmount(value);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (newItemAmount && isValidCurrency(newItemAmount)) {
+                              setNewItemAmount(formatCurrencyInput(newItemAmount));
+                            }
+                          }}
+                          placeholder="Amount (e.g., 150.00)"
+                          className="text-sm smart-list-input"
+                          style={{ 
+                            fontSize: '16px', 
+                            minHeight: '44px', 
+                            height: '44px',
+                            direction: 'ltr',
+                            unicodeBidi: 'normal',
+                            textAlign: 'left'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Items by Category with Drag and Drop */}
@@ -913,11 +985,18 @@ export function SmartLists({ user }: SmartListsProps) {
                           
                           return (
                             <div key={category}>
-                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                <span className="mr-2">{category}</span>
-                                <Badge variant="secondary" className="text-xs">
-                                  {items.filter(item => !item.completed).length}
-                                </Badge>
+                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <span className="mr-2">{category}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {items.filter(item => !item.completed).length}
+                                  </Badge>
+                                </div>
+                                {template?.supportsCurrency && (
+                                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                    Total: {formatCurrency(calculateTotal(items.map(item => item.amount)))}
+                                  </span>
+                                )}
                               </h4>
                               
                               <SortableContext 
@@ -931,6 +1010,7 @@ export function SmartLists({ user }: SmartListsProps) {
                                       item={item}
                                       onToggle={() => toggleItemMutation.mutate(item.id)}
                                       onDelete={() => deleteItemMutation.mutate(item.id)}
+                                      showCurrency={template?.supportsCurrency}
                                     />
                                   ))}
                                 </div>
