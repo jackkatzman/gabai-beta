@@ -305,9 +305,17 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
                 const Icon = getCategoryIcon(item.category);
                 return <Icon className={`h-4 w-4 ${getCategoryColor(item.category)}`} />;
               })()}
-              <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
-                {item.name}
-              </p>
+              <div className="flex items-center space-x-2">
+                <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
+                  {item.name}
+                </p>
+                {/* Display quantity and unit for shopping items */}
+                {(item.quantity || item.unit) && (
+                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                    {item.quantity || 1}{item.unit ? ` ${item.unit}` : ''}
+                  </Badge>
+                )}
+              </div>
             </div>
             {showCurrency && item.amount && (
               <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
