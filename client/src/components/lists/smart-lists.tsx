@@ -380,6 +380,35 @@ export function SmartLists({ user }: SmartListsProps) {
   const [newItemQuantity, setNewItemQuantity] = useState("1");
   const [newItemUnit, setNewItemUnit] = useState("");
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
+
+// Simple fallback categorization for when AI is unavailable
+const getSimpleCategory = (itemName: string): string => {
+  if (itemName.includes('apple') || itemName.includes('banana') || itemName.includes('orange') || 
+      itemName.includes('grape') || itemName.includes('lettuce') || itemName.includes('tomato') ||
+      itemName.includes('cucumber') || itemName.includes('carrot') || itemName.includes('potato')) {
+    return "Produce";
+  } else if (itemName.includes('milk') || itemName.includes('cheese') || itemName.includes('yogurt') || 
+             itemName.includes('butter') || itemName.includes('egg')) {
+    return "Dairy";
+  } else if (itemName.includes('chicken') || itemName.includes('beef') || itemName.includes('pork') || 
+             itemName.includes('fish') || itemName.includes('meat') || itemName.includes('pastrami')) {
+    return "Meat";
+  } else if (itemName.includes('bread') || itemName.includes('bagel') || itemName.includes('muffin')) {
+    return "Bakery";
+  } else if (itemName.includes('frozen') || itemName.includes('ice cream') || itemName.includes('pizza')) {
+    return "Frozen";
+  } else if (itemName.includes('coffee') || itemName.includes('tea') || itemName.includes('juice') || 
+             itemName.includes('soda') || itemName.includes('cola') || itemName.includes('sprite')) {
+    return "Beverages";
+  } else if (itemName.includes('soap') || itemName.includes('detergent') || itemName.includes('paper') || 
+             itemName.includes('shampoo')) {
+    return "Household";
+  } else if (itemName.includes('chips') || itemName.includes('candy') || itemName.includes('cookies') || 
+             itemName.includes('pretzels')) {
+    return "Snacks";
+  }
+  return "Other";
+};
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareCode, setShareCode] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -726,35 +755,38 @@ export function SmartLists({ user }: SmartListsProps) {
     createListMutation.mutate();
   };
 
-  const handleAddItem = (listId: string) => {
+  const handleAddItem = async (listId: string) => {
     if (!newItemName.trim()) return;
     if (createItemMutation.isPending) return; // Prevent duplicate submissions
     
     const selectedList = lists.find(list => list.id === listId);
     if (!selectedList) return;
 
-    // Determine category based on item name and list type
+    // Use AI-powered smart categorization for shopping items
     let category = "Other";
-    const itemName = newItemName.toLowerCase();
     
     if (selectedList.type === "shopping") {
-      const foodCategories = {
-        "Beverages": ["water", "juice", "soda", "coffee", "tea", "beer", "wine", "drink", "cola", "sprite", "seltzer", "roast", "caffeine"],
-        "Produce": ["apple", "banana", "orange", "lettuce", "tomato", "potato", "onion", "carrot", "spinach", "broccoli", "cucumber", "bell pepper", "mushroom", "avocado", "strawberry", "grape", "lemon", "lime", "garlic", "ginger"],
-        "Dairy": ["milk", "cheese", "yogurt", "butter", "cream", "egg", "eggs", "sour cream", "cottage cheese"],
-        "Meat": ["chicken", "beef", "pork", "turkey", "fish", "salmon", "ground beef", "bacon", "sausage", "pastrami", "meat"],
-        "Pantry": ["bread", "pasta", "rice", "flour", "sugar", "oil", "salt", "pepper", "sauce", "cereal", "can", "jar", "box"],
-        "Bakery": ["bread", "bagel", "muffin", "croissant", "cake", "pastry", "donut", "roll"],
-        "Frozen": ["frozen", "ice cream", "pizza", "vegetables", "fruit", "ice", "fries"],
-        "Household": ["soap", "detergent", "paper", "towel", "toilet paper", "cleaner", "shampoo", "toothpaste"],
-        "Snacks": ["chocolate", "twizzlers", "chips", "crackers", "nuts", "candy", "cookies", "pretzels", "popcorn"]
-      };
-      
-      for (const [cat, items] of Object.entries(foodCategories)) {
-        if (items.some(food => itemName.includes(food))) {
-          category = cat;
-          break;
+      // Call AI categorization API for intelligent grocery categorization
+      try {
+        const response = await fetch('/api/categorize-item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            itemName: newItemName,
+            listType: 'shopping'
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          category = result.category || "Other";
+        } else {
+          // Fallback to simple categorization if AI fails
+          category = getSimpleCategory(newItemName.toLowerCase());
         }
+      } catch (error) {
+        console.error('AI categorization failed, using fallback:', error);
+        category = getSimpleCategory(newItemName.toLowerCase());
       }
     } else if (selectedList.type === "punch_list") {
       const punchCategories = {

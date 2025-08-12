@@ -42,6 +42,7 @@ async function processUrlsInContent(content: string): Promise<string> {
 import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
 import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
+import { categorizeItem } from './categorization';
 import { 
   insertUserSchema, 
   insertConversationSchema, 
@@ -1414,6 +1415,23 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     } catch (error) {
       console.error("Add collaborator error:", error);
       res.status(500).json({ message: "Failed to add collaborator" });
+    }
+  });
+
+  // AI Categorization endpoint
+  app.post("/api/categorize-item", async (req, res) => {
+    try {
+      const { itemName, listType } = req.body;
+      
+      if (!itemName || !listType) {
+        return res.status(400).json({ error: 'Missing itemName or listType' });
+      }
+      
+      const result = await categorizeItem(itemName, listType);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Categorization error:', error);
+      res.status(500).json({ error: 'Categorization failed', category: 'Other' });
     }
   });
 
