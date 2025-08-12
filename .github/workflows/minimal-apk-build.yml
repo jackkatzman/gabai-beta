@@ -55,21 +55,29 @@ jobs:
         # Verify Gradle wrapper integrity
         cd android && ./gradlew wrapper --gradle-version=8.7
     
-    - name: Build APK with enhanced error handling
+    - name: Build APK with fresh Gradle state
       working-directory: android
       run: |
-        # Build with maximum verbosity and error details
-        ./gradlew clean assembleDebug \
+        # Force complete clean state - remove all Gradle state
+        rm -rf ~/.gradle/caches
+        rm -rf .gradle
+        rm -rf build
+        rm -rf app/build
+        rm -rf */build
+        
+        # Initialize fresh Gradle wrapper
+        ./gradlew wrapper --gradle-version=8.7 --distribution-type=all
+        
+        # Build with minimal flags to avoid state issues
+        ./gradlew assembleDebug \
           --no-daemon \
           --no-build-cache \
           --no-configuration-cache \
-          --stacktrace \
-          --info \
-          --warning-mode all
+          --refresh-dependencies \
+          --recompile-scripts
       env:
-        GRADLE_OPTS: "-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
+        GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
         ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
-        JAVA_OPTS: "-Xmx2g"
     
     - name: Verify APK exists
       run: |

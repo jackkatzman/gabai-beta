@@ -1,203 +1,68 @@
-name: 📱 Simple APK Build
+name: 🔥 Simple APK Build
 on:
   workflow_dispatch:
 
 jobs:
-  build-apk:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  build:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 25
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: npm
+    
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        distribution: temurin
+        java-version: 17
+    
+    - name: Set Java environment
+      run: |
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
     
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        api-level: 33
-        build-tools: 33.0.2
-
-    - name: Create Project Structure
+        api-level: 34
+        build-tools: 34.0.0
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build web app
+      run: npm run build
+    
+    - name: Sync Capacitor
+      run: npx cap sync android --no-open
+    
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+    
+    - name: Clean build completely
+      working-directory: android
       run: |
-        mkdir -p /tmp/gabai/app/src/main/java/com/gabai/app
-        mkdir -p /tmp/gabai/app/src/main/res/drawable
-        mkdir -p /tmp/gabai/app/src/main/res/values
-        mkdir -p /tmp/gabai/app/src/main/assets/www
-        cd /tmp/gabai
-
-    - name: Create HTML Assets
+        rm -rf .gradle build app/build
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+    
+    - name: Build APK (simple approach)
+      working-directory: android
       run: |
-        cd /tmp/gabai
-        cat > app/src/main/assets/www/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>GabAi</title>
-            <style>
-                body { margin:0; padding:20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; text-align:center; font-family:Arial,sans-serif; height:100vh; display:flex; align-items:center; justify-content:center; }
-                .container { max-width:400px; }
-                .logo { font-size:4em; margin-bottom:20px; animation: bounce 2s infinite; }
-                @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-                h1 { font-size:2.5em; margin-bottom:20px; }
-                .status { margin:20px 0; animation: pulse 2s infinite; }
-                @keyframes pulse { 0%, 100% { opacity:1; } 50% { opacity:0.5; } }
-                .btn { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); color:white; padding:15px 30px; border-radius:50px; text-decoration:none; display:inline-block; margin:10px; transition:all 0.3s; }
-                .btn:hover { background:rgba(255,255,255,0.3); transform:translateY(-2px); }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="logo">🤖</div>
-                <h1>GabAi</h1>
-                <div class="status" id="status">Connecting to GabAi...</div>
-                <a href="https://gabai.ai" class="btn" onclick="launch()">Launch GabAi</a>
-                <a href="#" onclick="location.reload()" class="btn">Reload</a>
-            </div>
-            <script>
-                let count = 3;
-                const statusEl = document.getElementById('status');
-                function launch() { window.location.href = 'https://gabai.ai'; }
-                const timer = setInterval(() => {
-                    statusEl.textContent = 'Launching in ' + count + '...';
-                    count--;
-                    if (count < 0) { clearInterval(timer); launch(); }
-                }, 1000);
-            </script>
-        </body>
-        </html>
-        EOF
-
-    - name: Create Android Manifest
-      run: |
-        cd /tmp/gabai
-        cat > app/src/main/AndroidManifest.xml << 'EOF'
-        <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.gabai.app">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-            <application android:allowBackup="true" android:icon="@drawable/ic_launcher" android:label="GabAi" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-                <activity android:name=".MainActivity" android:exported="true">
-                    <intent-filter>
-                        <action android:name="android.intent.action.MAIN" />
-                        <category android:name="android.intent.category.LAUNCHER" />
-                    </intent-filter>
-                </activity>
-            </application>
-        </manifest>
-        EOF
-
-    - name: Create MainActivity
-      run: |
-        cd /tmp/gabai
-        cat > app/src/main/java/com/gabai/app/MainActivity.java << 'EOF'
-        package com.gabai.app;
-        import android.app.Activity;
-        import android.os.Bundle;
-        import android.webkit.WebView;
-        import android.webkit.WebSettings;
-        public class MainActivity extends Activity {
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                WebView webView = new WebView(this);
-                WebSettings settings = webView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                webView.loadUrl("file:///android_asset/www/index.html");
-                setContentView(webView);
-            }
-        }
-        EOF
-
-    - name: Create Resources
-      run: |
-        cd /tmp/gabai
-        echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">GabAi</string></resources>' > app/src/main/res/values/strings.xml
-        cat > app/src/main/res/drawable/ic_launcher.xml << 'EOF'
-        <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
-          <path android:fillColor="#6366F1" android:pathData="M24,4C35.05,4 44,12.95 44,24C44,35.05 35.05,44 24,44C12.95,44 4,35.05 4,24C4,12.95 12.95,4 24,4Z"/>
-          <path android:fillColor="#FFFFFF" android:pathData="M24,12C29.52,12 34,16.48 34,22C34,27.52 29.52,32 24,32C18.48,32 14,27.52 14,22C14,16.48 18.48,12 24,12Z"/>
-        </vector>
-        EOF
-
-    - name: Create Gradle Files
-      run: |
-        cd /tmp/gabai
-        cat > build.gradle << 'EOF'
-        buildscript {
-            repositories { 
-                google()
-                mavenCentral()
-            }
-            dependencies { 
-                classpath 'com.android.tools.build:gradle:7.4.2'
-            }
-        }
-        allprojects { 
-            repositories { 
-                google()
-                mavenCentral()
-            } 
-        }
-        EOF
-        
-        cat > app/build.gradle << 'EOF'
-        apply plugin: 'com.android.application'
-        android {
-            compileSdkVersion 33
-            defaultConfig {
-                applicationId "com.gabai.app"
-                minSdkVersion 21
-                targetSdkVersion 33
-                versionCode 1
-                versionName "1.0"
-            }
-            buildTypes {
-                debug {
-                    minifyEnabled false
-                }
-            }
-        }
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.6.1'
-        }
-        EOF
-        
-        cat > gradle.properties << 'EOF'
-        org.gradle.jvmargs=-Xmx2048m
-        android.useAndroidX=true
-        android.enableJetifier=true
-        EOF
-        
-        echo "include ':app'" > settings.gradle
-
-    - name: Build APK
-      run: |
-        cd /tmp/gabai
-        chmod +x ./gradlew || echo "No gradlew found, using gradle"
-        if [ -f "./gradlew" ]; then
-          ./gradlew assembleDebug --no-daemon
-        else
-          gradle wrapper
-          ./gradlew assembleDebug --no-daemon
-        fi
-        find . -name "app-debug.apk" -exec cp {} /tmp/gabai-simple.apk \;
-        ls -la /tmp/gabai-simple.apk
-
+        ./gradlew assembleDebug --stacktrace
+      env:
+        GRADLE_OPTS: "-Xmx1g"
+        ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+    
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: gabai-simple-apk
-        path: /tmp/gabai-simple.apk
-        retention-days: 30
-
-    - name: Summary
-      run: |
-        echo "## 📱 Simple APK Build Complete" >> $GITHUB_STEP_SUMMARY
-        echo "✅ APK: gabai-simple.apk" >> $GITHUB_STEP_SUMMARY
-        echo "🌐 Redirects to: https://gabai.ai" >> $GITHUB_STEP_SUMMARY
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
