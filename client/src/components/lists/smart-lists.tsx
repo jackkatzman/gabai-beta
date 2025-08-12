@@ -354,6 +354,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const [shareCode, setShareCode] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [editingItem, setEditingItem] = useState<{ id: string; name: string; amount: string; category: string } | null>(null);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -487,6 +488,29 @@ export function SmartLists({ user }: SmartListsProps) {
       toast({
         title: "Error",
         description: error.message || "Failed to update item",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete list mutation
+  const deleteListMutation = useMutation({
+    mutationFn: (listId: string) => api.deleteSmartList(listId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      setListToDelete(null);
+      if (activeTab !== "all") {
+        setActiveTab("all"); // Switch to "all" view if current tab was deleted
+      }
+      toast({
+        title: "List deleted!",
+        description: "The list has been permanently removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete list",
         variant: "destructive",
       });
     },
@@ -1000,6 +1024,17 @@ export function SmartLists({ user }: SmartListsProps) {
                           {shareListMutation.isPending ? "Sharing..." : "Share"}
                         </Button>
                       )}
+                      
+                      {/* Delete List Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setListToDelete(list.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      
                       <Badge variant="outline" className="text-xs">
                         {list.items.length} items
                       </Badge>
@@ -1202,6 +1237,39 @@ export function SmartLists({ user }: SmartListsProps) {
           })
         )}
       </div>
+
+      {/* Delete List Confirmation Dialog */}
+      <Dialog open={!!listToDelete} onOpenChange={() => setListToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete List</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete this list? This action cannot be undone and will permanently remove all items in the list.
+            </p>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setListToDelete(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (listToDelete) {
+                    deleteListMutation.mutate(listToDelete);
+                  }
+                }}
+                disabled={deleteListMutation.isPending}
+              >
+                {deleteListMutation.isPending ? "Deleting..." : "Delete List"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

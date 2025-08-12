@@ -139,6 +139,10 @@ export const api = {
     return response.json();
   },
 
+  async deleteSmartList(id: string): Promise<void> {
+    await apiRequest(`/api/smart-lists/${id}`, "DELETE");
+  },
+
   async generateListName(user: User): Promise<{ name: string }> {
     const response = await apiRequest("/api/generate-list-name", "POST", { 
       userId: user.id,
