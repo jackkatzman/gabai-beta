@@ -26,8 +26,28 @@ import {
   Paintbrush,
   Wrench,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  GripVertical
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { api } from "@/lib/api";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +112,85 @@ const getCategoryColor = (category: string) => {
     flooring: "text-brown-600",
   };
   return colors[category.toLowerCase() as keyof typeof colors] || "text-gray-500";
+};
+
+// Sortable Item Component
+interface SortableItemProps {
+  item: ListItem;
+  onToggle: () => void;
+  onDelete: () => void;
+}
+
+function SortableItem({ item, onToggle, onDelete }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center space-x-3 p-2 rounded-lg border ${
+        item.completed 
+          ? "bg-gray-50 dark:bg-gray-800 opacity-60" 
+          : "bg-white dark:bg-gray-900"
+      } ${isDragging ? "shadow-lg z-10" : ""}`}
+    >
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <GripVertical className="h-4 w-4" />
+      </div>
+
+      <Checkbox
+        checked={item.completed ?? false}
+        onCheckedChange={onToggle}
+      />
+      
+      <div className="flex-1">
+        <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
+          {item.name}
+        </p>
+        {item.assignedTo && (
+          <p className="text-xs text-gray-500">
+            Assigned to: {item.assignedTo}
+          </p>
+        )}
+        {item.notes && (
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            {item.notes}
+          </p>
+        )}
+      </div>
+      
+      {(item.priority || 1) > 1 && (
+        <Badge variant="outline" className="text-xs">
+          Priority {item.priority || 1}
+        </Badge>
+      )}
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onDelete}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
 };
 
 export function SmartLists({ user }: SmartListsProps) {
@@ -201,6 +300,67 @@ export function SmartLists({ user }: SmartListsProps) {
       });
     },
   });
+
+  // Reorder items mutation
+  const reorderItemsMutation = useMutation({
+    mutationFn: async ({ items }: { items: { id: string; position: number }[] }) => {
+      // Update positions for multiple items at once
+      const updates = items.map(item => 
+        api.updateListItem(item.id, { position: item.position })
+      );
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error reordering items",
+        description: error.message || "Failed to reorder items",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Drag sensors for touch and mouse
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    // Find the list containing the dragged item
+    const sourceList = lists.find(list => 
+      list.items.some(item => item.id === active.id)
+    );
+
+    if (!sourceList) return;
+
+    const sourceItems = [...sourceList.items].sort((a, b) => (a.position || 0) - (b.position || 0));
+    const oldIndex = sourceItems.findIndex(item => item.id === active.id);
+    const newIndex = sourceItems.findIndex(item => item.id === over.id);
+
+    if (oldIndex !== newIndex) {
+      const newOrder = arrayMove(sourceItems, oldIndex, newIndex);
+      
+      // Update positions
+      const updatedItems = newOrder.map((item, index) => ({
+        id: item.id,
+        position: index
+      }));
+
+      reorderItemsMutation.mutate({ items: updatedItems });
+    }
+  };
 
   // Share list mutation
   const shareListMutation = useMutation({
@@ -627,68 +787,47 @@ export function SmartLists({ user }: SmartListsProps) {
                     )}
                   </div>
 
-                  {/* Items by Category */}
+                  {/* Items by Category with Drag and Drop */}
                   {categorizedItems.length > 0 ? (
-                    <div className="space-y-4">
-                      {categorizedItems.map(({ category, items }) => (
-                        <div key={category}>
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <span className="mr-2">{category}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {items.filter(item => !item.completed).length}
-                            </Badge>
-                          </h4>
-                          <div className="space-y-2">
-                            {items.map((item) => (
-                              <div
-                                key={item.id}
-                                className={`flex items-center space-x-3 p-2 rounded-lg border ${
-                                  item.completed 
-                                    ? "bg-gray-50 dark:bg-gray-800 opacity-60" 
-                                    : "bg-white dark:bg-gray-900"
-                                }`}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="space-y-4">
+                        {categorizedItems.map(({ category, items }) => {
+                          // Sort items by position for consistent ordering
+                          const sortedItems = [...items].sort((a, b) => (a.position || 0) - (b.position || 0));
+                          
+                          return (
+                            <div key={category}>
+                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                <span className="mr-2">{category}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {items.filter(item => !item.completed).length}
+                                </Badge>
+                              </h4>
+                              
+                              <SortableContext 
+                                items={sortedItems.map(item => item.id)}
+                                strategy={verticalListSortingStrategy}
                               >
-                                <Checkbox
-                                  checked={item.completed ?? false}
-                                  onCheckedChange={(checked) => {
-                                    toggleItemMutation.mutate(item.id);
-                                  }}
-                                />
-                                <div className="flex-1">
-                                  <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
-                                    {item.name}
-                                  </p>
-                                  {item.assignedTo && (
-                                    <p className="text-xs text-gray-500">
-                                      Assigned to: {item.assignedTo}
-                                    </p>
-                                  )}
-                                  {item.notes && (
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      {item.notes}
-                                    </p>
-                                  )}
+                                <div className="space-y-2">
+                                  {sortedItems.map((item) => (
+                                    <SortableItem
+                                      key={item.id}
+                                      item={item}
+                                      onToggle={() => toggleItemMutation.mutate(item.id)}
+                                      onDelete={() => deleteItemMutation.mutate(item.id)}
+                                    />
+                                  ))}
                                 </div>
-                                {(item.priority || 1) > 1 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Priority {item.priority || 1}
-                                  </Badge>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    deleteItemMutation.mutate(item.id);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                              </SortableContext>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </DndContext>
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                       No items yet. Add your first item above!

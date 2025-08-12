@@ -3,6 +3,8 @@
 GabAi is a voice-first personal assistant web application providing AI-powered conversational interactions, personalized user experiences, and collaborative smart lists. Key capabilities include real-time sharing, intelligent categorization, and high-quality voice synthesis. Users can interact via voice or text, with the AI continuously learning from preferences for increased personalization. The project aims for broad market adoption through advanced AI features, seamless integration with daily routines, and a robust monetization strategy via affiliate links.
 
 ## Recent Updates (August 2025)
+- **Drag-and-Drop List Reordering Added** (Aug 12): Added full drag-and-drop functionality to smart lists, just like popular task manager apps. Users can now grab the drag handle (grip icon) and reorder items within categories. Changes save automatically to backend with position tracking. Includes touch support for mobile devices.
+- **Enhanced Settings Page** (Aug 11): Made settings fully editable with comprehensive personalization fields including profession, interests, dietary restrictions, communication style, and family details. All changes save to backend and help make GabAi responses more personalized and contextually relevant.
 - **Alarm System FULLY OPERATIONAL** (Aug 11): COMPLETELY FIXED! Resolved stuck "Scheduling..." button issue and enabled proper alarm creation. Fixed TypeScript errors in scheduling components, improved error handling with user feedback, and ensured alarms can be successfully set with both native and web fallback systems.
 - **ElevenLabs Voice System Fixed** (Aug 11): COMPLETELY FIXED! All alarm voices now use pure ElevenLabs voice IDs without artificial manipulation. Drill sergeant voice (DGzg6RaUqxGRTHSBjfgF) uses natural voice characteristics as selected from ElevenLabs library. Removed forced masculinity/femininity settings - voices sound authentic and distinct as intended by ElevenLabs voice design.
 
@@ -37,7 +39,7 @@ VRBO affiliate link: https://www.dpbolvw.net/click-101504231-10697641 (configure
 - **Voice Interaction**: Speech-to-text via OpenAI Whisper API with multilingual support; text-to-speech via ElevenLabs API. Includes hold-to-talk functionality.
 - **AI Conversations**: GPT-4o for personalized responses and automatic language detection.
 - **User Personalization**: Comprehensive preference system for interests, dietary needs, and communication styles.
-- **Smart Lists**: Flexible, collaborative lists (shopping, punch lists, to-do) with real-time sharing, intelligent categorization, and AI-suggested names based on user profession.
+- **Smart Lists**: Flexible, collaborative lists (shopping, punch lists, to-do) with real-time sharing, intelligent categorization, drag-and-drop reordering, and AI-suggested names based on user profession.
 - **Calendar & Reminders**: Scheduled notifications with recurring options, native calendar sync, and timezone accuracy. Supports custom alarm sounds and ElevenLabs AI voices.
 - **OCR Text Extraction**: AI-powered image text extraction using OpenAI Vision API for digitizing documents like handwritten lists, receipts, and business cards.
 - **Contact Management**: Creation of contacts from business card OCR with smart detection and vCard export.
