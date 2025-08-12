@@ -94,6 +94,9 @@ export function ChatInterface({ user }: ChatInterfaceProps) {
   });
 
   const handleSendMessage = (message: string) => {
+    // Prevent duplicate submissions
+    if (sendMessageMutation.isPending || !message.trim()) return;
+    
     // First, add user message to chat history immediately (for existing conversations)
     if (currentConversationId) {
       queryClient.setQueryData(

@@ -411,6 +411,7 @@ export function SmartLists({ user }: SmartListsProps) {
 
   const handleAddItem = (listId: string) => {
     if (!newItemName.trim()) return;
+    if (createItemMutation.isPending) return; // Prevent duplicate submissions
     
     const selectedList = lists.find(list => list.id === listId);
     if (!selectedList) return;
@@ -461,6 +462,8 @@ export function SmartLists({ user }: SmartListsProps) {
   };
 
   const handleVoiceAddItem = async (listId: string) => {
+    if (isVoiceAddingItem || createItemMutation.isPending) return; // Prevent duplicate voice operations
+    
     setIsVoiceAddingItem(true);
     setSelectedListId(listId);
     
