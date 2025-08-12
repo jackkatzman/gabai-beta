@@ -93,28 +93,38 @@ export function useCapacitorScheduler() {
         if (timeUntilAlarm > 0) {
           const alarmId = Date.now();
           
+          // Request notification permission first
+          let permissionGranted = false;
+          if ('Notification' in window) {
+            const permission = await Notification.requestPermission();
+            permissionGranted = permission === 'granted';
+            console.log('🔔 Notification permission:', permission);
+          }
+          
           // Store alarm in localStorage for retrieval
           const webAlarms = JSON.parse(localStorage.getItem('gabai-web-alarms') || '[]');
           webAlarms.push({
             id: alarmId,
             title: options.title,
             body: options.description,
-            schedule: { at: options.date }
+            schedule: { at: options.date },
+            timeoutId: null
           });
           localStorage.setItem('gabai-web-alarms', JSON.stringify(webAlarms));
           console.log('💾 Alarm stored in localStorage:', webAlarms);
           
-          setTimeout(async () => {
+          const timeoutId = setTimeout(async () => {
             console.log('⏰ Alarm triggered!', options.title);
-            if ('Notification' in window) {
-              const permission = await Notification.requestPermission();
-              if (permission === 'granted') {
-                new Notification(options.title, {
-                  body: options.description,
-                  icon: '/icon-192x192.png',
-                  requireInteraction: true
-                });
-              }
+            if (permissionGranted) {
+              new Notification(options.title, {
+                body: options.description,
+                icon: '/icon-192x192.png',
+                requireInteraction: true,
+                tag: `gabai-alarm-${alarmId}`
+              });
+            } else {
+              // Fallback alert if notifications not supported
+              alert(`🔔 Alarm: ${options.title}\n${options.description || ''}`);
             }
             
             // Play sound if available

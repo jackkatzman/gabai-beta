@@ -189,7 +189,7 @@ async function createProfessionLists(userId: string, profession: string) {
   };
   
   // Find matching profession (check for partial matches)
-  let listsToCreate = [];
+  let listsToCreate: any[] = [];
   for (const [prof, lists] of Object.entries(professionListsMap)) {
     if (professionLower.includes(prof) || prof.includes(professionLower)) {
       listsToCreate = lists;

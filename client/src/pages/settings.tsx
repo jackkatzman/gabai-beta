@@ -62,6 +62,7 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    console.log('💾 Attempting to save profile for user:', user.id);
     setIsSaving(true);
     try {
       const updates: any = {
@@ -165,6 +166,21 @@ export default function SettingsPage() {
                         size="sm" 
                         variant="secondary"
                         className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full p-0"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) {
+                              toast({
+                                title: "Profile picture feature",
+                                description: "Profile picture upload is coming soon! This will let you set your avatar.",
+                              });
+                            }
+                          };
+                          input.click();
+                        }}
                       >
                         <Camera className="h-3 w-3" />
                       </Button>

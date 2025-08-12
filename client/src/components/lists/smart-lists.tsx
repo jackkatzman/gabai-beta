@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,13 @@ import {
   BookOpen,
   Film,
   MapPin,
-  Gift
+  Gift,
+  Link,
+  MessageCircle,
+  MessageSquare,
+  Mail,
+  X,
+  Circle
 } from "lucide-react";
 import {
   DndContext,
@@ -542,6 +549,28 @@ export function SmartLists({ user }: SmartListsProps) {
     });
   };
 
+  const shareViaWhatsApp = (shareCode: string, listName: string) => {
+    const url = `${window.location.origin}/shared/${shareCode}`;
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here: ${url}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const shareViaSMS = (shareCode: string, listName: string) => {
+    const url = `${window.location.origin}/shared/${shareCode}`;
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi: ${url}`;
+    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+    window.open(smsUrl);
+  };
+
+  const shareViaEmail = (shareCode: string, listName: string) => {
+    const url = `${window.location.origin}/shared/${shareCode}`;
+    const subject = encodeURIComponent(`${listName} - Shared List`);
+    const body = encodeURIComponent(`Hi there!\n\nI'm sharing my "${listName}" list with you through GabAi. You can view and collaborate on this list by clicking the link below:\n\n${url}\n\nBest regards!`);
+    const emailUrl = `mailto:?subject=${subject}&body=${body}`;
+    window.open(emailUrl, '_self');
+  };
+
   const sortItemsByCategory = (items: ListItem[], categories: string[]) => {
     const categorized = categories.map(category => ({
       category,
@@ -742,14 +771,32 @@ export function SmartLists({ user }: SmartListsProps) {
                     </div>
                     <div className="flex items-center space-x-2">
                       {list.isShared ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyShareLink(list.shareCode!)}
-                        >
-                          <Share2 className="h-4 w-4 mr-1" />
-                          Copy Link
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Share2 className="h-4 w-4 mr-1" />
+                              Share Options
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => copyShareLink(list.shareCode!)}>
+                              <Link className="h-4 w-4 mr-2" />
+                              Copy Link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareViaWhatsApp(list.shareCode!, list.name)}>
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Share via WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareViaSMS(list.shareCode!, list.name)}>
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Share via SMS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareViaEmail(list.shareCode!, list.name)}>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Share via Email
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : (
                         <Button
                           variant="outline"
@@ -782,7 +829,10 @@ export function SmartLists({ user }: SmartListsProps) {
                           minHeight: '44px !important', 
                           height: '44px !important',
                           lineHeight: '1.4 !important',
-                          padding: '12px 16px !important'
+                          padding: '12px 16px !important',
+                          direction: 'ltr !important',
+                          unicodeBidi: 'embed !important',
+                          textAlign: 'left !important'
                         }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && newItemName.trim()) {
@@ -832,7 +882,10 @@ export function SmartLists({ user }: SmartListsProps) {
                         style={{ 
                           fontSize: '16px !important', 
                           minHeight: '44px !important', 
-                          height: '44px !important'
+                          height: '44px !important',
+                          direction: 'ltr !important',
+                          unicodeBidi: 'embed !important',
+                          textAlign: 'left !important'
                         }}
                       />
                     )}
