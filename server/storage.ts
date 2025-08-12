@@ -296,6 +296,10 @@ export class DatabaseStorage implements IStorage {
     await db.delete(listItems).where(eq(listItems.id, id));
   }
 
+  async getListItems(listId: string): Promise<ListItem[]> {
+    return await db.select().from(listItems).where(eq(listItems.listId, listId));
+  }
+
   async toggleListItem(id: string): Promise<ListItem> {
     // Get the current item
     const [currentItem] = await db

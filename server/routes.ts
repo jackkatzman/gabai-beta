@@ -707,14 +707,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
               }
 
-              // Add items to the target list
+              // Add items to the target list with duplicate prevention
+              console.log(`Adding ${action.data.items.length} items to list: ${targetList.name}`);
+              
+              // Get existing items to prevent duplicates
+              const existingItems = await storage.getListItems(targetList.id);
+              const existingItemNames = new Set(existingItems.map(item => item.name.toLowerCase().trim()));
+              
               for (const item of action.data.items) {
-                console.log(`Adding item "${item.name || item}" to list "${targetList.name}"`);
+                const itemName = (item.name || item).trim();
+                const itemNameLower = itemName.toLowerCase();
+                
+                // Skip if item already exists (prevent duplicates)
+                if (existingItemNames.has(itemNameLower)) {
+                  console.log(`Skipping duplicate item: ${itemName}`);
+                  continue;
+                }
+                
+                console.log(`Adding item "${itemName}" to list "${targetList.name}"`);
                 await storage.createListItem({
                   listId: targetList.id,
-                  name: item.name || item,
+                  name: itemName,
                   category: item.category || "Other"
                 });
+                
+                // Add to existing items set to prevent duplicates within the same request
+                existingItemNames.add(itemNameLower);
               }
             }
           } catch (actionError: any) {
@@ -1158,6 +1176,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error: any) {
       console.error("Error generating smart list name:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Smart relabel list route
+  app.post("/api/relabel-list", async (req, res) => {
+    try {
+      const { listId, currentName, items, listType } = req.body;
+      
+      if (!listId || !items || !Array.isArray(items)) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Generate smart name based on list contents
+      const prompt = `Based on the following list items, suggest a better, more descriptive name for this list:
+
+Current name: "${currentName}"
+List type: ${listType}
+Items: ${items.join(', ')}
+
+Suggest a concise, descriptive name (2-4 words) that captures what this list is really about. Return only the suggested name, nothing else.`;
+
+      const completion = await openAI.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 50,
+        temperature: 0.3
+      });
+
+      const newName = completion.choices[0]?.message?.content?.trim() || currentName;
+      
+      // Update the list name
+      await storage.updateSmartList(listId, { name: newName });
+      
+      res.json({ newName });
+    } catch (error: any) {
+      console.error("Error relabeling list:", error);
       res.status(500).json({ error: error.message });
     }
   });

@@ -355,6 +355,7 @@ export function SmartLists({ user }: SmartListsProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [editingItem, setEditingItem] = useState<{ id: string; name: string; amount: string; category: string } | null>(null);
   const [listToDelete, setListToDelete] = useState<string | null>(null);
+  const [calculatedTotal, setCalculatedTotal] = useState<{ listId: string; total: number } | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -536,6 +537,63 @@ export function SmartLists({ user }: SmartListsProps) {
       });
     },
   });
+
+  // Smart relabel mutation
+  const relabelListMutation = useMutation({
+    mutationFn: async (listId: string) => {
+      const list = lists.find(l => l.id === listId);
+      if (!list) throw new Error('List not found');
+      
+      // Send items to AI for smart naming
+      const response = await fetch('/api/relabel-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listId,
+          currentName: list.name,
+          items: list.items.map(item => item.name),
+          listType: list.type
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to relabel list');
+      return response.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      toast({
+        title: "List renamed!",
+        description: `List renamed to: ${result.newName}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to rename list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Calculate total function for non-currency lists
+  const calculateListTotal = (list: any) => {
+    let total = 0;
+    list.items.forEach((item: any) => {
+      const matches = item.name.match(/\$?([\d,]+\.?\d*)/g);
+      if (matches) {
+        matches.forEach((match: string) => {
+          const amount = parseFloat(match.replace(/[$,]/g, ''));
+          if (!isNaN(amount)) total += amount;
+        });
+      }
+    });
+    
+    setCalculatedTotal({ listId: list.id, total });
+    toast({
+      title: "Total Calculated",
+      description: `Total for ${list.name}: $${total.toFixed(2)}`,
+    });
+  };
 
   // Drag sensors for touch and mouse with improved touch handling
   const sensors = useSensors(
@@ -1042,6 +1100,36 @@ export function SmartLists({ user }: SmartListsProps) {
                         <Badge variant="outline" className="text-xs text-emerald-600 dark:text-emerald-400">
                           Total: {formatCurrency(calculateTotal(list.items.map(item => item.amount)))}
                         </Badge>
+                      )}
+                      
+                      {/* Calculated total display for non-currency lists */}
+                      {calculatedTotal && calculatedTotal.listId === list.id && (
+                        <Badge variant="outline" className="text-xs text-blue-600 dark:text-blue-400">
+                          Calculated Total: ${calculatedTotal.total.toFixed(2)}
+                        </Badge>
+                      )}
+                      
+                      {/* Smart Relabel Button */}
+                      <Button
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => relabelListMutation.mutate(list.id)}
+                        disabled={relabelListMutation.isPending}
+                        className="text-xs"
+                      >
+                        {relabelListMutation.isPending ? "..." : "Smart Name"}
+                      </Button>
+                      
+                      {/* Calculate Total Button for non-currency lists */}
+                      {!template?.supportsCurrency && list.items.some(item => /\$[\d,]+\.?\d*|\d+\.?\d*\s*dollar|price|cost/i.test(item.name)) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => calculateListTotal(list)}
+                          className="text-xs text-blue-600 dark:text-blue-400"
+                        >
+                          Calculate Total
+                        </Button>
                       )}
                     </div>
                   </div>
