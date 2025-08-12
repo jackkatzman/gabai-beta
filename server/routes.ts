@@ -724,11 +724,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   continue;
                 }
                 
-                console.log(`Adding item "${itemName}" to list "${targetList.name}"`);
+                // Extract dollar amount from payment items
+                let amount = null;
+                let cleanedItemName = itemName;
+                
+                if (targetList.type === "payments" || targetList.type === "budget") {
+                  // Extract dollar amounts using regex
+                  const dollarMatch = itemName.match(/\$?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
+                  if (dollarMatch) {
+                    const dollarString = dollarMatch[1].replace(/,/g, ''); // Remove commas
+                    const dollarAmount = parseFloat(dollarString);
+                    if (!isNaN(dollarAmount)) {
+                      amount = Math.round(dollarAmount * 100); // Convert to cents
+                      // Remove the dollar amount from the item name for cleaner display
+                      cleanedItemName = itemName.replace(/\$?[\d,]+\.?\d*/g, '').trim();
+                      console.log(`Extracted $${dollarAmount} from "${itemName}", cleaned name: "${cleanedItemName}"`);
+                    }
+                  }
+                }
+                
+                console.log(`Adding item "${cleanedItemName}" to list "${targetList.name}" with amount: ${amount ? '$' + (amount/100).toFixed(2) : 'none'}`);
                 await storage.createListItem({
                   listId: targetList.id,
-                  name: itemName,
-                  category: item.category || "Other"
+                  name: cleanedItemName,
+                  category: item.category || (targetList.type === "payments" ? "Payments" : "Other"),
+                  amount: amount,
+                  currency: amount ? "USD" : undefined
                 });
                 
                 // Add to existing items set to prevent duplicates within the same request
