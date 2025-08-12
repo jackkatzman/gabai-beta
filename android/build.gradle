@@ -47,7 +47,14 @@ allprojects {
                 }
             }
             
-
+            // Force Kotlin to target JVM 17 to match Java
+            if (it.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
+                it.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                    kotlinOptions {
+                        jvmTarget = "17"
+                    }
+                }
+            }
         }
         
         // Java 17 toolchain for all modules
@@ -55,7 +62,13 @@ allprojects {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
-
+        
+        // Kotlin JVM target alignment
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
     }
 }
 

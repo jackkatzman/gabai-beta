@@ -1,0 +1,20 @@
+// Kotlin configuration for consistent JVM target across all modules
+// This file ensures Kotlin and Java have matching JVM targets
+
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// Apply Kotlin JVM target if Kotlin plugin is present
+afterEvaluate {
+    if (project.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
+}
