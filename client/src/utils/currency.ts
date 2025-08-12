@@ -46,7 +46,7 @@ export function formatCurrencyInput(value: string): string {
  * Calculate total from array of amounts
  */
 export function calculateTotal(amounts: (number | null | undefined)[]): number {
-  return amounts.reduce((sum, amount) => {
+  return amounts.reduce<number>((sum, amount) => {
     return sum + (amount || 0);
   }, 0);
 }
