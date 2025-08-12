@@ -1,0 +1,186 @@
+Got it, reb Yechiel — you want it **built right**, not patched with duct tape. Here’s the straight path that won’t bite you later.
+
+# The Solid Path (keep your stack: React + Vite + Capacitor)
+
+**Goal:** Reproducible Android builds with zero Gradle drama, CI-ready, store-ready.
+
+## 1) Pin your Android toolchain (once)
+
+Add/confirm these:
+
+**`android/gradle/wrapper/gradle-wrapper.properties`**
+
+```
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+```
+
+**Top-level `android/build.gradle`**
+
+```gradle
+plugins {
+  id 'com.android.application' version '8.7.2' apply false
+  id 'com.android.library'    version '8.7.2' apply false
+  id 'org.jetbrains.kotlin.android' version '2.0.20' apply false
+}
+```
+
+**`android/app/build.gradle`**
+
+```gradle
+android {
+  namespace "com.gabai.app"
+  compileSdk 35
+  defaultConfig { targetSdk 35; minSdk 23 }
+  compileOptions {
+    coreLibraryDesugaringEnabled true
+    sourceCompatibility JavaVersion.VERSION_21
+    targetCompatibility JavaVersion.VERSION_21
+  }
+  kotlinOptions { jvmTarget = '21' }
+}
+dependencies {
+  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
+}
+```
+
+**`android/gradle.properties`**
+
+```
+org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+android.useAndroidX=true
+android.enableJetifier=true
+```
+
+> Why: AGP **8.7.2** + Gradle **8.9** + **compile/target 35** + **Java 21** = peace in the valley. Matches your Capacitor/AndroidX reality.
+
+## 2) CI that “just works” (free)
+
+Create `.github/workflows/android-ci.yml`:
+
+```yaml
+name: Android CI (Capacitor)
+on:
+  workflow_dispatch:
+  push: { branches: [ main ] }
+
+jobs:
+  build-android:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
+
+      - name: Install deps & build web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Sync Capacitor → Android
+        run: |
+          npx cap sync android
+
+      - name: Assemble Release
+        working-directory: android
+        run: ./gradlew assembleRelease --stacktrace
+```
+
+## 3) App signing (Play-ready)
+
+Generate once on your dev box:
+
+```bash
+keytool -genkeypair -v -storetype JKS -keystore gabai-keystore.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias gabai
+```
+
+Commit **not** the file—store it as a GitHub secret:
+
+* Upload `gabai-keystore.jks` to **Actions → Secrets and variables → Actions → Repository variables** as an **encrypted file** via GitHub’s artifacts step (or store in private storage and fetch in CI).
+* Set secrets:
+
+  * `ANDROID_KEYSTORE_BASE64` (base64 of the JKS)
+  * `ANDROID_KEY_ALIAS`
+  * `ANDROID_KEY_PASSWORD`
+  * `ANDROID_KEYSTORE_PASSWORD`
+
+Add a CI step before `assembleRelease`:
+
+```yaml
+      - name: Restore keystore
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/gabai-keystore.jks
+      - name: Configure signing
+        working-directory: android
+        run: |
+          cat >> app/signing.gradle <<'EOF'
+          android {
+            signingConfigs {
+              release {
+                storeFile file("gabai-keystore.jks")
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+              }
+            }
+            buildTypes {
+              release {
+                signingConfig signingConfigs.release
+                minifyEnabled false
+                shrinkResources false
+              }
+            }
+          }
+          EOF
+          echo "apply from: 'app/signing.gradle'" >> app/build.gradle
+```
+
+Result: CI outputs a signed `app-release.apk`/`app-release.aab` every push to `main`.
+
+## 4) Local build (only if you must)
+
+* Install **JDK 21**, Android SDK 35, Gradle 8.9 wrapper.
+* Then:
+
+  ```bash
+  npm ci && npm run build
+  npx cap sync android
+  cd android && ./gradlew assembleDebug
+  ```
+
+## 5) Expo Go vs “built right”
+
+* **Expo Go** = fast demo, **not** your native plugin stack (alarms, calendar, etc.).
+* You’re on web + Capacitor. You don’t need Expo. Stay the course and ship.
+
+## 6) iOS later without tears
+
+* Mirror the approach with **Xcode 15/16**, CocoaPods 1.15+, **iOS 13+** min, and **GitHub Actions macOS runner**. Same concept: pin toolchains, sign in CI.
+
+---
+
+### Where this leaves you
+
+* Reproducible builds.
+* No surprise Gradle kvetching.
+* Store-ready signing aligned to CI.
+* Stays compatible with your voice, alarms, calendar, OCR, and monetization stack.
+
+If you want, I’ll drop **all the above as ready-to-commit files** (workflow, Gradle pins, signing hook) tailored to your repo name (`gabai-beta` or whatever you choose). Just say the word and give me the repo path.
