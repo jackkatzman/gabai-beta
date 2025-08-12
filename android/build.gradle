@@ -50,7 +50,6 @@ allprojects {
         
         // Java 17 toolchain for all modules
         tasks.withType(JavaCompile).configureEach {
-            options.release = 17
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
