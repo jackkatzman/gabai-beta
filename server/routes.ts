@@ -1192,32 +1192,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced OCR endpoint for business card processing
   app.post("/api/ocr/business-card", upload.single("image"), async (req, res) => {
     try {
+      console.log("📄 Business card processing started");
+      
       if (!req.file) {
+        console.log("❌ No image file provided");
         return res.status(400).json({ message: "Image file is required" });
       }
 
       const { userId } = req.body;
       if (!userId) {
+        console.log("❌ No user ID provided");
         return res.status(400).json({ message: "User ID is required" });
       }
 
+      console.log(`📸 Processing image for user: ${userId}`);
+      console.log(`📐 Image size: ${req.file.size} bytes`);
+
       // Convert image buffer to base64
       const base64Image = req.file.buffer.toString('base64');
+      console.log("🔄 Image converted to base64");
       
       // Extract text using OpenAI Vision
+      console.log("🔍 Extracting text with OpenAI Vision...");
       const extractedText = await extractTextFromImage(base64Image);
+      console.log(`📝 Extracted text: ${extractedText.substring(0, 100)}...`);
       
       // Extract contact information
+      console.log("👤 Parsing contact information...");
       const contactInfo = extractContactFromText(extractedText);
+      console.log("📊 Contact info extracted:", contactInfo);
       
       // Create the contact
+      console.log("💾 Creating contact in database...");
       const newContact = await storage.createContact({
         ...contactInfo,
         userId,
         source: "business_card"
       });
+      console.log("✅ Contact created with ID:", newContact.id);
 
       // Create follow-up reminder
+      console.log("⏰ Creating follow-up reminder...");
       const followUpTitle = `Follow up with ${newContact.firstName || 'new contact'}${newContact.lastName ? ' ' + newContact.lastName : ''}`;
       await storage.createReminder({
         userId,
@@ -1226,6 +1241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
         category: "Follow-up"
       });
+      console.log("✅ Follow-up reminder created");
 
       res.json({
         contact: newContact,
@@ -1233,8 +1249,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `Contact saved and follow-up reminder created for ${newContact.firstName || 'contact'}`
       });
     } catch (error: any) {
-      console.error("Business card OCR error:", error);
-      res.status(500).json({ message: error.message });
+      console.error("❌ Business card OCR error:", error);
+      res.status(500).json({ 
+        message: error.message,
+        details: error.stack 
+      });
     }
   });
 

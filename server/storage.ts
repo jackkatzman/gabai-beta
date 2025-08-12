@@ -484,8 +484,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: users.id,
         email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
+        name: users.name,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
       })
@@ -504,7 +503,7 @@ export class DatabaseStorage implements IStorage {
 
         return {
           id: user.id,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous',
+          name: user.name || 'Anonymous',
           email: user.email || 'No email',
           createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
           lastActive: user.updatedAt?.toISOString() || user.createdAt?.toISOString() || new Date().toISOString(),
