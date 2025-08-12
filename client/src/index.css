@@ -8,23 +8,17 @@ html, body {
   max-width: 100vw !important;
 }
 
-/* CRITICAL: Fix text direction issues globally */
-* {
+/* CRITICAL: Fix input field text direction only */
+input, textarea, [contenteditable] {
   direction: ltr !important;
   unicode-bidi: normal !important;
-}
-
-/* Allow natural text direction for content that should flow naturally */
-.chat-message-text, .user-content, .list-item-text {
-  direction: ltr !important;
-  unicode-bidi: plaintext !important;
-}
-
-/* Fix text direction in shared lists specifically */
-.shared-list-item {
-  direction: ltr !important;
-  unicode-bidi: plaintext !important;
   text-align: left !important;
+}
+
+/* Allow natural text direction for content - use plaintext for proper RTL/LTR detection */
+.chat-message-text, .user-content, .list-item-text, .shared-list-item {
+  unicode-bidi: plaintext !important;
+  text-align: start !important;
 }
 
 /* Force fullscreen viewport on mobile */

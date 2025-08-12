@@ -180,11 +180,15 @@ export function SharedListPage() {
                     onCheckedChange={() => handleToggleItem(item)}
                   />
                   <span
-                    className={`flex-1 shared-list-item ${
+                    className={`flex-1 ${
                       item.completed
                         ? "line-through text-gray-500 dark:text-gray-400"
                         : "text-gray-900 dark:text-white"
                     }`}
+                    style={{ 
+                      unicodeBidi: 'plaintext',
+                      textAlign: 'start'
+                    }}
                   >
                     {item.name}
                   </span>
