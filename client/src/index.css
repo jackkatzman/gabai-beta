@@ -72,6 +72,24 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Improve touch handling for drag and drop */
+.dnd-touch-handle {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Prevent text selection during drag */
+.dnd-container.dragging {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 /* Main app container should fill viewport */
 #root {
   width: 100vw;

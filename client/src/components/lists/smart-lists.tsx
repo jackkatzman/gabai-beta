@@ -178,7 +178,20 @@ function SortableItem({ item, onToggle, onDelete }: SortableItemProps) {
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 touch-none"
+        style={{ touchAction: 'none' }}
+        onTouchStart={(e) => {
+          // Prevent body scroll during drag
+          document.body.style.overflow = 'hidden';
+        }}
+        onTouchEnd={(e) => {
+          // Restore body scroll after drag
+          document.body.style.overflow = '';
+        }}
+        onMouseDown={(e) => {
+          // Prevent text selection during drag
+          e.preventDefault();
+        }}
       >
         <GripVertical className="h-4 w-4" />
       </div>
@@ -350,9 +363,13 @@ export function SmartLists({ user }: SmartListsProps) {
     },
   });
 
-  // Drag sensors for touch and mouse
+  // Drag sensors for touch and mouse with improved touch handling
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before starting drag
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -361,6 +378,9 @@ export function SmartLists({ user }: SmartListsProps) {
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
+    // Always restore body scroll when drag ends
+    document.body.style.overflow = '';
 
     if (!over || active.id === over.id) {
       return;
@@ -824,6 +844,14 @@ export function SmartLists({ user }: SmartListsProps) {
                       sensors={sensors}
                       collisionDetection={closestCenter}
                       onDragEnd={handleDragEnd}
+                      onDragStart={() => {
+                        // Disable body scroll during drag
+                        document.body.style.overflow = 'hidden';
+                      }}
+                      onDragCancel={() => {
+                        // Restore body scroll if drag is cancelled
+                        document.body.style.overflow = '';
+                      }}
                     >
                       <div className="space-y-4">
                         {categorizedItems.map(({ category, items }) => {
