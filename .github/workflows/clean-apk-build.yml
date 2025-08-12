@@ -1,0 +1,87 @@
+name: 🔧 Clean APK Build
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync to Android
+        run: npx cap sync android
+
+      - name: Debug Android structure
+        run: |
+          echo "=== Android directory structure ==="
+          ls -la android/
+          echo "=== Gradle wrapper ==="
+          ls -la android/gradlew*
+          echo "=== Build files ==="
+          ls -la android/*.gradle android/app/*.gradle
+          echo "=== Gradle properties ==="
+          cat android/gradle.properties
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Gradle info
+        working-directory: android
+        run: ./gradlew --version --no-daemon
+
+      - name: Clean build
+        working-directory: android
+        run: ./gradlew clean --no-daemon --info --stacktrace
+        
+      - name: Build debug APK  
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --info --stacktrace
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+      - name: Verify APK
+        run: |
+          if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "✅ APK built successfully!"
+            ls -lh android/app/build/outputs/apk/debug/app-debug.apk
+          else
+            echo "❌ APK not found"
+            find android -name "*.apk" -type f
+          fi
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gabai-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
