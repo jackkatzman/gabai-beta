@@ -46,6 +46,8 @@ allprojects {
                     }
                 }
             }
+            
+
         }
         
         // Java 17 toolchain for all modules
@@ -53,6 +55,7 @@ allprojects {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
+
     }
 }
 
