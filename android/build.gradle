@@ -18,9 +18,24 @@ allprojects {
         mavenCentral()
     }
     
-    // Force consistent Java version across all modules
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
+    // Force Java 17 toolchain for ALL modules (including Capacitor plugins)
+    gradle.beforeProject { project ->
+        project.plugins.withId("org.gradle.java") {
+            project.java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        }
+        project.plugins.withId("com.android.application") {
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
+        project.plugins.withId("com.android.library") {
             project.android {
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
@@ -33,4 +48,27 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+// NUCLEAR OPTION: Force Java 17 everywhere after all projects are evaluated
+gradle.projectsEvaluated {
+    allprojects {
+        plugins.withType(JavaPlugin) {
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        }
+        afterEvaluate {
+            if (hasProperty('android')) {
+                android {
+                    compileOptions {
+                        sourceCompatibility JavaVersion.VERSION_17
+                        targetCompatibility JavaVersion.VERSION_17
+                    }
+                }
+            }
+        }
+    }
 }
