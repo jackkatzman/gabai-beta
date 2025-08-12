@@ -34,7 +34,7 @@ export async function categorizeItem(itemName: string, listType: string): Promis
 CATEGORIES:
 - Produce: Fresh fruits, vegetables, herbs (apples, bananas, lettuce, tomatoes, etc.)
 - Dairy: Milk, cheese, yogurt, butter, eggs, cream
-- Meat: Fresh meat, poultry, fish, deli meats (chicken, beef, salmon, pastrami, etc.)
+- Meat: Fresh meat, poultry, fish, deli meats, roasts (chicken, beef, salmon, pastrami, french roast, etc.)
 - Bakery: Bread, bagels, pastries, cakes, muffins
 - Frozen: Frozen foods, ice cream, frozen vegetables, frozen meals
 - Beverages: Drinks including coffee, tea, soda, juice, water, alcohol
@@ -43,12 +43,15 @@ CATEGORIES:
 - Pantry: Canned goods, pasta, rice, spices, condiments, oils
 - Other: Items that don't fit the above categories
 
-Respond with just the category name, nothing else. Be smart about context - for example:
-- "French roast" = Beverages (coffee)
+Respond with just the category name, nothing else. Be contextually smart:
+- "French roast" (if referring to meat cut) = Meat
+- "French roast coffee" = Beverages
 - "Coca-Cola, caffeine-free" = Beverages
 - "french fries, frozen" = Frozen
 - "pastrami" = Meat (deli meat)
-- "pizza, frozen" = Frozen`
+- "pizza, frozen" = Frozen
+
+Consider the full context of the item name to determine the most appropriate category.`
         },
         {
           role: "user",

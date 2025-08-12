@@ -797,7 +797,7 @@ const getSimpleCategory = (itemName: string): string => {
       };
       
       for (const [cat, items] of Object.entries(punchCategories)) {
-        if (items.some(work => itemName.includes(work))) {
+        if (items.some(work => newItemName.toLowerCase().includes(work))) {
           category = cat;
           break;
         }
@@ -807,7 +807,7 @@ const getSimpleCategory = (itemName: string): string => {
     setSelectedListId(listId);
     
     const template = listTypeTemplates[selectedList.type as keyof typeof listTypeTemplates];
-    const amount = template?.supportsCurrency ? parseCurrency(newItemAmount) : null;
+    const amount = (template as any)?.supportsCurrency ? parseCurrency(newItemAmount) : null;
     
     createItemMutation.mutate({
       listId,
