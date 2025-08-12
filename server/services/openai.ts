@@ -104,6 +104,10 @@ Guidelines:
     - ALARMS, WAKE-UP CALLS, "set alarm for", "wake me up at" → "create_alarm" action (NOT appointment)
     - General tasks (call mom, finish report, etc.) → "add_to_list" with "todo" type
     - Contact information (names with phone/email) → "create_contact" action
+    - BOOKS, READING (book titles, authors, reading lists) → "add_to_list" with "books" type
+    - MOVIES, FILMS (movie titles, watch lists) → "add_to_list" with "movies" type  
+    - TRAVEL, TRIPS (destinations, hotels, activities) → "add_to_list" with "travel" type
+    - GIFTS (gift ideas, birthdays, holidays) → "add_to_list" with "gifts" type
     
 11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
 

@@ -85,6 +85,26 @@ function isAppointmentItem(itemName: string): boolean {
   return appointmentKeywords.some(keyword => itemName.includes(keyword));
 }
 
+function isBooksItem(itemName: string): boolean {
+  const bookKeywords = ['book', 'read', 'novel', 'author', 'fiction', 'biography', 'textbook', 'manual', 'guide', 'literature'];
+  return bookKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
+}
+
+function isMoviesItem(itemName: string): boolean {
+  const movieKeywords = ['movie', 'film', 'watch', 'cinema', 'netflix', 'streaming', 'series', 'episode', 'documentary', 'show'];
+  return movieKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
+}
+
+function isTravelItem(itemName: string): boolean {
+  const travelKeywords = ['travel', 'trip', 'vacation', 'hotel', 'flight', 'destination', 'visit', 'tour', 'booking', 'reservation'];
+  return travelKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
+}
+
+function isGiftsItem(itemName: string): boolean {
+  const giftKeywords = ['gift', 'present', 'birthday', 'holiday', 'christmas', 'anniversary', 'wedding', 'graduation', 'baby shower'];
+  return giftKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
+}
+
 function getListConfig(type: string) {
   const configs = {
     shopping: {
@@ -131,6 +151,26 @@ function getListConfig(type: string) {
       name: "Kitchen/Menu Tasks",
       type: "menu_list" as const,
       categories: ["Ingredients", "Equipment", "Staff", "Menu Items", "Supplies", "Vendors"]
+    },
+    books: {
+      name: "Reading List",
+      type: "books" as const,
+      categories: ["Fiction", "Non-Fiction", "Biographies", "Technical", "Self-Help", "To Read"]
+    },
+    movies: {
+      name: "Movie Watchlist",
+      type: "movies" as const,
+      categories: ["Action", "Comedy", "Drama", "Sci-Fi", "Documentary", "To Watch"]
+    },
+    travel: {
+      name: "Travel Plans",
+      type: "travel" as const,
+      categories: ["Destinations", "Hotels", "Activities", "Restaurants", "Packing", "Bookings"]
+    },
+    gifts: {
+      name: "Gift Ideas",
+      type: "gifts" as const,
+      categories: ["Birthday", "Holiday", "Anniversary", "Wedding", "Baby Shower", "Graduation"]
     }
   };
   
@@ -497,6 +537,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     });
                   }
                   continue; // Skip adding to lists, added to calendar instead
+                } else if (isBooksItem(itemName)) {
+                  targetList = lists.find(list => list.type === "books");
+                } else if (isMoviesItem(itemName)) {
+                  targetList = lists.find(list => list.type === "movies");
+                } else if (isTravelItem(itemName)) {
+                  targetList = lists.find(list => list.type === "travel");
+                } else if (isGiftsItem(itemName)) {
+                  targetList = lists.find(list => list.type === "gifts");
                 } else if (isShoppingItem(itemName)) {
                   targetList = lists.find(list => list.type === "shopping");
                 } else if (isPunchListItem(itemName)) {

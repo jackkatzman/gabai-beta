@@ -27,7 +27,11 @@ import {
   Wrench,
   Clock,
   CheckCircle2,
-  GripVertical
+  GripVertical,
+  BookOpen,
+  Film,
+  MapPin,
+  Gift
 } from "lucide-react";
 import {
   DndContext,
@@ -82,6 +86,30 @@ const listTypeTemplates = {
     categories: ["Work", "Personal", "Urgent", "Later"],
     icon: CheckCircle2,
     color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+  },
+  books: {
+    name: "Reading List",
+    categories: ["Fiction", "Non-Fiction", "Biographies", "Technical", "Self-Help", "To Read"],
+    icon: BookOpen,
+    color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
+  },
+  movies: {
+    name: "Movie Watchlist",
+    categories: ["Action", "Comedy", "Drama", "Sci-Fi", "Documentary", "To Watch"],
+    icon: Film,
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  },
+  travel: {
+    name: "Travel Plans",
+    categories: ["Destinations", "Hotels", "Activities", "Restaurants", "Packing", "Bookings"],
+    icon: MapPin,
+    color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200"
+  },
+  gifts: {
+    name: "Gift Ideas",
+    categories: ["Birthday", "Holiday", "Anniversary", "Wedding", "Baby Shower", "Graduation"],
+    icon: Gift,
+    color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200"
   }
 };
 
