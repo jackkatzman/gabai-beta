@@ -299,9 +299,16 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
-              {item.name}
-            </p>
+            <div className="flex items-center space-x-2">
+              {/* Category Icon */}
+              {item.category && (() => {
+                const Icon = getCategoryIcon(item.category);
+                return <Icon className={`h-4 w-4 ${getCategoryColor(item.category)}`} />;
+              })()}
+              <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
+                {item.name}
+              </p>
+            </div>
             {showCurrency && item.amount && (
               <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(item.amount, item.currency)}
@@ -1330,6 +1337,11 @@ export function SmartLists({ user }: SmartListsProps) {
                             <div key={category}>
                               <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
                                 <div className="flex items-center">
+                                  {/* Category Icon in Header */}
+                                  {(() => {
+                                    const Icon = getCategoryIcon(category);
+                                    return <Icon className={`h-4 w-4 mr-2 ${getCategoryColor(category)}`} />;
+                                  })()}
                                   <span className="mr-2">{category}</span>
                                   <Badge variant="secondary" className="text-xs">
                                     {items.filter(item => !item.completed).length}
