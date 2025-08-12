@@ -913,8 +913,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generic list item routes (used by frontend)
   app.post("/api/list-items", async (req, res) => {
     try {
+      console.log("📦 Creating list item with data:", req.body);
       const itemData = insertListItemSchema.parse(req.body);
+      console.log("✅ Parsed item data:", itemData);
       const item = await storage.createListItem(itemData);
+      console.log("💾 Created item in database:", item);
       res.json(item);
     } catch (error: any) {
       console.error("Create list item error:", error);
