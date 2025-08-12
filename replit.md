@@ -8,6 +8,7 @@ GabAi is a voice-first personal assistant web application providing AI-powered c
 - **Contact Creation from Chat Fixed** (Aug 12): Completely restored AI's ability to create contacts from simple text like "John Smith 555-123-4567". Enhanced AI system prompts with contact detection patterns and improved error handling for seamless contact creation from conversations.
 - **Drag-and-Drop List Reordering Added** (Aug 12): Added full drag-and-drop functionality to smart lists, just like popular task manager apps. Users can now grab the drag handle (grip icon) and reorder items within categories. Changes save automatically to backend with position tracking. Includes touch support for mobile devices.
 - **Enhanced Settings Page** (Aug 11): Made settings fully editable with comprehensive personalization fields including profession, interests, dietary restrictions, communication style, and family details. All changes save to backend and help make GabAi responses more personalized and contextually relevant.
+- **Profession-Based List Creation** (Aug 12): Added intelligent profession-based automatic list generation during onboarding! When users enter their profession (teacher, contractor, doctor, chef, etc.), GabAi automatically creates relevant starter lists. Teachers get "School Supplies" and "Teaching Tasks", contractors get "Project Punch List" and "Tools & Materials", developers get "Development Tasks" and "Tech Reading", etc. Includes live preview in onboarding showing exactly which lists will be created.
 
 # User Preferences
 

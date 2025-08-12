@@ -105,6 +105,124 @@ function isGiftsItem(itemName: string): boolean {
   return giftKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
 }
 
+// Profession-based automatic list creation
+async function createProfessionLists(userId: string, profession: string) {
+  const professionLower = profession.toLowerCase();
+  
+  const professionListsMap = {
+    // Teachers & Education
+    teacher: [
+      { type: "shopping", name: "School Supplies", categories: ["Classroom Materials", "Art Supplies", "Office Supplies", "Educational Tools"] },
+      { type: "todo", name: "Teaching Tasks", categories: ["Lesson Plans", "Grading", "Parent Meetings", "Professional Development"] },
+      { type: "books", name: "Educational Reading", categories: ["Curriculum", "Teaching Methods", "Student Resources", "Professional Growth"] }
+    ],
+    educator: [
+      { type: "shopping", name: "Educational Supplies", categories: ["Learning Materials", "Technology", "Books", "Equipment"] },
+      { type: "todo", name: "Education Tasks", categories: ["Curriculum", "Assessment", "Training", "Administration"] }
+    ],
+    
+    // Contractors & Construction
+    contractor: [
+      { type: "punch_list", name: "Project Punch List", categories: ["Electrical", "Plumbing", "Painting", "General", "Final Inspection"] },
+      { type: "shopping", name: "Tools & Materials", categories: ["Hardware", "Tools", "Safety Equipment", "Supplies"] },
+      { type: "todo", name: "Business Tasks", categories: ["Quotes", "Permits", "Scheduling", "Client Follow-up"] }
+    ],
+    builder: [
+      { type: "punch_list", name: "Construction Tasks", categories: ["Foundation", "Framing", "Electrical", "Plumbing", "Finishing"] },
+      { type: "shopping", name: "Building Materials", categories: ["Lumber", "Hardware", "Tools", "Safety Gear"] }
+    ],
+    
+    // Real Estate
+    realtor: [
+      { type: "todo", name: "Real Estate Tasks", categories: ["Listings", "Showings", "Client Meetings", "Paperwork"] },
+      { type: "travel", name: "Property Visits", categories: ["Open Houses", "Client Tours", "Inspections", "Appraisals"] },
+      { type: "gifts", name: "Client Appreciation", categories: ["Closing Gifts", "Holiday Cards", "Referral Thanks", "New Home"] }
+    ],
+    
+    // Healthcare
+    doctor: [
+      { type: "todo", name: "Patient Care", categories: ["Appointments", "Follow-ups", "Documentation", "Continuing Education"] },
+      { type: "books", name: "Medical Reading", categories: ["Research", "Journals", "Guidelines", "Professional Development"] }
+    ],
+    nurse: [
+      { type: "todo", name: "Nursing Tasks", categories: ["Patient Care", "Medications", "Documentation", "Training"] },
+      { type: "shopping", name: "Medical Supplies", categories: ["Personal Protective Equipment", "Stethoscope", "Supplies", "Uniforms"] }
+    ],
+    
+    // Technology
+    developer: [
+      { type: "todo", name: "Development Tasks", categories: ["Features", "Bug Fixes", "Testing", "Code Review"] },
+      { type: "books", name: "Tech Reading", categories: ["Programming", "Architecture", "DevOps", "Industry Trends"] }
+    ],
+    programmer: [
+      { type: "todo", name: "Programming Tasks", categories: ["Coding", "Debugging", "Documentation", "Learning"] },
+      { type: "books", name: "Programming Books", categories: ["Languages", "Frameworks", "Best Practices", "Algorithms"] }
+    ],
+    
+    // Creative & Design
+    designer: [
+      { type: "todo", name: "Design Projects", categories: ["Client Work", "Concepts", "Revisions", "Portfolio"] },
+      { type: "shopping", name: "Design Supplies", categories: ["Software", "Hardware", "Inspiration", "Tools"] }
+    ],
+    
+    // Business & Finance
+    manager: [
+      { type: "todo", name: "Management Tasks", categories: ["Team Meetings", "Reports", "Planning", "Reviews"] },
+      { type: "books", name: "Leadership Reading", categories: ["Management", "Strategy", "Leadership", "Industry"] }
+    ],
+    
+    // Sales & Marketing
+    salesperson: [
+      { type: "todo", name: "Sales Activities", categories: ["Leads", "Follow-ups", "Presentations", "Networking"] },
+      { type: "travel", name: "Client Visits", categories: ["Meetings", "Conferences", "Trade Shows", "Presentations"] }
+    ],
+    
+    // Food Service
+    chef: [
+      { type: "shopping", name: "Kitchen Supplies", categories: ["Ingredients", "Equipment", "Utensils", "Uniforms"] },
+      { type: "todo", name: "Kitchen Tasks", categories: ["Menu Planning", "Prep Work", "Inventory", "Staff Training"] }
+    ],
+    cook: [
+      { type: "shopping", name: "Cooking Supplies", categories: ["Ingredients", "Spices", "Tools", "Equipment"] },
+      { type: "todo", name: "Meal Planning", categories: ["Recipes", "Prep", "Shopping", "Special Diets"] }
+    ]
+  };
+  
+  // Find matching profession (check for partial matches)
+  let listsToCreate = [];
+  for (const [prof, lists] of Object.entries(professionListsMap)) {
+    if (professionLower.includes(prof) || prof.includes(professionLower)) {
+      listsToCreate = lists;
+      break;
+    }
+  }
+  
+  // If no specific profession match, create basic professional lists
+  if (listsToCreate.length === 0) {
+    listsToCreate = [
+      { type: "todo", name: "Work Tasks", categories: ["Projects", "Meetings", "Deadlines", "Follow-ups"] },
+      { type: "shopping", name: "Office Supplies", categories: ["Stationery", "Technology", "Equipment", "Supplies"] }
+    ];
+  }
+  
+  // Create the lists
+  for (const listConfig of listsToCreate) {
+    try {
+      await storage.createSmartList({
+        userId,
+        name: listConfig.name,
+        type: listConfig.type,
+        categories: listConfig.categories,
+        description: `Automatically created for ${profession}`,
+        isShared: false
+      });
+      console.log(`✅ Created ${listConfig.type} list: ${listConfig.name}`);
+    } catch (error) {
+      console.error(`❌ Failed to create list ${listConfig.name}:`, error);
+    }
+  }
+}
+
 function getListConfig(type: string) {
   const configs = {
     shopping: {
@@ -311,6 +429,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.updateUser(req.params.id, updates);
       console.log("✅ User updated successfully:", user.id);
+      
+      // If this is completing onboarding and user has a profession, create profession-specific lists
+      if (updates.onboardingCompleted && updates.profession) {
+        console.log("🎯 Creating profession-specific lists for:", updates.profession);
+        await createProfessionLists(user.id, updates.profession);
+      }
       
       // Update the session with the new user data
       req.user = user;

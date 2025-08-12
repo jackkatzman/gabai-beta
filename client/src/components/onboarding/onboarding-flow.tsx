@@ -6,10 +6,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Mic, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { Mic, X, ArrowLeft, ArrowRight, CheckCircle, List, Briefcase } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { detectUserTimezone, getCommonTimezones } from "@/lib/timezone";
 import type { OnboardingData } from "@/types";
+
+// Helper function to get profession-specific lists preview
+function getProfessionLists(profession: string): string[] {
+  const professionLower = profession.toLowerCase();
+  
+  const professionListsMap: Record<string, string[]> = {
+    teacher: ["School Supplies", "Teaching Tasks", "Educational Reading"],
+    educator: ["Educational Supplies", "Education Tasks"],
+    contractor: ["Project Punch List", "Tools & Materials", "Business Tasks"],
+    builder: ["Construction Tasks", "Building Materials"],
+    realtor: ["Real Estate Tasks", "Property Visits", "Client Appreciation"],
+    doctor: ["Patient Care", "Medical Reading"],
+    nurse: ["Nursing Tasks", "Medical Supplies"],
+    developer: ["Development Tasks", "Tech Reading"],
+    programmer: ["Programming Tasks", "Programming Books"],
+    designer: ["Design Projects", "Design Supplies"],
+    manager: ["Management Tasks", "Leadership Reading"],
+    salesperson: ["Sales Activities", "Client Visits"],
+    chef: ["Kitchen Supplies", "Kitchen Tasks"],
+    cook: ["Cooking Supplies", "Meal Planning"]
+  };
+  
+  // Find matching profession
+  for (const [prof, lists] of Object.entries(professionListsMap)) {
+    if (professionLower.includes(prof) || prof.includes(professionLower)) {
+      return lists;
+    }
+  }
+  
+  // Default lists for unknown professions
+  return ["Work Tasks", "Office Supplies"];
+}
 
 interface OnboardingFlowProps {
   onComplete: (data: OnboardingData) => void;
@@ -229,6 +261,22 @@ function BasicInfoStep({ data, updateData, onNext, onPrev }: {
             placeholder="Software Engineer"
             className="mt-1"
           />
+          {data.profession && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 mb-2">
+                <Briefcase className="h-4 w-4" />
+                <span className="text-sm font-medium">Lists we'll create for you:</span>
+              </div>
+              <div className="text-sm text-blue-600 dark:text-blue-400">
+                {getProfessionLists(data.profession).map((list, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <List className="h-3 w-3" />
+                    <span>{list}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
