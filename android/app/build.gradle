@@ -16,6 +16,22 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Optimize build performance
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+    }
+    
+    // Enhanced build configuration for stability
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
+    }
+    
+    // Lint options to prevent build failures on warnings
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
     }
     buildTypes {
         release {

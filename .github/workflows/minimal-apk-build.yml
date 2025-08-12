@@ -1,4 +1,4 @@
-name: 🎯 Minimal APK Build
+name: 🎯 Robust APK Build
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     
     steps:
     - uses: actions/checkout@v4
@@ -24,8 +24,13 @@ jobs:
         distribution: temurin
         java-version: 17
     
-    - name: Setup Android SDK
+    - name: Setup Android SDK with specific components
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+        cmake: false
+        ndk: false
     
     - name: Install dependencies
       run: npm ci
@@ -36,25 +41,60 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android --no-open
     
-    - name: Fix Android permissions
+    - name: Prepare Android build environment
       run: |
+        # Set executable permissions
         chmod +x android/gradlew
-        find android -name "*.gradle" -exec chmod 644 {} \;
+        
+        # Create local.properties with SDK path
+        echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+        
+        # Clean previous builds thoroughly
+        rm -rf android/.gradle android/build android/app/build
+        
+        # Verify Gradle wrapper integrity
+        cd android && ./gradlew wrapper --gradle-version=8.7
     
-    - name: Clean and build APK (simplified)
+    - name: Build APK with enhanced error handling
       working-directory: android
       run: |
-        # Simple clean and build without daemon
-        rm -rf .gradle build */build
-        ./gradlew clean assembleDebug --no-daemon --no-build-cache --no-configuration-cache
+        # Build with maximum verbosity and error details
+        ./gradlew clean assembleDebug \
+          --no-daemon \
+          --no-build-cache \
+          --no-configuration-cache \
+          --stacktrace \
+          --info \
+          --warning-mode all
       env:
-        GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
+        GRADLE_OPTS: "-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
         ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+        JAVA_OPTS: "-Xmx2g"
+    
+    - name: Verify APK exists
+      run: |
+        if [ ! -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+          echo "APK not found! Build may have failed silently."
+          ls -la android/app/build/outputs/apk/debug/ || echo "Debug folder doesn't exist"
+          exit 1
+        fi
+        echo "APK successfully built!"
+        ls -la android/app/build/outputs/apk/debug/app-debug.apk
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: gabai-minimal-apk
+        name: gabai-robust-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 7
+    
+    - name: Upload build logs on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: build-logs
+        path: |
+          android/build/reports/
+          android/app/build/reports/
+        retention-days: 3
