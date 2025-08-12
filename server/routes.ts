@@ -436,11 +436,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 category: "Appointment"
               });
             } else if (action.type === "create_contact" && action.data?.contact) {
-              // Handle contact creation from business card
+              // Handle contact creation from chat or business card
               const contactData = {
                 userId,
                 ...action.data.contact,
-                source: "business_card"
+                source: action.data.contact.source || "chat_message"
               };
               
               const newContact = await storage.createContact(contactData);

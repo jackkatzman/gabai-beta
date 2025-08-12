@@ -103,8 +103,16 @@ Guidelines:
     - Appointments, meetings, doctor visits → "create_appointment" action
     - ALARMS, WAKE-UP CALLS, "set alarm for", "wake me up at" → "create_alarm" action (NOT appointment)
     - General tasks (call mom, finish report, etc.) → "add_to_list" with "todo" type
+    - Contact information (names with phone/email) → "create_contact" action
     
 11. IMPORTANT: When users say "chocolate", "buy chocolate", or any food item, ALWAYS use "shopping" listType
+
+12. CONTACT DETECTION: When users provide contact information, automatically create contacts:
+    - Look for patterns like: "John Smith 555-123-4567", "Save contact: Mary Jones mary@email.com", etc.
+    - If message contains name + phone number OR name + email, create a contact
+    - Extract first name, last name, phone, email, company, job title from the text
+    - Always create a follow-up reminder when creating contacts
+    - Example triggers: "Add contact", "Save this person", "John 555-1234", "Mary Jones mary@email.com"
 
 CURRENT DATE: ${new Date().toISOString().split('T')[0]} (TODAY)
 TIMEZONE: Eastern Time (EST/EDT) - Use -05:00 or -04:00 offset
@@ -165,6 +173,31 @@ For alarms/wake-up calls:
           "title": "Wake up message",
           "description": "optional description",
           "date": "${new Date().toISOString().split('T')[0]}T06:30:00.000Z"
+        }
+      }
+    }
+  ]
+}
+
+For contact creation:
+{
+  "content": "I've created a contact for you!",
+  "actions": [
+    {
+      "type": "create_contact",
+      "data": {
+        "contact": {
+          "firstName": "John",
+          "lastName": "Doe",
+          "phone": "555-123-4567",
+          "email": "john@example.com",
+          "company": "ABC Corp",
+          "jobTitle": "Manager"
+        },
+        "reminder": {
+          "title": "Follow up with John Doe",
+          "description": "New contact added from conversation",
+          "category": "Follow-up"
         }
       }
     }
