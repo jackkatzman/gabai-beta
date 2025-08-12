@@ -59,6 +59,15 @@ import { registerApkRoutes } from "./apk-routes";
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper functions for smart list management
+function isPaymentItem(itemName: string): boolean {
+  const paymentKeywords = [
+    'payment', 'pay', 'bill', 'invoice', 'contractor', 'vendor', 'service', 'rent', 'mortgage', 
+    'utilities', 'subscription', 'fee', '$', 'dollar', 'cost', 'expense', 'owe', 'due', 'electric',
+    'gas', 'water', 'internet', 'phone', 'insurance', 'taxes', 'credit card', 'loan', 'installment'
+  ];
+  return paymentKeywords.some(keyword => itemName.toLowerCase().includes(keyword));
+}
+
 function isShoppingItem(itemName: string): boolean {
   const shoppingKeywords = [
     'milk', 'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'grocery', 'food', 'snack', 'drink', 
@@ -669,6 +678,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   targetList = lists.find(list => list.type === "travel");
                 } else if (isGiftsItem(itemName)) {
                   targetList = lists.find(list => list.type === "gifts");
+                } else if (isPaymentItem(itemName)) {
+                  targetList = lists.find(list => list.type === "payments");
                 } else if (isShoppingItem(itemName)) {
                   targetList = lists.find(list => list.type === "shopping");
                 } else if (isPunchListItem(itemName)) {
@@ -900,12 +911,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update list item (supporting both shopping-items and list-items routes)
   app.patch("/api/shopping-items/:id", async (req, res) => {
     try {
       const item = await storage.updateListItem(req.params.id, req.body);
       res.json(item);
     } catch (error: any) {
       console.error("Update shopping item error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/list-items/:id", async (req, res) => {
+    try {
+      console.log("🔄 Updating list item:", req.params.id, req.body);
+      const item = await storage.updateListItem(req.params.id, req.body);
+      console.log("✅ List item updated:", item);
+      res.json(item);
+    } catch (error: any) {
+      console.error("❌ Update list item error:", error);
       res.status(400).json({ message: error.message });
     }
   });

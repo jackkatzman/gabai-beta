@@ -40,7 +40,8 @@ import {
   X,
   Circle,
   DollarSign,
-  Calculator
+  Calculator,
+  Edit3
 } from "lucide-react";
 import {
   DndContext,
@@ -171,10 +172,18 @@ interface SortableItemProps {
   item: ListItem;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: (id: string, name: string, category: string, amount: string) => void;
   showCurrency?: boolean;
+  categories: string[];
+  isEditing?: boolean;
 }
 
-function SortableItem({ item, onToggle, onDelete, showCurrency = false }: SortableItemProps) {
+function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, categories, isEditing = false }: SortableItemProps) {
+  const [editName, setEditName] = useState(item.name);
+  const [editCategory, setEditCategory] = useState(item.category || "Other");
+  const [editAmount, setEditAmount] = useState(
+    item.amount ? formatCurrency(item.amount, item.currency) : ""
+  );
   const {
     attributes,
     listeners,
@@ -227,22 +236,72 @@ function SortableItem({ item, onToggle, onDelete, showCurrency = false }: Sortab
       />
       
       <div className="flex-1">
-        <div className="flex items-center justify-between">
-          <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
-            {item.name}
-          </p>
-          {showCurrency && item.amount && (
-            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-              {formatCurrency(item.amount, item.currency)}
-            </span>
-          )}
-        </div>
-        {item.assignedTo && (
+        {isEditing ? (
+          <div className="space-y-2">
+            <Input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="text-sm"
+              placeholder="Item name"
+            />
+            <div className="flex space-x-2">
+              <Select value={editCategory} onValueChange={setEditCategory}>
+                <SelectTrigger className="text-xs h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {showCurrency && (
+                <Input
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(formatCurrencyInput(e.target.value))}
+                  placeholder="$0.00"
+                  className="text-xs h-8 w-20"
+                />
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => onEdit(item.id, editName, editCategory, editAmount)}
+                className="h-6 text-xs"
+              >
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onEdit(item.id, item.name, item.category || "Other", 
+                  item.amount ? formatCurrency(item.amount, item.currency) : "")}
+                className="h-6 text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <p className={`text-sm ${item.completed ? "line-through" : ""}`}>
+              {item.name}
+            </p>
+            {showCurrency && item.amount && (
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(item.amount, item.currency)}
+              </span>
+            )}
+          </div>
+        )}
+        {!isEditing && item.assignedTo && (
           <p className="text-xs text-gray-500">
             Assigned to: {item.assignedTo}
           </p>
         )}
-        {item.notes && (
+        {!isEditing && item.notes && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
             {item.notes}
           </p>
@@ -255,13 +314,27 @@ function SortableItem({ item, onToggle, onDelete, showCurrency = false }: Sortab
         </Badge>
       )}
       
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onDelete}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      {!isEditing && (
+        <div className="flex space-x-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(item.id, item.name, item.category || "Other", 
+              item.amount ? formatCurrency(item.amount, item.currency) : "")}
+            className="h-8 w-8 p-0"
+          >
+            <Edit3 className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="h-8 w-8 p-0"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -279,6 +352,8 @@ export function SmartLists({ user }: SmartListsProps) {
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isVoiceAddingItem, setIsVoiceAddingItem] = useState(false);
   const [shareCode, setShareCode] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [editingItem, setEditingItem] = useState<{ id: string; name: string; amount: string; category: string } | null>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -375,6 +450,43 @@ export function SmartLists({ user }: SmartListsProps) {
       toast({
         title: "Error adding item",
         description: error.message || "Failed to add item to list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update item mutation
+  const updateItemMutation = useMutation({
+    mutationFn: ({ id, name, category, amount }: {
+      id: string;
+      name: string;
+      category: string;
+      amount?: string;
+    }) => {
+      const updateData: any = { name, category };
+      
+      if (amount && amount.trim()) {
+        const parsedAmount = parseCurrency(amount);
+        if (parsedAmount !== null) {
+          updateData.amount = parsedAmount;
+          updateData.currency = "USD";
+        }
+      }
+      
+      return api.updateListItem(id, updateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      setEditingItem(null);
+      toast({
+        title: "Item updated!",
+        description: "Item has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update item",
         variant: "destructive",
       });
     },
@@ -774,6 +886,48 @@ export function SmartLists({ user }: SmartListsProps) {
         </div>
       </div>
 
+      {/* List Navigation Tabs */}
+      {lists.length > 0 && (
+        <div className="border-b px-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 w-full mb-4">
+              <TabsTrigger value="all" className="text-xs">All Lists</TabsTrigger>
+              {lists.slice(0, 4).map((list) => {
+                const template = listTypeTemplates[list.type as keyof typeof listTypeTemplates] || listTypeTemplates.todo;
+                const Icon = template.icon;
+                return (
+                  <TabsTrigger key={list.id} value={list.id} className="text-xs flex items-center gap-1">
+                    <Icon className="h-3 w-3" />
+                    <span className="truncate max-w-[60px]">{list.name}</span>
+                  </TabsTrigger>
+                );
+              })}
+              {lists.length > 4 && (
+                <Select value={activeTab} onValueChange={setActiveTab}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="More..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lists.slice(4).map((list) => {
+                      const template = listTypeTemplates[list.type as keyof typeof listTypeTemplates] || listTypeTemplates.todo;
+                      const Icon = template.icon;
+                      return (
+                        <SelectItem key={list.id} value={list.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {list.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              )}
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
       {/* Lists */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {lists.length === 0 ? (
@@ -783,7 +937,9 @@ export function SmartLists({ user }: SmartListsProps) {
             </p>
           </div>
         ) : (
-          lists.map((list) => {
+          lists
+            .filter(list => activeTab === "all" || activeTab === list.id)
+            .map((list) => {
             const template = listTypeTemplates[list.type as keyof typeof listTypeTemplates] || listTypeTemplates.todo;
             const Icon = template.icon;
             const categorizedItems = sortItemsByCategory(list.items, list.categories || []);
@@ -1010,7 +1166,22 @@ export function SmartLists({ user }: SmartListsProps) {
                                       item={item}
                                       onToggle={() => toggleItemMutation.mutate(item.id)}
                                       onDelete={() => deleteItemMutation.mutate(item.id)}
+                                      onEdit={(id, name, category, amount) => {
+                                        if (editingItem?.id === id) {
+                                          // Save or cancel editing
+                                          if (name !== item.name || category !== (item.category || "Other") || amount !== (item.amount ? formatCurrency(item.amount, item.currency) : "")) {
+                                            updateItemMutation.mutate({ id, name, category, amount });
+                                          } else {
+                                            setEditingItem(null);
+                                          }
+                                        } else {
+                                          // Start editing
+                                          setEditingItem({ id, name, category, amount });
+                                        }
+                                      }}
                                       showCurrency={template?.supportsCurrency}
+                                      categories={list.categories || ["Other"]}
+                                      isEditing={editingItem?.id === item.id}
                                     />
                                   ))}
                                 </div>
