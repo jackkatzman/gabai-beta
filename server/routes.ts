@@ -53,6 +53,14 @@ import {
 } from "@shared/schema";
 import multer from "multer";
 import ical from "ical-generator";
+
+// Authentication middleware
+const isAuthenticated = (req: any, res: any, next: any) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: 'Authentication required' });
+};
 import passport from "passport";
 import elevenlabsRouter from './routes/elevenlabs';
 import { registerApkRoutes } from "./apk-routes";
@@ -1635,8 +1643,8 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  // Analytics dashboard (custom built-in dashboard)
-  app.get("/analytics", (req, res) => {
+  // Analytics dashboard (protected with authentication)  
+  app.get("/analytics", isAuthenticated, (req, res) => {
     const analyticsHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1651,7 +1659,14 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
         .metric-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
         .metric-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
-        .users { color: #3b82f6; } .messages { color: #10b981; } .lists { color: #8b5cf6; } .clicks { color: #f59e0b; }
+        .users { color: #3b82f6; } .messages { color: #10b981; } .lists { color: #8b5cf6; } .clicks { color: #f59e0b; } .reminders { color: #ef4444; } .contacts { color: #06b6d4; }
+        .user-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .user-table th, .user-table td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .user-table th { background-color: #f9fafb; font-weight: 600; }
+        .user-activity { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .activity-high { background-color: #dcfce7; color: #166534; }
+        .activity-medium { background-color: #fef3c7; color: #92400e; }
+        .activity-low { background-color: #fee2e2; color: #991b1b; }
         .refresh-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
@@ -1679,6 +1694,19 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
                 <div class="metric-value clicks" id="linkClicks">Loading...</div>
                 <div>Link Clicks</div>
             </div>
+            <div class="metric-card">
+                <div class="metric-value reminders" id="totalReminders">Loading...</div>
+                <div>Reminders</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value contacts" id="totalContacts">Loading...</div>
+                <div>Contacts</div>
+            </div>
+        </div>
+        
+        <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+            <h3 style="color: #374151; margin-top: 0;">Recent Active Users</h3>
+            <div id="recentUsers">Loading user data...</div>
         </div>
         <div style="background: white; border-radius: 16px; padding: 24px; text-align: center;">
             <h3 style="color: #374151;">✅ Production Status: All Systems Operational</h3>
@@ -1702,6 +1730,48 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
                 document.getElementById('totalMessages').textContent = data.totalMessages || '0';
                 document.getElementById('totalLists').textContent = data.totalLists || '0';
                 document.getElementById('linkClicks').textContent = data.linkClicks || '0';
+                document.getElementById('totalReminders').textContent = data.totalReminders || '0';
+                document.getElementById('totalContacts').textContent = data.totalContacts || '0';
+                
+                // Populate recent users table
+                const usersContainer = document.getElementById('recentUsers');
+                if (data.recentUsers && data.recentUsers.length > 0) {
+                    const table = \`
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Messages</th>
+                                    <th>Joined</th>
+                                    <th>Last Active</th>
+                                    <th>Activity Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                \${data.recentUsers.map(user => {
+                                    const messageCount = user.messageCount || 0;
+                                    const activityLevel = messageCount > 50 ? 'high' : messageCount > 10 ? 'medium' : 'low';
+                                    const activityLabel = messageCount > 50 ? 'High' : messageCount > 10 ? 'Medium' : 'Low';
+                                    
+                                    return \`
+                                        <tr>
+                                            <td>\${user.name}</td>
+                                            <td>\${user.email}</td>
+                                            <td>\${messageCount}</td>
+                                            <td>\${new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td>\${new Date(user.lastActive).toLocaleDateString()}</td>
+                                            <td><span class="user-activity activity-\${activityLevel}">\${activityLabel}</span></td>
+                                        </tr>
+                                    \`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    \`;
+                    usersContainer.innerHTML = table;
+                } else {
+                    usersContainer.innerHTML = '<p>No users found.</p>';
+                }
             } catch (error) {
                 console.error('Error loading analytics:', error);
             }
@@ -1730,14 +1800,36 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  // Simple analytics data endpoint for Metabase
-  app.get("/api/analytics/summary", async (req, res) => {
+  // Protected analytics data endpoint
+  app.get("/api/analytics/summary", isAuthenticated, async (req, res) => {
     try {
+      const [
+        totalUsers,
+        totalMessages, 
+        totalLists,
+        totalReminders,
+        totalContacts,
+        linkStats,
+        recentUsers
+      ] = await Promise.all([
+        storage.getUserCount(),
+        storage.getMessageCount(),
+        storage.getSmartListCount(),
+        storage.getReminderCount(),
+        storage.getContactCount(),
+        getLinkStats(),
+        storage.getRecentUsers(10)
+      ]);
+
       const summary = {
-        totalUsers: await storage.getUserCount(),
-        totalMessages: await storage.getMessageCount(),
-        totalLists: await storage.getSmartListCount(),
-        linkClicks: (await getLinkStats()).totalClicks,
+        totalUsers,
+        totalMessages,
+        totalLists,
+        totalReminders,
+        totalContacts,
+        linkClicks: linkStats.totalClicks,
+        totalLinks: linkStats.totalLinks,
+        recentUsers,
         timestamp: new Date().toISOString()
       };
 
