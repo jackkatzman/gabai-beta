@@ -57,4 +57,4 @@ temp/
 *.aab
 
 # But keep our specific beta APK location
-!public/downloads/gabai-beta.apk
+!public/downloads/gabai-beta.apkcertificates/

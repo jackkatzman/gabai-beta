@@ -1,0 +1,25 @@
+{
+  "title": "GabAi - Voice AI Assistant",
+  "id": "com.gabai.voiceassistant",
+  "framework": "Capacitor",
+  "template": "Capacitor-7",
+  "version": "1.0.0",
+  "buildType": "debug",
+  "platforms": ["android"],
+  "certificate": "",
+  "keystorePassword": "",
+  "keyAlias": "",
+  "keyPassword": "",
+  "description": "Voice-first AI assistant with smart lists and intelligent automation",
+  "author": "GabAi Team",
+  "permissions": [
+    "RECORD_AUDIO",
+    "INTERNET",
+    "ACCESS_NETWORK_STATE",
+    "WRITE_EXTERNAL_STORAGE",
+    "READ_EXTERNAL_STORAGE",
+    "CAMERA",
+    "VIBRATE",
+    "WAKE_LOCK"
+  ]
+}
