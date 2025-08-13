@@ -1,0 +1,101 @@
+name: 🛡️ Bulletproof Java 17 Build
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Setup Java 17 Only
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Verify Java Environment
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          javac -version
+          ls -la $JAVA_HOME/bin/
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          build-tools: 35.0.0
+          
+      - name: Install Dependencies & Build Web
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Nuclear Java 17 Enforcement
+        working-directory: android
+        run: |
+          # Set up local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          
+          # Force Java 17 in gradle.properties with explicit JAVA_HOME
+          echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+          
+          chmod +x gradlew
+          
+      - name: Debug Configuration
+        working-directory: android
+        run: |
+          echo "=== Gradle Properties ==="
+          cat gradle.properties
+          echo "=== Local Properties ==="
+          cat local.properties
+          echo "=== Sample Capacitor Build File ==="
+          head -20 capacitor-filesystem/build.gradle || echo "File not found"
+          
+      - name: Test Gradle Setup
+        working-directory: android
+        run: |
+          ./gradlew --version --no-daemon
+          
+      - name: Clean Build
+        working-directory: android
+        run: |
+          ./gradlew clean --no-daemon
+          
+      - name: Build APK
+        working-directory: android
+        run: |
+          ./gradlew assembleDebug --no-daemon --stacktrace --info
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+          GRADLE_OPTS: "-Xmx3g -Dorg.gradle.java.home=${{ env.JAVA_HOME }} -Dfile.encoding=UTF-8"
+          
+      - name: Verify APK Creation
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK created successfully!"
+            ls -lh "$APK_PATH"
+            file "$APK_PATH"
+          else
+            echo "❌ APK not found. Searching..."
+            find android -name "*.apk" -type f || echo "No APK files found"
+            exit 1
+          fi
+          
+      - name: Upload Bulletproof APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gabai-bulletproof-java17
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
