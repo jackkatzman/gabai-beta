@@ -1,12 +1,17 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+    
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.google.gms:google-services:4.4.2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
 
@@ -17,25 +22,13 @@ allprojects {
         google()
         mavenCentral()
     }
-    
-    // Force Java 17 toolchain for ALL modules (including Capacitor plugins)
-    gradle.beforeProject { project ->
-        project.plugins.withId("org.gradle.java") {
-            project.java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(17)
-                }
-            }
-        }
-        project.plugins.withId("com.android.application") {
-            project.android {
-                compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_17
-                    targetCompatibility JavaVersion.VERSION_17
-                }
-            }
-        }
-        project.plugins.withId("com.android.library") {
+}
+
+// ULTIMATE Java 17 enforcement for ALL subprojects
+allprojects {
+    afterEvaluate { project ->
+        // Force Java 17 for all Android plugins
+        if (project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
             project.android {
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
@@ -48,27 +41,4 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-// NUCLEAR OPTION: Force Java 17 everywhere after all projects are evaluated
-gradle.projectsEvaluated {
-    allprojects {
-        plugins.withType(JavaPlugin) {
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(17)
-                }
-            }
-        }
-        afterEvaluate {
-            if (hasProperty('android')) {
-                android {
-                    compileOptions {
-                        sourceCompatibility JavaVersion.VERSION_17
-                        targetCompatibility JavaVersion.VERSION_17
-                    }
-                }
-            }
-        }
-    }
 }

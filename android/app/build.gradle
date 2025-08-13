@@ -2,47 +2,18 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "ai.gabai.app"
-    compileSdk 35
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    
-
-    
+    compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "ai.gabai.app"
-        minSdk 23
-        targetSdk 35
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        
-        // Optimize build performance
-        multiDexEnabled true
-        vectorDrawables.useSupportLibrary = true
-    }
-    
-    // Enhanced build configuration for stability
-    packagingOptions {
-        pickFirst '**/libc++_shared.so'
-        pickFirst '**/libjsc.so'
-    }
-    
-    // Lint options to prevent build failures on warnings
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-        quiet true
-    }
-    
-    // Build types optimization
-    buildTypes {
-        debug {
-            minifyEnabled false
-            shrinkResources false
-            debuggable true
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
     buildTypes {
@@ -72,16 +43,6 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-// Ensure consistent Java 17 configuration after Capacitor setup
-afterEvaluate {
-    android {
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_17
-            targetCompatibility JavaVersion.VERSION_17
-        }
-    }
-}
 
 try {
     def servicesJSON = file('google-services.json')
