@@ -1,0 +1,663 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi - Voice Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366F1',
+                        secondary: '#8B5CF6',
+                        dark: '#0F172A',
+                        surface: '#1E293B',
+                        'surface-light': '#334155',
+                    },
+                    animation: {
+                        'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scale-in': 'scaleIn 0.2s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .recording-pulse {
+            animation: recording-pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes recording-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .message-bubble {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .tab-transition {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-dark text-slate-50 font-sans overflow-x-hidden">
+    <!-- @COMPONENT: AppContainer -->
+    <div class="min-h-screen flex flex-col max-w-md mx-auto relative">
+        
+        <!-- @COMPONENT: Header -->
+        <header class="bg-surface border-b border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold">GabAi</h1>
+                    <p class="text-xs text-slate-400" data-bind="user.status">Ready to help</p>
+                </div>
+            </div>
+            <button class="p-2 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-cog text-lg"></i>
+            </button>
+        </header>
+        <!-- @END_COMPONENT: Header -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 overflow-y-auto pb-20">
+            
+            <!-- Chat Tab -->
+            <div id="chat-tab" class="tab-content">
+                <!-- @COMPONENT: ChatMessages -->
+                <div class="p-4 space-y-4 min-h-[calc(100vh-200px)]">
+                    
+                    <!-- Welcome Message -->
+                    <div class="message-bubble flex justify-center">
+                        <div class="bg-surface-light rounded-2xl px-4 py-3 max-w-xs text-center">
+                            <p class="text-sm text-slate-300">Hi! I'm GabAi. Tap the mic to start talking or type below.</p>
+                        </div>
+                    </div>
+
+                    <!-- @MAP: messages.map(message => ( -->
+                    <!-- User Message -->
+                    <div class="message-bubble flex justify-end" data-mock="true">
+                        <div class="bg-primary rounded-2xl rounded-br-md px-4 py-3 max-w-xs">
+                            <p class="text-sm text-white" data-bind="message.text">Add milk and bread to my shopping list</p>
+                            <span class="text-xs text-blue-200 mt-1 block" data-bind="message.timestamp">2:34 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Response -->
+                    <div class="message-bubble flex justify-start" data-mock="true">
+                        <div class="bg-surface rounded-2xl rounded-bl-md px-4 py-3 max-w-xs">
+                            <p class="text-sm text-slate-100" data-bind="message.text">I've added milk and bread to your shopping list! Would you like me to organize them by category?</p>
+                            <span class="text-xs text-slate-400 mt-1 block" data-bind="message.timestamp">2:34 PM</span>
+                            <button class="mt-2 text-xs text-secondary hover:text-purple-300 flex items-center space-x-1" data-implementation="Play TTS audio">
+                                <i class="fas fa-volume-up"></i>
+                                <span>Play audio</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- User Message -->
+                    <div class="message-bubble flex justify-end" data-mock="true">
+                        <div class="bg-primary rounded-2xl rounded-br-md px-4 py-3 max-w-xs">
+                            <p class="text-sm text-white" data-bind="message.text">Yes, please organize them</p>
+                            <span class="text-xs text-blue-200 mt-1 block" data-bind="message.timestamp">2:35 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Response -->
+                    <div class="message-bubble flex justify-start" data-mock="true">
+                        <div class="bg-surface rounded-2xl rounded-bl-md px-4 py-3 max-w-xs">
+                            <p class="text-sm text-slate-100" data-bind="message.text">Perfect! I've organized your list:<br><strong>Dairy:</strong> Milk<br><strong>Bakery:</strong> Bread</p>
+                            <span class="text-xs text-slate-400 mt-1 block" data-bind="message.timestamp">2:35 PM</span>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+
+                    <!-- Typing Indicator -->
+                    <div id="typing-indicator" class="message-bubble flex justify-start hidden" data-state="isTyping">
+                        <div class="bg-surface rounded-2xl rounded-bl-md px-4 py-3">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- @END_COMPONENT: ChatMessages -->
+
+                <!-- @COMPONENT: VoiceInput -->
+                <div class="fixed bottom-24 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-4 z-40">
+                    <!-- Transcription Display -->
+                    <div id="transcription" class="hidden bg-surface rounded-lg px-4 py-2 max-w-xs text-center" data-state="isTranscribing">
+                        <p class="text-sm text-slate-300" data-bind="transcription.text">Listening...</p>
+                    </div>
+
+                    <!-- Voice Button -->
+                    <button id="voice-btn" class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95" data-event="click:handleVoiceInput">
+                        <i id="voice-icon" class="fas fa-microphone text-white text-xl"></i>
+                    </button>
+                    
+                    <!-- Status Text -->
+                    <p id="voice-status" class="text-xs text-slate-400 text-center">Tap to speak</p>
+                </div>
+                <!-- @END_COMPONENT: VoiceInput -->
+
+                <!-- @COMPONENT: TextInput -->
+                <div class="fixed bottom-24 left-0 right-0 px-4 z-30">
+                    <div class="bg-surface rounded-2xl border border-slate-600 overflow-hidden">
+                        <div class="flex items-end space-x-2 p-3">
+                            <input type="text" placeholder="Type a message..." class="flex-1 bg-transparent text-slate-100 placeholder-slate-400 outline-none resize-none max-h-20" data-event="keypress:handleKeyPress">
+                            <button class="p-2 text-slate-400 hover:text-primary transition-colors" data-event="click:handleSendMessage">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: TextInput -->
+            </div>
+
+            <!-- Lists Tab -->
+            <div id="lists-tab" class="tab-content hidden">
+                <!-- @COMPONENT: ListsView -->
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold">Shopping Lists</h2>
+                        <button class="p-2 bg-primary rounded-lg text-white hover:bg-blue-600 transition-colors" data-event="click:addNewList">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <!-- @MAP: lists.map(list => ( -->
+                    <!-- Grocery List -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600" data-mock="true">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-medium flex items-center space-x-2">
+                                <i class="fas fa-shopping-cart text-primary"></i>
+                                <span data-bind="list.name">Grocery List</span>
+                            </h3>
+                            <span class="text-xs text-slate-400" data-bind="list.itemCount">4 items</span>
+                        </div>
+
+                        <!-- Categories -->
+                        <div class="space-y-3">
+                            <!-- Dairy Category -->
+                            <div>
+                                <h4 class="text-sm font-medium text-slate-300 mb-2 flex items-center space-x-2">
+                                    <i class="fas fa-cheese text-yellow-400 text-xs"></i>
+                                    <span>Dairy</span>
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-3" data-mock="true">
+                                        <input type="checkbox" class="w-4 h-4 text-primary bg-surface-light border-slate-500 rounded focus:ring-primary">
+                                        <span class="text-sm" data-bind="item.name">Milk</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3" data-mock="true">
+                                        <input type="checkbox" checked class="w-4 h-4 text-primary bg-surface-light border-slate-500 rounded focus:ring-primary">
+                                        <span class="text-sm line-through text-slate-400" data-bind="item.name">Yogurt</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bakery Category -->
+                            <div>
+                                <h4 class="text-sm font-medium text-slate-300 mb-2 flex items-center space-x-2">
+                                    <i class="fas fa-bread-slice text-orange-400 text-xs"></i>
+                                    <span>Bakery</span>
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-3" data-mock="true">
+                                        <input type="checkbox" class="w-4 h-4 text-primary bg-surface-light border-slate-500 rounded focus:ring-primary">
+                                        <span class="text-sm" data-bind="item.name">Bread</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Produce Category -->
+                            <div>
+                                <h4 class="text-sm font-medium text-slate-300 mb-2 flex items-center space-x-2">
+                                    <i class="fas fa-apple-alt text-green-400 text-xs"></i>
+                                    <span>Produce</span>
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-3" data-mock="true">
+                                        <input type="checkbox" class="w-4 h-4 text-primary bg-surface-light border-slate-500 rounded focus:ring-primary">
+                                        <span class="text-sm" data-bind="item.name">Bananas</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Item -->
+                        <div class="mt-4 pt-4 border-t border-slate-600">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" placeholder="Add item..." class="flex-1 bg-surface-light text-slate-100 placeholder-slate-400 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary" data-event="keypress:handleAddItem">
+                                <button class="p-2 bg-primary rounded-lg text-white hover:bg-blue-600 transition-colors text-sm" data-event="click:addItem">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+
+                    <!-- Add New List Button -->
+                    <button class="w-full bg-surface-light border-2 border-dashed border-slate-600 rounded-xl p-6 text-center hover:border-primary hover:bg-surface transition-colors" data-event="click:createNewList">
+                        <i class="fas fa-plus text-2xl text-slate-500 mb-2"></i>
+                        <p class="text-slate-400">Create New List</p>
+                    </button>
+                </div>
+                <!-- @END_COMPONENT: ListsView -->
+            </div>
+
+            <!-- Reminders Tab -->
+            <div id="reminders-tab" class="tab-content hidden">
+                <!-- @COMPONENT: RemindersView -->
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold">Reminders</h2>
+                        <button class="p-2 bg-primary rounded-lg text-white hover:bg-blue-600 transition-colors" data-event="click:addReminder">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <!-- @MAP: reminders.map(reminder => ( -->
+                    <!-- Today's Reminders -->
+                    <div class="mb-6">
+                        <h3 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wide">Today</h3>
+                        
+                        <div class="bg-surface rounded-xl p-4 mb-3 border border-slate-600" data-mock="true">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" class="w-5 h-5 text-primary bg-surface-light border-slate-500 rounded mt-0.5 focus:ring-primary">
+                                <div class="flex-1">
+                                    <p class="font-medium" data-bind="reminder.title">Take vitamins</p>
+                                    <p class="text-sm text-slate-400 mt-1" data-bind="reminder.time">9:00 AM</p>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <span class="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded">Daily</span>
+                                        <span class="text-xs text-slate-500" data-bind="reminder.category">Health</span>
+                                    </div>
+                                </div>
+                                <button class="p-1 text-slate-400 hover:text-white transition-colors" data-event="click:editReminder">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-surface rounded-xl p-4 mb-3 border border-slate-600" data-mock="true">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" checked class="w-5 h-5 text-primary bg-surface-light border-slate-500 rounded mt-0.5 focus:ring-primary">
+                                <div class="flex-1">
+                                    <p class="font-medium line-through text-slate-400" data-bind="reminder.title">Call dentist</p>
+                                    <p class="text-sm text-slate-400 mt-1" data-bind="reminder.time">2:00 PM</p>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded">Completed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tomorrow's Reminders -->
+                    <div class="mb-6">
+                        <h3 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wide">Tomorrow</h3>
+                        
+                        <div class="bg-surface rounded-xl p-4 mb-3 border border-slate-600" data-mock="true">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" class="w-5 h-5 text-primary bg-surface-light border-slate-500 rounded mt-0.5 focus:ring-primary">
+                                <div class="flex-1">
+                                    <p class="font-medium" data-bind="reminder.title">Team meeting</p>
+                                    <p class="text-sm text-slate-400 mt-1" data-bind="reminder.time">10:00 AM</p>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <span class="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded">Work</span>
+                                    </div>
+                                </div>
+                                <button class="p-1 text-slate-400 hover:text-white transition-colors" data-event="click:editReminder">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+
+                    <!-- Quick Add Reminder -->
+                    <div class="bg-surface-light rounded-xl p-4 border border-slate-600">
+                        <h4 class="font-medium mb-3">Quick Add</h4>
+                        <div class="space-y-3">
+                            <input type="text" placeholder="What would you like to remember?" class="w-full bg-surface text-slate-100 placeholder-slate-400 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary" data-event="input:handleReminderInput">
+                            <div class="flex items-center space-x-2">
+                                <input type="datetime-local" class="flex-1 bg-surface text-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary" data-bind="reminder.datetime">
+                                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm" data-event="click:createReminder">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: RemindersView -->
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content hidden">
+                <!-- @COMPONENT: SettingsView -->
+                <div class="p-4">
+                    <h2 class="text-xl font-semibold mb-6">Settings</h2>
+
+                    <!-- Profile Section -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-user text-primary"></i>
+                            <span>Profile</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold" data-bind="user.initials">JD</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" data-bind="user.name">John Doe</p>
+                                    <p class="text-sm text-slate-400" data-bind="user.email">john@example.com</p>
+                                </div>
+                            </div>
+                            <button class="text-sm text-primary hover:text-blue-400 transition-colors" data-event="click:editProfile">
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voice Settings -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-microphone text-primary"></i>
+                            <span>Voice & Speech</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm">Voice Response</label>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-slate-400">Off</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer" data-bind="settings.voiceResponse">
+                                        <div class="w-11 h-6 bg-surface-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                    <span class="text-xs text-slate-400">On</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm block mb-2">Voice Speed</label>
+                                <input type="range" min="0.5" max="2" step="0.1" value="1" class="w-full h-2 bg-surface-light rounded-lg appearance-none cursor-pointer" data-bind="settings.voiceSpeed">
+                                <div class="flex justify-between text-xs text-slate-400 mt-1">
+                                    <span>Slow</span>
+                                    <span>Normal</span>
+                                    <span>Fast</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personalization -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-heart text-primary"></i>
+                            <span>Personalization</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm block mb-2">Dietary Preferences</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-green-500/20 text-green-400 text-xs px-3 py-1 rounded-full" data-mock="true">Vegetarian</span>
+                                    <span class="bg-orange-500/20 text-orange-400 text-xs px-3 py-1 rounded-full" data-mock="true">Dairy-free</span>
+                                    <button class="bg-surface-light text-slate-400 text-xs px-3 py-1 rounded-full hover:bg-slate-600 transition-colors" data-event="click:addPreference">
+                                        <i class="fas fa-plus mr-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm block mb-2">Location</label>
+                                <input type="text" value="San Francisco, CA" class="w-full bg-surface-light text-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary" data-bind="user.location">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-bell text-primary"></i>
+                            <span>Notifications</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm">Push Notifications</label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" data-bind="settings.pushNotifications">
+                                    <div class="w-11 h-6 bg-surface-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm">Reminder Sounds</label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" data-bind="settings.reminderSounds">
+                                    <div class="w-11 h-6 bg-surface-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data & Privacy -->
+                    <div class="bg-surface rounded-xl p-4 mb-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            <span>Data & Privacy</span>
+                        </h3>
+                        <div class="space-y-3">
+                            <button class="w-full text-left text-sm p-3 hover:bg-surface-light rounded-lg transition-colors flex items-center justify-between" data-event="click:exportData">
+                                <span>Export My Data</span>
+                                <i class="fas fa-download text-slate-400"></i>
+                            </button>
+                            <button class="w-full text-left text-sm p-3 hover:bg-surface-light rounded-lg transition-colors flex items-center justify-between" data-event="click:clearData">
+                                <span>Clear All Data</span>
+                                <i class="fas fa-trash text-red-400"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="bg-surface rounded-xl p-4 border border-slate-600">
+                        <h3 class="font-medium mb-4 flex items-center space-x-2">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <span>About</span>
+                        </h3>
+                        <div class="space-y-2 text-sm text-slate-400">
+                            <p>Version 1.0.0</p>
+                            <p>Built with love for voice-first productivity</p>
+                            <div class="flex space-x-4 mt-4">
+                                <button class="text-primary hover:text-blue-400 transition-colors" data-event="click:openPrivacyPolicy">Privacy Policy</button>
+                                <button class="text-primary hover:text-blue-400 transition-colors" data-event="click:openTerms">Terms of Service</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: SettingsView -->
+            </div>
+
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+
+        <!-- @COMPONENT: BottomNavigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-surface border-t border-slate-700 px-4 py-2 max-w-md mx-auto">
+            <div class="flex items-center justify-around">
+                <button class="tab-btn flex flex-col items-center space-y-1 p-2 text-primary tab-transition" data-tab="chat" data-event="click:switchTab">
+                    <i class="fas fa-comments text-lg"></i>
+                    <span class="text-xs">Chat</span>
+                </button>
+                <button class="tab-btn flex flex-col items-center space-y-1 p-2 text-slate-400 hover:text-white tab-transition" data-tab="lists" data-event="click:switchTab">
+                    <i class="fas fa-list-ul text-lg"></i>
+                    <span class="text-xs">Lists</span>
+                </button>
+                <button class="tab-btn flex flex-col items-center space-y-1 p-2 text-slate-400 hover:text-white tab-transition" data-tab="reminders" data-event="click:switchTab">
+                    <i class="fas fa-clock text-lg"></i>
+                    <span class="text-xs">Reminders</span>
+                </button>
+                <button class="tab-btn flex flex-col items-center space-y-1 p-2 text-slate-400 hover:text-white tab-transition" data-tab="settings" data-event="click:switchTab">
+                    <i class="fas fa-cog text-lg"></i>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: BottomNavigation -->
+
+    </div>
+    <!-- @END_COMPONENT: AppContainer -->
+
+    <script>
+        // Tab switching functionality
+        (function() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            function switchTab(tabName) {
+                // Hide all tabs
+                tabContents.forEach(content => content.classList.add('hidden'));
+                
+                // Show selected tab
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+                
+                // Update button states
+                tabButtons.forEach(btn => {
+                    if (btn.dataset.tab === tabName) {
+                        btn.classList.remove('text-slate-400', 'hover:text-white');
+                        btn.classList.add('text-primary');
+                    } else {
+                        btn.classList.remove('text-primary');
+                        btn.classList.add('text-slate-400', 'hover:text-white');
+                    }
+                });
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    switchTab(button.dataset.tab);
+                });
+            });
+        })();
+
+        // Voice recording functionality
+        (function() {
+            const voiceBtn = document.getElementById('voice-btn');
+            const voiceIcon = document.getElementById('voice-icon');
+            const voiceStatus = document.getElementById('voice-status');
+            const transcription = document.getElementById('transcription');
+            let isRecording = false;
+
+            voiceBtn.addEventListener('click', function() {
+                if (!isRecording) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
+            });
+
+            function startRecording() {
+                isRecording = true;
+                voiceBtn.classList.add('recording-pulse', 'bg-red-500');
+                voiceBtn.classList.remove('bg-gradient-to-br', 'from-primary', 'to-secondary');
+                voiceIcon.className = 'fas fa-stop text-white text-xl';
+                voiceStatus.textContent = 'Recording... Tap to stop';
+                transcription.classList.remove('hidden');
+                transcription.querySelector('p').textContent = 'Listening...';
+                
+                // TODO: Implement Web Speech API recording
+                // navigator.mediaDevices.getUserMedia({ audio: true })
+            }
+
+            function stopRecording() {
+                isRecording = false;
+                voiceBtn.classList.remove('recording-pulse', 'bg-red-500');
+                voiceBtn.classList.add('bg-gradient-to-br', 'from-primary', 'to-secondary');
+                voiceIcon.className = 'fas fa-microphone text-white text-xl';
+                voiceStatus.textContent = 'Processing...';
+                
+                // Simulate processing
+                setTimeout(() => {
+                    voiceStatus.textContent = 'Tap to speak';
+                    transcription.classList.add('hidden');
+                    // TODO: Send audio to OpenAI Whisper API
+                    // TODO: Send transcription to GPT-4 API
+                    // TODO: Add response to chat
+                }, 2000);
+            }
+        })();
+
+        // Message input functionality
+        (function() {
+            const messageInput = document.querySelector('input[placeholder="Type a message..."]');
+            const sendButton = messageInput.nextElementSibling;
+
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    // TODO: Add message to chat
+                    // TODO: Send to GPT-4 API
+                    // TODO: Handle response
+                    messageInput.value = '';
+                    console.log('Sending message:', message);
+                }
+            }
+
+            sendButton.addEventListener('click', sendMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        })();
+
+        // List management functionality
+        (function() {
+            const listItems = document.querySelectorAll('input[type="checkbox"]');
+            
+            listItems.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const label = this.nextElementSibling;
+                    if (this.checked) {
+                        label.classList.add('line-through', 'text-slate-400');
+                    } else {
+                        label.classList.remove('line-through', 'text-slate-400');
+                    }
+                    // TODO: Update item status in storage
+                });
+            });
+        })();
+
+        // Notification permission request (for PWA features)
+        (function() {
+            if ('Notification' in window && navigator.serviceWorker) {
+                // TODO: Request notification permission for reminders
+                // TODO: Register service worker for PWA functionality
+                console.log('PWA features available');
+            }
+        })();
+    </script>
+</body>
+</html>

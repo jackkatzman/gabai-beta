@@ -1,0 +1,11 @@
+{
+  "platformName": "VoltBuilder",
+  "template": "Capacitor-6",
+  "variables": {
+    "id": "ai.gabai.app",
+    "name": "GabAi",
+    "displayName": "GabAi - Voice Assistant",
+    "version": "1.0.0"
+  },
+  "skipBuild": true
+}

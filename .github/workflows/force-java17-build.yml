@@ -1,0 +1,81 @@
+name: 🎯 Force Java 17 Build
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Setup Java 17 Only
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Verify Java Environment
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          javac -version
+          which java
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          build-tools: 35.0.0
+          
+      - name: Install & Build Web
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Capacitor Sync
+        run: npx cap sync android
+        
+      - name: Configure Android Environment
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
+          chmod +x android/gradlew
+          
+      - name: Force Java 17 in All Capacitor Projects
+        run: |
+          # Force Java 17 in all build.gradle files
+          find android -name "build.gradle" -type f -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} \;
+          find android -name "build.gradle" -type f -exec sed -i 's/languageVersion.*21/languageVersion = JavaLanguageVersion.of(17)/g' {} \;
+          
+      - name: Clean Build
+        working-directory: android
+        run: |
+          ./gradlew clean --no-daemon
+          
+      - name: Test Gradle Configuration
+        working-directory: android
+        run: |
+          ./gradlew help --no-daemon
+          
+      - name: Build APK
+        working-directory: android
+        run: |
+          ./gradlew assembleDebug --no-daemon --info
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+          GRADLE_OPTS: "-Xmx2g -Dorg.gradle.java.home=${{ env.JAVA_HOME }}"
+          
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gabai-java17-forced
+          path: android/app/build/outputs/apk/debug/app-debug.apk

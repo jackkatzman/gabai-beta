@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GabAi Mobile APK Download</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+        .download-box { 
+            border: 2px solid #3b82f6; 
+            padding: 30px; 
+            margin: 20px auto; 
+            max-width: 500px; 
+            border-radius: 10px;
+        }
+        .download-btn { 
+            background: #3b82f6; 
+            color: white; 
+            padding: 15px 30px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px;
+        }
+        .file-list { text-align: left; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>GabAi Mobile APK Downloads</h1>
+    
+    <div class="download-box">
+        <h3>GabAi Capacitor Native Mobile App</h3>
+        <p>Complete app with Capacitor native features and mobile plugins</p>
+        <a href="gabai-capacitor-native.zip" class="download-btn" download="gabai-capacitor-native.zip">
+            Download Native APK (207KB)
+        </a>
+    </div>
+
+    <div class="file-list">
+        <h3>Available Files:</h3>
+        <div id="fileList">Checking files...</div>
+    </div>
+
+    <script>
+        // Check file availability
+        fetch('gabai-complete-mobile.zip', { method: 'HEAD' })
+            .then(response => {
+                const status = response.ok ? '✅ Available' : '❌ Not Found';
+                document.getElementById('fileList').innerHTML = `
+                    <div>gabai-complete-mobile.zip - ${status}</div>
+                `;
+            })
+            .catch(() => {
+                document.getElementById('fileList').innerHTML = '❌ Error checking files';
+            });
+    </script>
+</body>
+</html>

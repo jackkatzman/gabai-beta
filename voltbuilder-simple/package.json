@@ -1,0 +1,12 @@
+{
+  "name": "gabai-voltbuilder",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'VoltBuilder: Using simple redirect approach - no build needed'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  }
+}

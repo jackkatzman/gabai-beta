@@ -1,0 +1,269 @@
+name: 📱 Direct APK Build (No Frontend Build)
+on:
+  workflow_dispatch:
+
+jobs:
+  direct-apk-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+
+    - name: Create Android Project
+      run: |
+        echo "Creating direct Android APK build..."
+        mkdir -p /tmp/gabai-apk/app/src/main/{java/com/gabai/app,res/{drawable,layout,values},assets/www}
+        cd /tmp/gabai-apk
+
+    - name: Generate Web Assets
+      run: |
+        cd /tmp/gabai-apk
+        cat > app/src/main/assets/www/index.html << 'HTML_END'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi - Voice Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; text-align: center; height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .container { max-width: 400px; padding: 20px; }
+        .logo { font-size: 4em; margin-bottom: 20px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; margin-bottom: 30px; opacity: 0.9; }
+        .loading { animation: pulse 2s infinite; margin: 20px 0; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .button { 
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
+            color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none;
+            display: inline-block; margin: 10px; transition: all 0.3s; font-size: 1.1em;
+        }
+        .button:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .status { margin: 20px 0; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1>GabAi</h1>
+        <p class="subtitle">Your AI Voice Assistant</p>
+        <div class="loading status" id="status">Connecting to GabAi servers...</div>
+        <div style="margin-top: 30px;">
+            <a href="https://gabai.ai" class="button" id="openBtn">Launch GabAi</a>
+            <a href="#" onclick="location.reload()" class="button">Reload</a>
+        </div>
+    </div>
+    <script>
+        let countdown = 3;
+        const statusEl = document.getElementById('status');
+        const openBtn = document.getElementById('openBtn');
+        
+        const timer = setInterval(() => {
+            statusEl.textContent = `Launching GabAi in ${countdown}...`;
+            countdown--;
+            
+            if (countdown < 0) {
+                clearInterval(timer);
+                statusEl.textContent = 'Opening GabAi...';
+                window.location.href = 'https://gabai.ai';
+            }
+        }, 1000);
+        
+        // Immediate launch option
+        openBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearInterval(timer);
+            statusEl.textContent = 'Opening GabAi now...';
+            window.location.href = 'https://gabai.ai';
+        });
+    </script>
+</body>
+</html>
+HTML_END
+
+    - name: Generate Android Manifest
+      run: |
+        cd /tmp/gabai-apk
+        cat > app/src/main/AndroidManifest.xml << 'MANIFEST_END'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.gabai.app">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <application android:allowBackup="true" android:icon="@drawable/ic_launcher" android:label="GabAi" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:usesCleartextTraffic="true">
+        <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+MANIFEST_END
+
+    - name: Generate MainActivity
+      run: |
+        cd /tmp/gabai-apk
+        cat > app/src/main/java/com/gabai/app/MainActivity.java << 'JAVA_END'
+package com.gabai.app;
+import android.app.Activity;
+import android.os.Bundle;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.webkit.WebSettings;
+import android.content.Intent;
+import android.net.Uri;
+import android.view.KeyEvent;
+
+public class MainActivity extends Activity {
+    private WebView webView;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        webView = new WebView(this);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setBuiltInZoomControls(false);
+        settings.setSupportZoom(false);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.contains("gabai.ai")) {
+                    return false; // Load in WebView
+                }
+                // Open other URLs externally
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                return true;
+            }
+        });
+        
+        webView.loadUrl("file:///android_asset/www/index.html");
+        setContentView(webView);
+    }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+            webView.goBack();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}
+JAVA_END
+
+    - name: Generate Resources
+      run: |
+        cd /tmp/gabai-apk
+        
+        # Strings
+        echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">GabAi</string></resources>' > app/src/main/res/values/strings.xml
+        
+        # Icon
+        cat > app/src/main/res/drawable/ic_launcher.xml << 'ICON_END'
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+  <path android:fillColor="#6366F1" android:pathData="M24,4C35.05,4 44,12.95 44,24C44,35.05 35.05,44 24,44C12.95,44 4,35.05 4,24C4,12.95 12.95,4 24,4Z"/>
+  <path android:fillColor="#FFFFFF" android:pathData="M24,12C29.52,12 34,16.48 34,22C34,27.52 29.52,32 24,32C18.48,32 14,27.52 14,22C14,16.48 18.48,12 24,12Z"/>
+</vector>
+ICON_END
+
+    - name: Generate Gradle Files
+      run: |
+        cd /tmp/gabai-apk
+        
+        # Root build.gradle
+        cat > build.gradle << 'ROOT_END'
+buildscript {
+    repositories { google(); mavenCentral() }
+    dependencies { classpath 'com.android.tools.build:gradle:8.0.2' }
+}
+allprojects { repositories { google(); mavenCentral() } }
+ROOT_END
+        
+        # App build.gradle
+        cat > app/build.gradle << 'APP_END'
+plugins { id 'com.android.application' }
+android {
+    compileSdk 35
+    defaultConfig {
+        applicationId "com.gabai.app"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes { debug { minifyEnabled false } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
+APP_END
+        
+        # Properties and settings
+        echo 'org.gradle.jvmargs=-Xmx2048m' > gradle.properties
+        echo 'android.useAndroidX=true' >> gradle.properties
+        echo "include ':app'" > settings.gradle
+
+    - name: Build APK
+      run: |
+        cd /tmp/gabai-apk
+        echo "Building GabAi Android APK..."
+        
+        # Build with system Gradle
+        gradle assembleDebug --no-daemon
+        
+        # Copy APK
+        find . -name "app-debug.apk" -exec cp {} /tmp/gabai-direct.apk \;
+        
+        if [ -f "/tmp/gabai-direct.apk" ]; then
+          echo "APK built successfully!"
+          ls -la /tmp/gabai-direct.apk
+        else
+          echo "Build failed - searching for APK files..."
+          find . -name "*.apk" -ls
+          exit 1
+        fi
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: gabai-direct-apk
+        path: /tmp/gabai-direct.apk
+        retention-days: 30
+
+    - name: Build Summary
+      run: |
+        echo "## 📱 Direct APK Build Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+        echo "📱 **APK:** gabai-direct.apk" >> $GITHUB_STEP_SUMMARY
+        echo "🛠️ **Method:** Direct Gradle (No framework)" >> $GITHUB_STEP_SUMMARY
+        echo "🌐 **Content:** Web redirect to gabai.ai" >> $GITHUB_STEP_SUMMARY
+        echo "📊 **Size:** $(du -h /tmp/gabai-direct.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🎉 **Your GabAi Android APK is ready!**" >> $GITHUB_STEP_SUMMARY

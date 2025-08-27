@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi - Authentication Complete</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            padding: 2rem;
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <div class="message">Authentication successful!</div>
+        <div class="loading">Returning to GabAi app...</div>
+    </div>
+
+    <script>
+        console.log('📱 Mobile auth callback page loaded');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const success = urlParams.get('success');
+        const isMobile = urlParams.get('mobile') === 'true';
+        
+        if (token && success === 'true') {
+            console.log('📱 Storing authentication token for mobile app');
+            
+            // Store token for mobile app
+            localStorage.setItem('gabai_mobile_token', token);
+            localStorage.setItem('gabai_mobile_auth_success', 'true');
+            localStorage.setItem('gabai_token', token);
+            localStorage.setItem('gabai_mobile_auth_completed', Date.now().toString());
+            
+            // Clear the in-progress flag
+            localStorage.removeItem('gabai_mobile_auth_in_progress');
+            
+            console.log('✅ Mobile authentication complete, stored token');
+            
+            // For mobile apps, try multiple ways to return to the app
+            setTimeout(() => {
+                console.log('📱 Attempting to return to mobile app...');
+                
+                // Method 1: Try custom URL scheme (deep link)
+                try {
+                    console.log('🔗 Trying deep link...');
+                    window.location.href = 'ai.gabai.app://oauth/success?token=' + encodeURIComponent(token);
+                } catch (e) {
+                    console.log('Deep link failed:', e);
+                }
+                
+                // Method 2: Try to close browser window (works in some WebView implementations)
+                setTimeout(() => {
+                    try {
+                        console.log('🪟 Trying to close browser window...');
+                        window.close();
+                    } catch (e) {
+                        console.log('Window close failed:', e);
+                    }
+                }, 500);
+                
+                // Method 3: Try native messaging if available
+                setTimeout(() => {
+                    if (typeof AndroidInterface !== 'undefined') {
+                        console.log('📱 Using Android interface...');
+                        AndroidInterface.authComplete(token);
+                    } else if (typeof webkit !== 'undefined' && webkit.messageHandlers) {
+                        console.log('📱 Using iOS interface...');
+                        webkit.messageHandlers.authComplete.postMessage(token);
+                    }
+                }, 1000);
+                
+                // Method 4: Fallback - redirect back to main domain 
+                setTimeout(() => {
+                    console.log('🔄 Fallback: redirecting to main app...');
+                    window.location.href = 'https://gabai.ai/?auth=mobile&token=' + encodeURIComponent(token);
+                }, 2000);
+                
+            }, 1000);
+        } else {
+            console.error('❌ Authentication failed');
+            document.querySelector('.success-icon').textContent = '❌';
+            document.querySelector('.message').textContent = 'Authentication failed';
+            document.querySelector('.loading').textContent = 'Please try again';
+            
+            setTimeout(() => {
+                window.location.href = 'https://gabai.ai/';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

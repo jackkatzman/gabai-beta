@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download GabAi APK Files</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .file-item { 
+            border: 1px solid #ddd; 
+            margin: 10px 0; 
+            padding: 15px; 
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .download-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .file-size { color: #666; font-size: 14px; }
+        .instructions { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>GabAi APK Downloads</h1>
+    
+    <div class="instructions">
+        <strong>Instructions:</strong>
+        <ol>
+            <li>Right-click on the download button below</li>
+            <li>Select "Save link as..." or "Download linked file"</li>
+            <li>Choose where to save the file</li>
+            <li>Upload the downloaded ZIP to VoltBuilder</li>
+        </ol>
+    </div>
+
+    <div class="file-item">
+        <h3>Recommended: Working APK (Latest)</h3>
+        <p>Improved version with better redirect handling</p>
+        <a href="/public/gabai-apk-working.zip" class="download-btn" download="gabai-apk-working.zip">Download (2.2KB)</a>
+        <div class="file-size">Contains multiple redirect attempts and fallback button</div>
+    </div>
+
+    <div class="file-item">
+        <h3>Alternative: Standalone APK</h3>
+        <p>Simple version that should work immediately</p>
+        <a href="/public/gabai-standalone-apk.zip" class="download-btn" download="gabai-standalone-apk.zip">Download (1.6KB)</a>
+        <div class="file-size">Ultra-simple, minimal dependencies</div>
+    </div>
+
+    <div class="file-item">
+        <h3>Complete Android Structure</h3>
+        <p>Full Android project with WebView implementation</p>
+        <a href="/public/gabai-final-working.zip" class="download-btn" download="gabai-final-working.zip">Download (12KB)</a>
+        <div class="file-size">Complete Gradle project structure</div>
+    </div>
+
+    <script>
+        // Force download on click
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const link = document.createElement('a');
+                link.href = this.href;
+                link.download = this.getAttribute('download');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>
