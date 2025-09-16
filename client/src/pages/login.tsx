@@ -123,8 +123,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 to-red-100 dark:from-purple-900 dark:to-pink-800">
+      {/* DEPLOYMENT VERIFICATION BANNER */}
+      <div className="bg-yellow-400 text-black p-4 text-center font-bold text-lg animate-pulse">
+        🚀 DEPLOYMENT V2.0 - {new Date().toISOString()} 🚀
+        <div className="text-sm mt-1">SMS FIX DEPLOYED - ORANGE/RED THEME ACTIVE</div>
+      </div>
+      
+      <div className="flex-1 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-4 border-yellow-400 shadow-2xl">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="relative">
@@ -151,7 +158,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Welcome to GabAi</CardTitle>
+            <CardTitle className="text-2xl font-bold">Welcome to GabAi <span className="text-xs text-red-500">(v2.0)</span></CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
               {isMobileApp ? (
                 <>Welcome to the GabAi mobile app! Sign in to access your voice-first AI assistant</>
@@ -168,15 +175,15 @@ export default function LoginPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Native Google Sign-In Button for VoltBuilder/Capacitor */}
+          {/* DEPLOYMENT TEST - Changed button color to GREEN */}
           <Button
             data-testid="button-sign-in-google"
             onClick={() => {
-              console.log('🔥 Google sign-in button clicked');
+              console.log('🔥 Google sign-in button clicked - V2.0');
               login();
             }}
             disabled={isLoggingIn}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
           >
             {isLoggingIn ? (
               <LogoSpinner />
@@ -887,13 +894,13 @@ export default function LoginPage() {
               }
             }}
             disabled={isLoggingIn}
-            className="w-full h-12 text-base"
+            className="w-full h-12 text-base border-2 border-orange-400"
             size="lg"
           >
             {isLoggingIn ? (
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Signing in...</span>
+                <span>Signing in... (V2.0)</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -930,10 +937,11 @@ export default function LoginPage() {
           <Button
             variant="outline"
             onClick={() => {
-              console.log('🌐 Using Google OAuth');
+              console.log('🌐 Using Google OAuth - V2.0');
+              alert('V2.0 DEPLOYED - ATTEMPTING GOOGLE AUTH');
               window.location.href = "https://gabai.ai/api/auth/google";
             }}
-            className="w-full h-12 text-base"
+            className="w-full h-12 text-base bg-purple-600 hover:bg-purple-700 text-white"
             size="lg"
           >
             <div className="flex items-center space-x-2">
@@ -1092,7 +1100,8 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-center text-sm text-muted-foreground border-4 border-red-500 p-2 rounded">
+            <p className="font-bold text-red-600">V2.0 DEPLOYED</p>
             <p>{isMobileApp ? "Sign in to access your personal AI assistant" : "Sign in to sync your data across all devices"}</p>
           </div>
 
@@ -1101,8 +1110,7 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
-
-
+      </div>
     </div>
   );
 }
