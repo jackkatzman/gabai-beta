@@ -1,5 +1,5 @@
 // Initialize Twilio client if credentials are available
-let twilioClient: any = null;
+export let twilioClient: any = null;
 
 // Import profanity filtering
 import { censorText } from './profanity';
@@ -429,7 +429,7 @@ export async function makeReminderCall(phoneNumber: string, title: string, descr
 }
 
 // Standardized phone number normalization function
-function normalizePhoneNumber(phoneNumber: string): string {
+export function normalizePhoneNumber(phoneNumber: string): string {
   // Remove all non-digits
   let cleanPhone = phoneNumber.replace(/\D/g, '');
   

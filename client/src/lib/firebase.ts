@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+// Firebase imports removed - not using Firebase Auth
+// Using SMS/Twilio authentication instead
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -21,9 +21,8 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId
   console.error('❌ Missing Firebase configuration! Check environment variables.');
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Firebase initialization removed - using SMS authentication
+export const auth = null;
 
 // Google OAuth Web SDK removed - using bypass authentication instead
 
@@ -33,10 +32,12 @@ export const auth = getAuth(app);
 // Redirect result handling removed with Google OAuth cleanup
 
 export const signOutUser = () => {
-  console.log('🔥 Firebase sign out');
-  return signOut(auth);
+  console.log('🔥 Sign out (Firebase disabled)');
+  return Promise.resolve();
 };
 
 export const onAuthChange = (callback: (user: any) => void) => {
-  return onAuthStateChanged(auth, callback);
+  // Firebase auth disabled - using SMS authentication
+  callback(null);
+  return () => {}; // Return unsubscribe function
 };
