@@ -187,7 +187,7 @@ app.use((req, res, next) => {
       res.status(200).json({ 
         status: 'ready', 
         timestamp: new Date().toISOString(),
-        port: process.env.PORT || '8080',
+        port: process.env.PORT || '5000',
         oauth_configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
       });
     } catch (error) {
@@ -210,11 +210,11 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Cloud Run compatibility: Use PORT environment variable
-  // Cloud Run sets PORT environment variable automatically for proper routing
+  // Replit compatibility: Use PORT environment variable
+  // Replit sets PORT environment variable automatically for proper routing
   // Must bind to 0.0.0.0 for external access
-  // In development, use 5000; in production, use Cloud Run's PORT (usually 8080)
-  const defaultPort = app.get("env") === "development" ? '5000' : '8080';
+  // Always use 5000 as default for both development and production on Replit
+  const defaultPort = '5000';  // Replit requires port 5000
   const port = parseInt(process.env.PORT || defaultPort, 10);
   
   // Add startup timeout for Cloud Run
