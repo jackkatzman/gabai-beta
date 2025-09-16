@@ -49,11 +49,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Add security headers for OAuth
+// Add security headers for OAuth and cache-busting
 app.use((req, res, next) => {
   res.header('X-Frame-Options', 'DENY');
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // EMERGENCY: Force cache invalidation for all API routes
+  if (req.path.startsWith('/api/')) {
+    res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    res.header('Surrogate-Control', 'no-store');
+  }
+  
   next();
 });
 
@@ -117,13 +126,19 @@ app.use((req, res, next) => {
     
     // VERSION ENDPOINT - V2.0 DEPLOYMENT VERIFICATION
     app.get('/api/version', (req, res) => {
-      res.set('Cache-Control', 'no-store');
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
       res.status(200).json({ 
-        version: 'V2.0-SMS-FIX-DEPLOYED',
+        version: 'V2.1-CACHE-BUST-FIX',
         buildTime: new Date().toISOString(),
-        deployment: 'ORANGE-THEME-ACTIVE',
-        message: '🚀 Backend is deployed! If UI is still blue, frontend needs cache purge',
-        frontendStatus: 'Should show orange background and yellow banner'
+        deployment: 'EMERGENCY-CACHE-CLEAR',
+        message: '🚀 NEW DEPLOYMENT - Cache issue should be resolved',
+        frontendStatus: 'SMS authentication should work',
+        timestamp: Date.now(),
+        environment: process.env.NODE_ENV,
+        smsEnabled: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
+        emergencyBypass: process.env.SMS_ALLOW_LEGACY || 'not-set'
       });
     });
 
