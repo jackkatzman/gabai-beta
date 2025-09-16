@@ -55,13 +55,13 @@ app.use((req, res, next) => {
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // EMERGENCY: Force cache invalidation for all API routes
-  if (req.path.startsWith('/api/')) {
-    res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.header('Pragma', 'no-cache');
-    res.header('Expires', '0');
-    res.header('Surrogate-Control', 'no-store');
-  }
+  // EMERGENCY: Force cache invalidation for ALL routes
+  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  res.header('Surrogate-Control', 'no-store');
+  res.header('ETag', '"' + Date.now() + '"');
+  res.header('Last-Modified', new Date().toUTCString());
 
   next();
 });
