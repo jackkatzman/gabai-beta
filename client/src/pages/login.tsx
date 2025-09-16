@@ -651,6 +651,8 @@ export default function LoginPage() {
                   };
                   
                   // SMS submit handler
+                  let verificationSid = ''; // Store verificationSid for later verification
+                  
                   smsSubmitBtn.onclick = async () => {
                     const phone = phoneInput.value.trim();
                     if (!phone || phone.length < 10) {
@@ -658,15 +660,21 @@ export default function LoginPage() {
                       return;
                     }
                     
+                    // Convert phone to proper format
+                    const normalizedPhone = phone.startsWith('+') ? phone : 
+                                          phone.startsWith('1') && phone.length === 11 ? '+' + phone :
+                                          phone.length === 10 ? '+1' + phone : phone;
+                    console.log('📱 Converting phone number:', phone, '->', normalizedPhone);
+                    
                     smsSubmitBtn.textContent = 'Sending code...';
                     smsSubmitBtn.disabled = true;
                     
                     try {
-                      console.log('📱 Sending SMS code to:', phone);
-                      const response = await fetch('/api/auth/sms-code', {
+                      console.log('📱 Sending SMS verification code to:', normalizedPhone);
+                      const response = await fetch('/api/sms/send-verification', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone })
+                        body: JSON.stringify({ phoneNumber: normalizedPhone })
                       });
                       
                       console.log('📡 SMS Response status:', response.status, response.ok);
@@ -674,7 +682,11 @@ export default function LoginPage() {
                       console.log('📦 SMS Response data:', result);
                       
                       if (response.ok && result.success) {
-                        console.log('✅ SMS code sent successfully');
+                        console.log('✅ SMS code sent successfully', result);
+                        
+                        // CRITICAL: Store the verificationSid for later use
+                        verificationSid = result.verificationSid || '';
+                        console.log('📱 Stored verificationSid:', verificationSid);
                         
                         // Show SMS verification form
                         modal.querySelector('div')!.innerHTML = `
@@ -760,32 +772,50 @@ export default function LoginPage() {
                         
                         verifyBtn.onclick = async () => {
                           const code = codeInput.value.trim();
+                          console.log('📱 Code input changed:', code, 'length:', code.length);
+                          
                           if (!code || code.length !== 6) {
                             alert('Please enter the 6-digit verification code');
                             return;
                           }
                           
+                          console.log('📱 Auto-verifying code:', code);
                           verifyBtn.textContent = 'Verifying...';
                           verifyBtn.disabled = true;
                           
                           try {
-                            const verifyResponse = await fetch('/api/auth/verify-magic-token', {
+                            // Use proper SMS verification endpoint with verificationSid
+                            console.log('📱 Verifying with', verificationSid ? 'verificationSid:' + verificationSid : 'phone number:', normalizedPhone);
+                            const verifyResponse = await fetch('/api/sms/verify-code', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               credentials: 'include',
-                              body: JSON.stringify({ token: code })
+                              body: JSON.stringify({ 
+                                code: code,
+                                verificationSid: verificationSid,
+                                phoneNumber: normalizedPhone,  // Fallback for cached clients
+                                createAccount: true
+                              })
                             });
                             
                             const verifyResult = await verifyResponse.json();
                             
                             if (verifyResult.success) {
                               console.log('✅ SMS verification successful');
+                              
+                              // If a token was returned, save it
+                              if (verifyResult.token) {
+                                localStorage.setItem('gabai_token', verifyResult.token);
+                                localStorage.setItem('authToken', verifyResult.token);
+                                console.log('📱 Token saved to localStorage');
+                              }
+                              
                               // Small delay to ensure session is set
                               setTimeout(() => {
                                 window.location.reload();
                               }, 500);
                             } else {
-                              throw new Error(verifyResult.error || 'Verification failed');
+                              throw new Error(verifyResult.error || verifyResult.details || 'Verification failed');
                             }
                           } catch (error) {
                             console.error('❌ SMS verification failed:', error);

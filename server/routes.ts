@@ -997,7 +997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // SMS verification code endpoint - sends short code via SMS
   app.post('/api/auth/sms-code', async (req, res) => {
-    console.log('🔍 SMS Code Endpoint Hit!', {
+    console.log('🔍 SMS Code Endpoint Hit (legacy)!', {
       method: req.method,
       url: req.url,
       body: req.body,
@@ -1014,38 +1014,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('📱 SMS verification code request for:', phone);
       
-      // Generate 6-digit code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-      const deviceFingerprint = req.headers['user-agent'] || 'Unknown device';
-      
-      // Use phone as identifier in database
-      const email = `${phone.replace(/[^\d]/g, '')}@sms.gabaiapp.com`;
-      
-      // Store the code as token
-      try {
-        await storage.createMagicLinkToken({
-          email,
-          token: code,
-          used: false,
-          expiresAt,
-          deviceFingerprint
-        });
-        console.log('✅ SMS verification code stored successfully');
-      } catch (tokenError) {
-        console.error('❌ Failed to store SMS verification code:', tokenError);
-        throw new Error('Failed to store verification code');
-      }
-      
-      // Send verification code SMS
-      const smsResult = await sendCodeSMS(phone, code);
+      // Use the proper SMS send verification endpoint
+      const smsResult = await sendCodeSMS(phone);
       
       if (smsResult.success) {
         console.log('✅ Verification code SMS sent successfully to:', phone);
+        
+        // Store phone number in session for fallback verification
+        const normalizedPhone = phone.replace(/[^\d+]/g, '');
+        res.cookie('last_sms_phone', normalizedPhone, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 10 * 60 * 1000 // 10 minutes
+        });
+        
+        if (req.session) {
+          (req.session as any).lastPhoneNumber = normalizedPhone;
+        }
+        
         res.json({ 
           success: true, 
           message: 'Verification code sent! Check your text messages.',
           phone: phone,
+          verificationSid: smsResult.verificationSid,  // Include verificationSid
           devMode: smsResult.devMode,
           backupCode: smsResult.backupCode
         });

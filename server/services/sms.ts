@@ -495,11 +495,19 @@ export async function verifyCodeByPhone(phoneNumber: string, code: string): Prom
 }
 
 // Function to verify code using Twilio Verify with verificationSid
-export async function verifyCodeSMS(verificationSid: string, code: string): Promise<{ success: boolean; error?: string }> {
+export async function verifyCodeSMS(verificationSid: string, code: string): Promise<{ success: boolean; error?: string; details?: any }> {
   // Clean code - digits only, trimmed
   const cleanCode = code.replace(/\D/g, '').trim();
   
-  console.log('📱 Verifying code with verificationSid:', { verificationSid, originalCode: code, cleanCode });
+  console.log('📱 VERIFY START: Verifying code with verificationSid:', { 
+    verificationSid, 
+    sidLength: verificationSid?.length,
+    sidPrefix: verificationSid?.substring(0, 10),
+    originalCode: code, 
+    cleanCode,
+    cleanCodeLength: cleanCode.length,
+    timestamp: new Date().toISOString()
+  });
 
   try {
     if (!twilioClient || !process.env.TWILIO_VERIFY_SERVICE_SID) {
@@ -515,6 +523,12 @@ export async function verifyCodeSMS(verificationSid: string, code: string): Prom
     }
     
     // Use Twilio Verify to check the verification code with verificationSid
+    console.log('📱 VERIFY: Calling Twilio API with:', {
+      serviceSid: process.env.TWILIO_VERIFY_SERVICE_SID?.substring(0, 10) + '...',
+      verificationSid: verificationSid,
+      code: cleanCode
+    });
+    
     const verificationCheck = await twilioClient.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verificationChecks
@@ -523,33 +537,72 @@ export async function verifyCodeSMS(verificationSid: string, code: string): Prom
         code: cleanCode
       });
     
-    console.log('📱 Twilio verification result:', {
+    console.log('📱 VERIFY RESULT: Twilio verification response:', {
       verificationSid,
       status: verificationCheck.status,
-      valid: verificationCheck.valid
+      valid: verificationCheck.valid,
+      dateCreated: verificationCheck.dateCreated,
+      dateUpdated: verificationCheck.dateUpdated,
+      sid: verificationCheck.sid,
+      serviceSid: verificationCheck.serviceSid,
+      accountSid: verificationCheck.accountSid?.substring(0, 10) + '...',
+      timestamp: new Date().toISOString()
     });
     
     if (verificationCheck.status === 'approved') {
-      console.log('✅ Code verified successfully via Twilio Verify');
+      console.log('✅ VERIFY SUCCESS: Code verified successfully via Twilio Verify');
       return { success: true };
     } else {
-      console.log('❌ Code verification failed via Twilio Verify');
-      return { success: false, error: 'Invalid or expired verification code' };
+      console.log('❌ VERIFY FAILED: Code verification failed via Twilio Verify:', {
+        status: verificationCheck.status,
+        valid: verificationCheck.valid,
+        verificationSid: verificationSid
+      });
+      return { 
+        success: false, 
+        error: `Verification failed: ${verificationCheck.status}`,
+        details: { status: verificationCheck.status, valid: verificationCheck.valid }
+      };
     }
   } catch (error: any) {
-    console.error('❌ Failed to verify code:', error);
+    console.error('❌ VERIFY ERROR: Failed to verify code:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      moreInfo: error.moreInfo,
+      details: error.details,
+      verificationSid: verificationSid,
+      cleanCode: cleanCode,
+      timestamp: new Date().toISOString()
+    });
     
     // Handle specific Twilio errors
     if (error.status === 404) {
+      console.error('❌ VERIFY 404: Verification request not found for sid:', verificationSid);
       return { 
         success: false, 
-        error: 'No verification request found. Please request a new code.'
+        error: 'No verification request found. Please request a new code.',
+        details: { status: 404, verificationSid }
+      };
+    }
+    
+    if (error.code === 20404) {
+      console.error('❌ VERIFY 20404: Verification resource not found');
+      return { 
+        success: false, 
+        error: 'Verification expired or not found. Please request a new code.',
+        details: { code: 20404, verificationSid }
       };
     }
     
     return { 
       success: false, 
-      error: error.message || 'Failed to verify code'
+      error: error.message || 'Failed to verify code',
+      details: { 
+        errorCode: error.code,
+        errorStatus: error.status,
+        verificationSid 
+      }
     };
   }
 }
