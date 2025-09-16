@@ -64,14 +64,13 @@
     <meta name="msapplication-TileColor" content="#3b82f6" />
     <meta name="format-detection" content="telephone=no" />
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA Manifest - REMOVED for APK (not needed in native app) -->
     
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/vite.svg" />
+    <!-- Apple Touch Icons - Use inline favicon instead of vite.svg -->
+    <!-- <link rel="apple-touch-icon" href="./vite.svg" /> -->
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- Favicon - Use inline data URI to avoid 404s -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>G</text></svg>" />
     
     <!-- Open Graph tags for social sharing -->
     <meta property="og:title" content="GabAi - Your Personal Voice Assistant" />
@@ -84,8 +83,8 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-BUhT6P2e.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Bf1cH4pC.css">
+    <script type="module" crossorigin src="/assets/index-6_0fN35b.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bft6OpEz.css">
   </head>
   <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root" class="h-full"></div>

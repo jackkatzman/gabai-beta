@@ -3,10 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-touch-fullscreen" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script>
+      // CRITICAL: V2.0 DEPLOYMENT - FORCE CACHE CLEAR
+      console.log('🔥 GABAI V2.0 DEPLOYMENT - ' + new Date().toISOString());
+      
+      // UNREGISTER ALL SERVICE WORKERS
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister().then(function(success) {
+              console.log('❌ Unregistered service worker:', registration.scope, success);
+            });
+          }
+        });
+      }
+      
+      // DELETE ALL CACHES
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+            console.log('🗑️ Deleted cache:', name);
+          }
+        });
+      }
+      
+      // Mark deployment version
+      window.DEPLOYMENT_VERSION = 'V2.0-SMS-FIX-' + Date.now();
+    </script>
     <style>
       /* IMMEDIATE CRITICAL FIXES */
       html, body { 
@@ -291,8 +322,14 @@
     
     <!-- PWA Service Worker Registration and Mobile Fixes -->
     <script>
-      // Service worker disabled for mobile apps to prevent loading issues
-      console.log('Service worker registration skipped for mobile app');
+      // FORCE UNREGISTER ANY REMAINING SERVICE WORKERS ON LOAD
+      console.log('🆕 V2.0 - Ensuring no service workers remain...');
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function(registration) {
+          registration.unregister();
+          console.log('🚫 Unregistered ready service worker');
+        });
+      }
 
       // Prevent horizontal scrolling and zoom
       document.addEventListener('DOMContentLoaded', function() {
