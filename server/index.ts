@@ -121,15 +121,9 @@ app.use((req, res, next) => {
       res.status(200).json({ 
         version: 'V2.0-SMS-FIX-DEPLOYED',
         buildTime: new Date().toISOString(),
-        deployment: 'ORANGE-THEME-WITH-CACHE-BUSTER',
-        message: '🚀 If you see this, the new backend is deployed!',
-        staticDir: require('fs').existsSync(require('path').resolve(__dirname, '..', 'dist', 'public')) ? 'dist/public' : 'server/public',
-        buildDates: {
-          distPublic: require('fs').existsSync(require('path').resolve(__dirname, '..', 'dist', 'public')) ? 
-            require('fs').statSync(require('path').resolve(__dirname, '..', 'dist', 'public')).mtime : 'not found',
-          serverPublic: require('fs').existsSync(require('path').resolve(__dirname, 'public')) ? 
-            require('fs').statSync(require('path').resolve(__dirname, 'public')).mtime : 'not found'
-        }
+        deployment: 'ORANGE-THEME-ACTIVE',
+        message: '🚀 Backend is deployed! If UI is still blue, frontend needs cache purge',
+        frontendStatus: 'Should show orange background and yellow banner'
       });
     });
 
