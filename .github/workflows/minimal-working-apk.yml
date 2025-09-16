@@ -1,0 +1,53 @@
+name: ✅ Minimal Working APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Setup Java 17 (Compatible)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu' 
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
+            
+      - name: Install & Build Web
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Capacitor Sync
+        run: npx cap sync android
+        
+      - name: Gradle Build
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          echo "sdk.dir=$ANDROID_HOME" > local.properties  
+          ./gradlew clean --no-daemon
+          ./gradlew assembleDebug --no-daemon --info
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gabai-working-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

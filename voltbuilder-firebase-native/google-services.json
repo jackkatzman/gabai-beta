@@ -1,0 +1,226 @@
+{
+  "project_info": {
+    "project_number": "324268053113",
+    "project_id": "gabai-f356b",
+    "storage_bucket": "gabai-f356b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:9650e772c1de26f0bd7aa8",
+        "android_client_info": {
+          "package_name": "app.gabai.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:ffeed1dcaae538acbd7aa8",
+        "android_client_info": {
+          "package_name": "com.example.gabai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:ba83d126e3478cebbd7aa8",
+        "android_client_info": {
+          "package_name": "com.example.gabai_clean"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:00f6ec8b6535920ebd7aa8",
+        "android_client_info": {
+          "package_name": "com.example.gabai_final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:804b5cbbf6ab258dbd7aa8",
+        "android_client_info": {
+          "package_name": "com.example.gabai_finallaunch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324268053113:android:eb5d7e2ed6d6d681bd7aa8",
+        "android_client_info": {
+          "package_name": "com.example.gabai_launch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYM_Of7OtLgvcgWjvgAIZrOH2Uirnfp48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324268053113-2dsqu6ocsl44k96d0tmi32b1kdeiph95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "324268053113-17m547je03d7l49nk9tcdh6ess8j7k4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gabaiFresh"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

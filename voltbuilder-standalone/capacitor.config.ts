@@ -1,0 +1,47 @@
+// Capacitor config - types removed to fix import error
+// import type { CapacitorConfig } from '@capacitor/cli';
+
+const config = {
+  appId: 'ai.gabai.app',
+  appName: 'GabAi',
+  webDir: 'www',
+  bundledWebRuntime: false,
+  server: {
+    url: 'https://gabai.ai',
+    cleartext: false
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2500,
+      launchAutoHide: true,
+      backgroundColor: "#3b82f6",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
+      androidSpinnerStyle: "large",
+      spinnerColor: "#ffffff",
+      splashFullScreen: true,
+      splashImmersive: true
+    },
+    StatusBar: {
+      style: 'dark',
+      overlaysWebView: true,
+      backgroundColor: '#00000000'
+    },
+    Keyboard: {}
+  },
+  ios: {
+    contentInset: 'automatic'
+  },
+  android: {
+    buildOptions: {
+      keystorePath: '',
+      keystorePassword: '',
+      keystoreAlias: '',
+      keystoreAliasPassword: '',
+      releaseType: 'APK'
+    },
+
+  }
+};
+
+export default config;

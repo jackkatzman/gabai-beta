@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ai.gabai.app",
+    "sha256_cert_fingerprints": [
+      "2E:D7:19:5D:20:98:F4:6E:1F:EB:A9:17:E8:46:8E:38:62:1D:B7:E7:88:89:D7:A6:E1:66:47:5F:C6:E9:F4:BC"
+    ]
+  }
+}]

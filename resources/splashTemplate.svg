@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#2563eb"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="20" stdDeviation="40" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="2732" height="2732" fill="url(#bg)"/>
+  
+  <!-- Chat bubble -->
+  <g transform="translate(1366, 1200)">
+    <!-- Main bubble -->
+    <path d="M-400 -300 Q-430 -330 -400 -360 L400 -360 Q430 -330 400 -300 L400 180 Q400 210 370 210 L90 210 L-60 360 L-60 210 L-370 210 Q-400 210 -400 180 Z" 
+          fill="white" 
+          filter="url(#shadow)"/>
+    
+    <!-- Animated dots -->
+    <circle cx="-180" cy="-75" r="50" fill="#3b82f6">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="0" cy="-75" r="50" fill="#3b82f6">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="180" cy="-75" r="50" fill="#3b82f6">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+  </g>
+  
+  <!-- GabAi text -->
+  <text x="1366" y="1800" font-family="Arial, sans-serif" font-size="200" font-weight="bold" text-anchor="middle" fill="white">GabAi</text>
+  
+  <!-- Tagline -->
+  <text x="1366" y="1950" font-family="Arial, sans-serif" font-size="80" text-anchor="middle" fill="white" opacity="0.9">Your Personal AI Assistant</text>
+</svg>

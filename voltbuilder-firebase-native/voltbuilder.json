@@ -1,0 +1,23 @@
+{
+  "platformName": "VoltBuilder",
+  "template": "Cordova-12",
+  "variables": {
+    "id": "ai.gabai.app",
+    "name": "GabAi",
+    "displayName": "GabAi - Voice Assistant",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    "cordova-plugin-firebasex@18.0.7",
+    "cordova-plugin-inappbrowser@6.0.0"
+  ],
+  "android": {
+    "gradle": {
+      "java_version": "17"
+    },
+    "compileSdkVersion": 35,
+    "targetSdkVersion": 35
+  },
+  "configFile": "config.xml",
+  "skipBuild": false
+}

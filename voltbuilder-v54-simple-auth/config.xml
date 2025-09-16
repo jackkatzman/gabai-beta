@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="ai.gabai.app" 
+        version="1.0.54" 
+        xmlns="http://www.w3.org/ns/widgets" 
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+    <name>GabAi v54</name>
+    <description>Your Personal AI Assistant - v54 with V5 Simple Auth</description>
+    <author email="support@gabai.ai" href="https://gabai.ai">
+        GabAi Team
+    </author>
+    <content src="index.html" />
+    
+    <!-- Allow navigation and API access -->
+    <allow-navigation href="*" />
+    <allow-navigation href="http://localhost/*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <!-- Icon configuration -->
+    <icon src="res/icon.png" />
+    
+    <!-- Preferences -->
+    <preference name="Orientation" value="portrait" />
+    <preference name="Fullscreen" value="false" />
+    <preference name="BackupWebStorage" value="local" />
+    <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+    <preference name="AndroidInsecureFileModeEnabled" value="true" />
+    <preference name="AndroidHttpCacheMode" value="cache" />
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="android-targetSdkVersion" value="35" />
+    <preference name="android-compileSdkVersion" value="35" />
+    
+    <!-- Splash Screen Settings - temporarily removed splash assets to unblock build -->
+    
+    <!-- Status Bar Settings -->
+    <preference name="StatusBarOverlaysWebView" value="false" />
+    <preference name="StatusBarBackgroundColor" value="#3b82f6" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    
+    <!-- Platform specific config -->
+    <platform name="android">
+        <!-- Declare tools namespace -->
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest">
+            <manifest xmlns:tools="http://schemas.android.com/tools" />
+        </edit-config>
+
+        <!-- Allow cleartext traffic -->
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:usesCleartextTraffic="true" />
+        </edit-config>
+
+        <!-- Remove legacy storage permissions -->
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+        </config-file>
+
+        <!-- Android-specific icon densities -->
+        <icon density="ldpi" src="res/android/ldpi.png" />
+        <icon density="mdpi" src="res/android/mdpi.png" />
+        <icon density="hdpi" src="res/android/hdpi.png" />
+        <icon density="xhdpi" src="res/android/xhdpi.png" />
+        <icon density="xxhdpi" src="res/android/xxhdpi.png" />
+        <icon density="xxxhdpi" src="res/android/xxxhdpi.png" />
+
+        <!-- Core permissions -->
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <!-- Core -->
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
+            <!-- Camera and Microphone -->
+            <uses-permission android:name="android.permission.CAMERA"/>
+            <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+            
+            <!-- Contacts -->
+            <uses-permission android:name="android.permission.READ_CONTACTS"/>
+            <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+            
+            <!-- Calendar -->
+            <uses-permission android:name="android.permission.READ_CALENDAR"/>
+            <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+            
+            <!-- Storage for file downloads -->
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+            
+            <!-- Notifications -->
+            <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+            
+            <!-- Wake device for alarms -->
+            <uses-permission android:name="android.permission.WAKE_LOCK"/>
+            <uses-permission android:name="android.permission.VIBRATE"/>
+        </config-file>
+    </platform>
+
+    <!-- MINIMAL PLUGINS - Using proven working versions from journal -->
+    <plugin name="cordova-plugin-whitelist" spec="~1.3.3" />
+    <plugin name="cordova-plugin-statusbar" spec="~2.4.2" />
+</widget>

@@ -1,0 +1,80 @@
+# VoltBuilder ignore - exclude large/unnecessary files from upload
+
+# Node modules - VoltBuilder will reinstall these
+node_modules/
+package-lock.json
+
+# Development and build artifacts
+.git/
+.github/
+dist/
+build/
+.next/
+.nuxt/
+.vite/
+vite.config.ts.timestamp-*
+
+# Large media files and attachments
+attached_assets/
+public/audio/
+public/images/
+*.mp3
+*.wav
+*.mp4
+*.avi
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.pdf
+
+# Development files
+.replit
+*.log
+*.logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Documentation and guides (keep essential ones)
+*.md
+!README.md
+!VOLTBUILDER-SETUP.md
+
+# Certificates directory (keep structure but not large files)
+certificates/*.p12
+certificates/*.keystore
+certificates/*.jks
+
+# Analytics and Docker files
+docker-compose*.yml
+.dockerignore
+Dockerfile
+
+# Scripts
+scripts/
+build-deploy.sh
+
+# Test files
+test_*.mp3
+test_*.wav
+cookies.txt
+test-*.js
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Backup files
+*_backup*
+routes_backup.ts

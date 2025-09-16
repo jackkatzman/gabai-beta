@@ -1,0 +1,10 @@
+{
+  "name": "GabAi",
+  "short_name": "GabAi",
+  "description": "Your Personal AI Assistant",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6"
+}

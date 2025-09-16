@@ -1,0 +1,56 @@
+name: 🚀 Ultra Simple APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: npm
+    
+    - name: Setup Java 21 (required by Capacitor)
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 21
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build web
+      run: npm run build
+    
+    - name: Sync Capacitor
+      run: npx cap sync android --no-open
+    
+    - name: Build APK
+      working-directory: android
+      run: |
+        chmod +x gradlew
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        ./gradlew wrapper --gradle-version=8.9 --distribution-type=all
+        ./gradlew assembleDebug --stacktrace --no-daemon
+      env:
+        GRADLE_OPTS: "-Xmx2g"
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: gabai-ultra-simple
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7

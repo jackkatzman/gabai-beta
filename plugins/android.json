@@ -1,0 +1,22 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-file": {
+      "ANDROIDX_WEBKIT_VERSION": "1.4.0",
+      "PACKAGE_NAME": "ai.gabai.app"
+    },
+    "cordova-plugin-file-opener2": {
+      "PACKAGE_NAME": "ai.gabai.app"
+    },
+    "cordova-plugin-inappbrowser": {
+      "PACKAGE_NAME": "ai.gabai.app"
+    }
+  },
+  "dependent_plugins": {}
+}

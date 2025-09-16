@@ -1,0 +1,10 @@
+{
+  "androidAlias": "gabai-key",
+  "androidAliasPassword": "gabai2024",
+  "androidKeystore": "certificates/gabai-release.keystore",
+  "androidKeystorePassword": "gabai2024",
+  "androidPackageType": "apk",
+  "release": "debug",
+  "verbose": false,
+  "skipNpmInstall": true
+}

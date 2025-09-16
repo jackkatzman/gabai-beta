@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download GabAi VoltBuilder Package</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .download-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 10px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .recommended {
+            border: 2px solid #ffc107;
+            background: linear-gradient(45deg, #ffc107, #ff8c00);
+        }
+        .fix-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .fix-list li {
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+        .version-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 GabAi VoltBuilder Package</h1>
+        
+        <div class="download-section">
+            <h2>🚀 RECOMMENDED: Minimal Build Package</h2>
+            <p><strong>gabai-voltbuilder-MINIMAL.zip</strong> - Ultra-stable with core dependencies only</p>
+            
+            <div class="fix-list">
+                <h3>✅ All Issues Fixed:</h3>
+                <ul>
+                    <li><strong>Dependency Resolution</strong> - Stable versions, no bleeding-edge packages</li>
+                    <li><strong>Version Conflicts</strong> - Conservative package versions that exist</li>
+                    <li><strong>Vite Build Conflicts</strong> - Server-only build configuration</li>
+                    <li><strong>Asset References</strong> - Uses pre-built frontend assets</li>
+                    <li><strong>Google OAuth</strong> - Production gabai.ai domain authentication</li>
+                </ul>
+            </div>
+            
+            <a href="/gabai-voltbuilder-MINIMAL.zip" class="download-btn recommended" download>
+                📥 Download Minimal Package (660KB)
+            </a>
+            
+            <div class="version-info">
+                Created: August 15, 2025 04:53 UTC<br>
+                Build Configuration: Server-only (esbuild)<br>
+                Dependencies: Stable, widely-available packages only<br>
+                Size: Much smaller, focused on essentials
+            </div>
+        </div>
+
+        <div class="download-section">
+            <h2>📦 Alternative: Clean Package</h2>
+            <p><strong>gabai-voltbuilder-CLEAN.zip</strong> - Previous version with more dependencies</p>
+            
+            <a href="/gabai-voltbuilder-CLEAN.zip" class="download-btn" download>
+                📥 Download Clean Package (4.7MB)
+            </a>
+            
+            <div class="version-info">
+                Created: August 15, 2025 04:49 UTC<br>
+                Note: Use Minimal package above if this one has dependency issues
+            </div>
+        </div>
+
+        <div class="download-section">
+            <h2>📋 Upload Instructions</h2>
+            <ol>
+                <li><strong>Download</strong> the gabai-voltbuilder-CLEAN.zip package above</li>
+                <li><strong>Go to VoltBuilder</strong> and create a new build project</li>
+                <li><strong>Upload</strong> the zip file to VoltBuilder</li>
+                <li><strong>Select</strong> debug build for testing</li>
+                <li><strong>Build</strong> - Should complete without dependency errors</li>
+                <li><strong>Download APK</strong> and install on your device</li>
+            </ol>
+        </div>
+
+        <div class="download-section">
+            <h2>🔧 Previous Packages (Reference)</h2>
+            <p>Earlier versions with specific fixes (use Clean package above for best results):</p>
+            
+            <a href="/gabai-voltbuilder-FINAL.zip" class="download-btn" download>
+                📦 FINAL (Vite fix only)
+            </a>
+            
+            <a href="/gabai-voltbuilder-READY.zip" class="download-btn" download>
+                📦 READY (Asset fix)
+            </a>
+        </div>
+
+        <div class="download-section">
+            <h2>📝 Google Console Setup</h2>
+            <p>Ensure this redirect URI is configured in your Google OAuth settings:</p>
+            <code style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; display: block; margin: 10px 0;">
+                https://gabai.ai/mobile-auth-callback
+            </code>
+        </div>
+    </div>
+</body>
+</html>

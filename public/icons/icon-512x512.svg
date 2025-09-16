@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#gradient)"/>
+  
+  <!-- Microphone icon (voice-first assistant) -->
+  <g transform="translate(256,256)">
+    <!-- Mic body -->
+    <rect x="-24" y="-70" width="48" height="80" rx="24" fill="white"/>
+    <!-- Mic base -->
+    <path d="M-60,-15 Q-60,40 0,40 Q60,40 60,-15" stroke="white" stroke-width="8" fill="none"/>
+    <!-- Mic stand -->
+    <line x1="0" y1="40" x2="0" y2="70" stroke="white" stroke-width="8"/>
+    <line x1="-30" y1="70" x2="30" y2="70" stroke="white" stroke-width="8"/>
+  </g>
+  
+  <!-- App name -->
+  <text x="256" y="420" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">GabAi</text>
+</svg>

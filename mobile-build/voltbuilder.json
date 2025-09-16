@@ -1,0 +1,10 @@
+{
+  "platform": "android",
+  "buildType": "release",
+  "keystore": {
+    "file": "gabai-release.keystore",
+    "password": "GabAi2024!Mobile",
+    "alias": "gabai",
+    "aliasPassword": "GabAi2024!Mobile"
+  }
+}

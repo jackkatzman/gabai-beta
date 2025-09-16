@@ -1,0 +1,113 @@
+<!-- Mobile APK Debug Page -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>GabAi Mobile Debug</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; 
+            padding: 20px; 
+            margin: 0;
+        }
+        .debug-box { 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            backdrop-filter: blur(10px);
+        }
+        .status-ok { background: rgba(0,255,0,0.2); }
+        .status-error { background: rgba(255,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <h1>🔧 GabAi Mobile Debug</h1>
+    
+    <div class='debug-box'>
+        <h3>Capacitor Detection</h3>
+        <div id='capacitor-status'>Checking...</div>
+    </div>
+    
+    <div class='debug-box'>
+        <h3>Network Status</h3>
+        <div id='network-status'>Checking...</div>
+    </div>
+    
+    <div class='debug-box'>
+        <h3>Server Connection</h3>
+        <div id='server-status'>Checking...</div>
+    </div>
+    
+    <div class='debug-box'>
+        <h3>Authentication</h3>
+        <div id='auth-status'>Checking...</div>
+    </div>
+
+    <div class='debug-box'>
+        <h3>Device Info</h3>
+        <div id='device-info'></div>
+    </div>
+
+    <script>
+        console.log('🚀 Mobile debug page loaded');
+        
+        // Check Capacitor
+        const isCapacitor = window.Capacitor && window.Capacitor.isNativePlatform();
+        document.getElementById('capacitor-status').innerHTML = 
+            isCapacitor ? 
+            '<span class="status-ok">✅ Capacitor Detected</span>' : 
+            '<span class="status-error">❌ Not in Capacitor</span>';
+        
+        // Check Network
+        document.getElementById('network-status').innerHTML = 
+            navigator.onLine ? 
+            '<span class="status-ok">✅ Online</span>' : 
+            '<span class="status-error">❌ Offline</span>';
+        
+        // Test Server
+        fetch('https://gabai.ai/api/auth/user', { credentials: 'include' })
+            .then(response => {
+                document.getElementById('server-status').innerHTML = 
+                    '<span class="status-ok">✅ Server Reachable (' + response.status + ')</span>';
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('auth-status').innerHTML = 
+                    data.message === 'Not authenticated' ? 
+                    '<span class="status-error">❌ Not Authenticated</span>' : 
+                    '<span class="status-ok">✅ Authenticated: ' + (data.name || 'Unknown') + '</span>';
+            })
+            .catch(error => {
+                document.getElementById('server-status').innerHTML = 
+                    '<span class="status-error">❌ Server Error: ' + error.message + '</span>';
+                document.getElementById('auth-status').innerHTML = 
+                    '<span class="status-error">❌ Cannot Check Auth</span>';
+            });
+        
+        // Device Info
+        const deviceInfo = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            cookieEnabled: navigator.cookieEnabled,
+            screenSize: screen.width + 'x' + screen.height,
+            viewport: window.innerWidth + 'x' + window.innerHeight,
+            url: window.location.href
+        };
+        
+        document.getElementById('device-info').innerHTML = 
+            Object.entries(deviceInfo)
+                .map(([key, value]) => key + ': ' + value)
+                .join('<br>');
+                
+        // Log everything to console
+        console.log('📱 Device Info:', deviceInfo);
+        console.log('🔧 Capacitor Available:', !!window.Capacitor);
+        console.log('🌐 Current URL:', window.location.href);
+    </script>
+</body>
+</html>

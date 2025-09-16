@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download GabAi VoltBuilder Package</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .download-btn {
+            display: block;
+            width: 300px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #00d4aa;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .checkmark {
+            color: #00d4aa;
+            font-weight: bold;
+        }
+        .file-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GabAi VoltBuilder Package</h1>
+        
+        <div class="info">
+            <h3>📱 Latest Package: OAUTH FLOW FIXED</h3>
+            <div class="status">
+                <span class="checkmark">✅</span>
+                <span>Fixed OAuth flow - users stay in mobile app</span>
+            </div>
+            <div class="status">
+                <span class="checkmark">✅</span>
+                <span>Immediate 302 redirect to gabai:// scheme (no HTML pages)</span>
+            </div>
+            <div class="status">
+                <span class="checkmark">✅</span>
+                <span>Automatic browser close after authentication</span>
+            </div>
+            <div class="status">
+                <span class="checkmark">✅</span>
+                <span>Complete Android project with all icons and assets</span>
+            </div>
+        </div>
+
+        <a href="../gabai-voltbuilder-OAUTH-FIXED.zip" class="download-btn" download>
+            📦 Download OAuth-Fixed Package
+        </a>
+
+        <div class="file-info">
+            <strong>File:</strong> gabai-voltbuilder-OAUTH-FIXED.zip<br>
+            <strong>Size:</strong> ~1.4MB<br>
+            <strong>Created:</strong> August 15, 2025<br>
+            <strong>Fixes:</strong> OAuth flow fixed - no more web browser switching
+        </div>
+
+        <div class="info">
+            <h4>📋 VoltBuilder Upload Instructions:</h4>
+            <ol>
+                <li>Download the ZIP file above</li>
+                <li>Go to <strong>VoltBuilder.com</strong></li>
+                <li>Upload <strong>gabai-voltbuilder-ICONS-FIXED.zip</strong></li>
+                <li>Select Platform: <strong>Android</strong></li>
+                <li>Click Build</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h4>🔧 OAuth Flow Fixed:</h4>
+            <p>This package resolves the "still going to web browser" issue:</p>
+            <div style="background: rgba(0,255,0,0.1); padding: 10px; border-radius: 5px; font-family: monospace;">
+                ✅ Server: Immediate 302 redirect to gabai://auth/callback
+                ✅ App: Browser.close() after deep link authentication
+                ✅ Users: Stay in mobile app after Google OAuth
+            </div>
+            <p>OAuth flow now works properly - no more switching to Chrome!</p>
+        </div>
+    </div>
+
+    <script>
+        // Verify file exists
+        fetch('../gabai-voltbuilder-OAUTH-FIXED.zip', { method: 'HEAD' })
+            .then(response => {
+                if (!response.ok) {
+                    document.querySelector('.download-btn').innerHTML = '❌ File Not Found';
+                    document.querySelector('.download-btn').style.background = '#ff4757';
+                    document.querySelector('.download-btn').onclick = () => false;
+                }
+            })
+            .catch(() => {
+                document.querySelector('.download-btn').innerHTML = '❌ File Not Accessible';
+                document.querySelector('.download-btn').style.background = '#ff4757';
+                document.querySelector('.download-btn').onclick = () => false;
+            });
+    </script>
+</body>
+</html>

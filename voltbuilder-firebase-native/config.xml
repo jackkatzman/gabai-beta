@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="app.gabai.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>GabAi</name>
+    <description>Voice-first AI personal assistant</description>
+    <author email="team@gabai.ai" href="https://gabai.ai">GabAi Team</author>
+    
+    <content src="index.html" />
+    
+    <!-- Allow all origins for development -->
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <!-- Android specific settings -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+        
+        <!-- Firebase configuration file -->
+        <resource-file src="google-services.json" target="app/google-services.json" />
+        
+        <!-- Firebase and authentication domains -->
+        <allow-navigation href="https://*.googleapis.com/*" />
+        <allow-navigation href="https://*.google.com/*" />
+        <allow-navigation href="https://*.firebaseapp.com/*" />
+        <allow-navigation href="https://accounts.google.com/*" />
+        <allow-navigation href="https://securetoken.googleapis.com/*" />
+        <allow-navigation href="https://identitytoolkit.googleapis.com/*" />
+        
+        <!-- Replit domains -->
+        <allow-navigation href="https://*.replit.dev/*" />
+        <allow-navigation href="https://*.replit.app/*" />
+        
+        <!-- GabAi production domain -->
+        <allow-navigation href="https://gabai.ai/*" />
+        <allow-navigation href="https://*.gabai.ai/*" />
+        
+        <!-- Deep link intent filter for OAuth callback -->
+        <config-file target="app/src/main/AndroidManifest.xml" parent="/manifest/application/activity[@android:name='MainActivity']">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gabai" android:host="auth" android:path="/callback" />
+            </intent-filter>
+        </config-file>
+        
+        <!-- Additional intent filter for broader deep link support -->
+        <config-file target="app/src/main/AndroidManifest.xml" parent="/manifest/application/activity[@android:name='MainActivity']">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gabai" />
+            </intent-filter>
+        </config-file>
+        
+        <!-- WebView settings for authentication -->
+        <preference name="AndroidLaunchMode" value="singleTop" />
+        <preference name="AndroidXRequestedWithHeaderMode" value="false" />
+        <preference name="MixedContentMode" value="0" />
+        <preference name="allowFileAccessFromFileURLs" value="true" />
+        <preference name="allowUniversalAccessFromFileURLs" value="true" />
+        
+        <!-- Network security and API access -->
+        <preference name="AndroidInsecureFileModeEnabled" value="true" />
+        <preference name="AndroidPersistentFileLocation" value="Internal" />
+        <preference name="AndroidUseLegacyBridge" value="false" />
+        
+        <!-- Allow HTTP traffic for API calls -->
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:usesCleartextTraffic="true" />
+        </edit-config>
+        
+        <!-- Hardware acceleration -->
+        <preference name="AndroidHardwareAcceleration" value="true" />
+        
+        <!-- Keep app running -->
+        <preference name="KeepRunning" value="true" />
+        <preference name="DisallowOverscroll" value="true" />
+        
+        <!-- Fullscreen -->
+        <preference name="Fullscreen" value="false" />
+        
+        <!-- Orientation -->
+        <preference name="Orientation" value="portrait" />
+        
+        <!-- App icons (VoltBuilder format) -->
+        <icon src="res/icon/android/drawable-ldpi-icon.png" density="ldpi" />
+        <icon src="res/icon/android/drawable-mdpi-icon.png" density="mdpi" />
+        <icon src="res/icon/android/drawable-hdpi-icon.png" density="hdpi" />
+        <icon src="res/icon/android/drawable-xhdpi-icon.png" density="xhdpi" />
+        <icon src="res/icon/android/drawable-xxhdpi-icon.png" density="xxhdpi" />
+        <icon src="res/icon/android/drawable-xxxhdpi-icon.png" density="xxxhdpi" />
+        
+        <!-- Default icon fallback -->
+        <icon src="res/icon/android/drawable-hdpi-icon.png" />
+        
+        <!-- Use preference tags for splash screen (Android 12+ compatible) -->
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/icon/android/drawable-hdpi-icon.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#3b82f6" />
+        <preference name="AndroidWindowSplashScreenIconBackgroundColor" value="#3b82f6" />
+        <preference name="AndroidWindowSplashScreenBrandingImage" value="res/icon/android/drawable-hdpi-icon.png" />
+        
+        <!-- Icon background color for transparent icons -->
+        <preference name="AndroidIconBackgroundColor" value="#3b82f6" />
+        
+        <!-- App shortcut support (simplified for VoltBuilder compatibility) -->
+        <preference name="AndroidShortcutIcon" value="res/icon/android/drawable-hdpi-icon.png" />
+    </platform>
+    
+    <!-- Permissions for Firebase and app functionality -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    
+    <!-- Firebase plugins -->
+    <plugin name="cordova-plugin-firebasex" spec="18.0.7" />
+    <plugin name="cordova-plugin-inappbrowser" spec="6.0.0" />
+    
+    <!-- Core Cordova plugins -->
+    <plugin name="cordova-plugin-device" spec="3.0.0" />
+    <plugin name="cordova-plugin-camera" spec="7.0.0" />
+    
+</widget>

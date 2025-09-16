@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="ai.gabai.app" version="1.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>GabAi</name>
+    <description>Voice-first AI personal assistant with SMS authentication</description>
+    <author email="team@gabai.ai" href="https://gabai.ai">GabAi Team</author>
+    
+    <content src="index.html" />
+    
+    <!-- Allow all origins for production server -->
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <!-- Android specific settings -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+        
+        <!-- GabAi production domain -->
+        <allow-navigation href="https://gabai.ai/*" />
+        <allow-navigation href="https://*.gabai.ai/*" />
+        
+        <!-- External navigation for web app -->
+        <preference name="ShouldAllowNavigation" value="true" />
+        <preference name="ShouldAllowBridgeAccess" value="true" />
+    </platform>
+    
+    <!-- Global preferences -->
+    <preference name="webviewbounce" value="false" />
+    <preference name="UIWebViewBounce" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="BackupWebStorage" value="none" />
+</widget>
