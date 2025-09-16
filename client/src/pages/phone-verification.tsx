@@ -313,7 +313,11 @@ export default function PhoneVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      {/* Orange theme indicator banner */}
+      <div className="fixed top-0 left-0 right-0 bg-yellow-400 text-black text-center py-2 z-50 font-bold">
+        🟠 ORANGE THEME ACTIVE - Cache Updated Successfully!
+      </div>
       <div className="w-full max-w-md">
         {/* GabAi Logo and Header */}
         <div className="text-center mb-8">

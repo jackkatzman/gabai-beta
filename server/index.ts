@@ -26,22 +26,22 @@ const ALLOWED_ORIGINS = [
 
 app.use((req, res, next) => {
   const origin = req.headers.origin as string | undefined;
-  
+
   // Allow requests from whitelisted origins
   if (origin && (ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost') || origin.includes('gabai.ai'))) {
     res.header('Access-Control-Allow-Origin', origin);  // echo back exact origin
     res.header('Vary', 'Origin');                       // caching correctness
   }
-  
+
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
-  
+
   next();
 });
 
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
   res.header('X-Frame-Options', 'DENY');
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+
   // EMERGENCY: Force cache invalidation for all API routes
   if (req.path.startsWith('/api/')) {
     res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -62,7 +62,7 @@ app.use((req, res, next) => {
     res.header('Expires', '0');
     res.header('Surrogate-Control', 'no-store');
   }
-  
+
   next();
 });
 
@@ -123,22 +123,21 @@ app.use((req, res, next) => {
         domain: process.env.REPLIT_DOMAINS || 'localhost'
       });
     });
-    
-    // VERSION ENDPOINT - V2.0 DEPLOYMENT VERIFICATION
-    app.get('/api/version', (req, res) => {
-      res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      res.status(200).json({ 
+
+    // Version endpoint with cache busting
+    app.get('/api/version', (_req, res) => {
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      res.json({
         version: 'V2.1-CACHE-BUST-FIX',
         buildTime: new Date().toISOString(),
-        deployment: 'EMERGENCY-CACHE-CLEAR',
-        message: '🚀 NEW DEPLOYMENT - Cache issue should be resolved',
-        frontendStatus: 'SMS authentication should work',
-        timestamp: Date.now(),
-        environment: process.env.NODE_ENV,
-        smsEnabled: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
-        emergencyBypass: process.env.SMS_ALLOW_LEGACY || 'not-set'
+        deployment: 'ORANGE-THEME-ACTIVE',
+        message: '🟠 ORANGE THEME DEPLOYED! Clear browser cache if still seeing blue',
+        frontendStatus: 'Orange background with yellow banner should be visible'
       });
     });
 
@@ -147,20 +146,20 @@ app.use((req, res, next) => {
     // Start SMS reminder checking (every 1 minute) - disabled in Cloud Run
     // Cloud Run doesn't support background intervals, use Cloud Scheduler instead
     const isCloudRun = process.env.K_SERVICE || process.env.CLOUD_RUN_JOB;
-    
+
     if (!isCloudRun && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
       const { checkAndSendPendingReminders } = await import('./sms-reminder-service');
-      
+
       // Check immediately on startup
       checkAndSendPendingReminders();
-      
+
       // Then check every minute
       const smsInterval = setInterval(() => {
         checkAndSendPendingReminders();
       }, 60 * 1000); // 1 minute
-      
+
       console.log('📱 SMS reminder service started - checking every minute');
-      
+
       // Store interval for cleanup
       (global as any).smsInterval = smsInterval;
     } else if (isCloudRun) {
@@ -190,7 +189,7 @@ app.use((req, res, next) => {
           });
         }
       }, 5000); // 5 second timeout
-      
+
       // Clear timeout and respond immediately
       clearTimeout(timeout);
       res.status(200).json({ 
@@ -243,57 +242,57 @@ app.use((req, res, next) => {
   // Always use 5000 as default for both development and production on Replit
   const defaultPort = '5000';  // Replit requires port 5000
   const port = parseInt(process.env.PORT || defaultPort, 10);
-  
+
   // Add startup timeout for Cloud Run
   const startupTimeout = setTimeout(() => {
     console.error('⏱️ Server startup timeout - exiting to trigger Cloud Run restart');
     process.exit(1);
   }, 30000); // 30 second timeout
-  
+
   server.listen(port, "0.0.0.0", () => {
     clearTimeout(startupTimeout); // Clear timeout on successful startup
     log(`serving on port ${port}`);
-    
+
     // Log OAuth configuration status
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       console.log('✅ OAuth configuration detected');
     } else {
       console.log('⚠️  OAuth not configured - Google login will not work');
     }
-    
+
     // Log Cloud Run detection
     if (process.env.K_SERVICE || process.env.CLOUD_RUN_JOB) {
       console.log('☁️ Running on Cloud Run');
     }
   });
-  
+
   // Graceful shutdown handling for Cloud Run
   const gracefulShutdown = async (signal: string) => {
     console.log(`\n${signal} received, starting graceful shutdown...`);
-    
+
     // Clear SMS interval if it exists
     if ((global as any).smsInterval) {
       clearInterval((global as any).smsInterval);
       console.log('✅ SMS reminder interval cleared');
     }
-    
+
     // Close server
     server.close(() => {
       console.log('✅ HTTP server closed');
       process.exit(0);
     });
-    
+
     // Force exit after 10 seconds
     setTimeout(() => {
       console.error('⚠️ Forcefully shutting down after timeout');
       process.exit(1);
     }, 10000);
   };
-  
+
   // Listen for termination signals
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-  
+
   } catch (error) {
     console.error('❌ Failed to initialize application:', error);
     process.exit(1);
