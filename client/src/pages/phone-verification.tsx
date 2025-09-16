@@ -313,10 +313,10 @@ export default function PhoneVerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      {/* Orange theme indicator banner */}
-      <div className="fixed top-0 left-0 right-0 bg-yellow-400 text-black text-center py-2 z-50 font-bold">
-        🟠 ORANGE THEME ACTIVE - Cache Updated Successfully!
+    <div className="min-h-screen bg-gradient-to-br from-orange-300 to-yellow-200 dark:from-orange-900 dark:to-yellow-800 flex items-center justify-center p-4">
+      {/* STRONG Orange theme indicator banner */}
+      <div className="fixed top-0 left-0 right-0 bg-orange-500 text-white text-center py-3 z-50 font-black shadow-lg">
+        🟠 ORANGE THEME v2.1 ACTIVE - Frontend Cache Cleared!
       </div>
       <div className="w-full max-w-md">
         {/* GabAi Logo and Header */}

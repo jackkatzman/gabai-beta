@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gabai-v1.2.0-force-clear';
+const CACHE_NAME = 'gabai-v2.2.0-orange-theme-force';
 const urlsToCache = [
   '/',
   '/manifest.json'

@@ -133,11 +133,11 @@ app.use((req, res, next) => {
       });
 
       res.json({
-        version: 'V2.1-CACHE-BUST-FIX',
+        version: 'V2.2-FRONTEND-CACHE-CLEAR',
         buildTime: new Date().toISOString(),
-        deployment: 'ORANGE-THEME-ACTIVE',
-        message: '🟠 ORANGE THEME DEPLOYED! Clear browser cache if still seeing blue',
-        frontendStatus: 'Orange background with yellow banner should be visible'
+        deployment: 'ORANGE-THEME-FORCED',
+        message: '🟠 ORANGE THEME v2.2 - Frontend Rebuilt with Strong Orange Colors',
+        frontendStatus: 'ORANGE background (not blue) with orange banner should be visible'
       });
     });
 
