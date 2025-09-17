@@ -49,6 +49,7 @@ cat > voltbuilder-v55/config.xml << 'EOF'
   <platform name="android">
     <preference name="android-minSdkVersion" value="24" />
     <preference name="android-targetSdkVersion" value="33" />
+    <preference name="android-compileSdkVersion" value="33" />
     
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
