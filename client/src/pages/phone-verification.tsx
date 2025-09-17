@@ -72,25 +72,33 @@ export default function PhoneVerificationPage() {
       verifying = true;
       
       try {
-        console.log('📱 Starting SMS verification with verificationSid:', verificationSid);
-        
-        if (!verificationSid) {
-          throw new Error('No verification request found. Please send a new code.');
-        }
+        console.log('📱 Starting SMS verification with phone:', phoneNumber);
         
         // Clean code - digits only, trimmed
         const cleanCode = code.replace(/\D/g, '').trim();
         console.log('📱 Cleaned code:', code, '->', cleanCode);
         
-        // Step 1: Verify SMS using verificationSid (credentials: 'include' in api())
+        // Convert phone to E.164 format for verification
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+        let e164Phone = '';
+        if (cleanNumber.length === 10) {
+          e164Phone = '+1' + cleanNumber;
+        } else if (cleanNumber.startsWith('1') && cleanNumber.length === 11) {
+          e164Phone = '+' + cleanNumber;
+        } else {
+          e164Phone = '+' + cleanNumber;
+        }
+        
+        console.log('📱 Using E.164 phone for verification:', e164Phone);
+        
+        // Step 1: Verify SMS using phone + code (NOT verificationSid)
         console.log('📱 Sending verification request...');
         const data = await api('/api/sms/verify-code', {
           method: 'POST',
           body: JSON.stringify({ 
-            verificationSid,
+            phone: e164Phone,  // Send E.164 formatted phone
             code: cleanCode, 
-            createAccount: true,
-            phoneNumber // Keep for user creation fallback
+            createAccount: true
           })
         });
 
@@ -222,7 +230,7 @@ export default function PhoneVerificationPage() {
   };
 
   const handleVerifyCode = (code: string) => {
-    console.log('📱 handleVerifyCode called with code:', code, 'verificationSid:', verificationSid);
+    console.log('📱 handleVerifyCode called with code:', code, 'phone:', phoneNumber);
     
     // Prevent duplicate verification attempts (ChatGPT fix)
     if (verifying) {
@@ -230,16 +238,16 @@ export default function PhoneVerificationPage() {
       return;
     }
     
-    if (!verificationSid) {
+    if (!phoneNumber || phoneNumber.length < 10) {
       toast({
-        title: "No verification request",
-        description: "Please send a verification code first",
+        title: "Phone number required",
+        description: "Please enter your phone number first",
         variant: "destructive",
       });
       return;
     }
     
-    console.log('📱 Verifying with verificationSid:', verificationSid);
+    console.log('📱 Verifying code for phone:', phoneNumber);
     verifyCodeMutation.mutate(code);
   };
 
