@@ -556,7 +556,7 @@ export async function verifyCodeSMS(phoneOrSid: string, code: string): Promise<{
       console.log('❌ VERIFY FAILED: Code verification failed via Twilio Verify:', {
         status: verificationCheck.status,
         valid: verificationCheck.valid,
-        verificationSid: verificationSid
+        phoneOrSid: phoneOrSid
       });
       return { 
         success: false, 
@@ -571,18 +571,18 @@ export async function verifyCodeSMS(phoneOrSid: string, code: string): Promise<{
       code: error.code,
       moreInfo: error.moreInfo,
       details: error.details,
-      verificationSid: verificationSid,
+      phoneOrSid: phoneOrSid,
       cleanCode: cleanCode,
       timestamp: new Date().toISOString()
     });
     
     // Handle specific Twilio errors
     if (error.status === 404) {
-      console.error('❌ VERIFY 404: Verification request not found for sid:', verificationSid);
+      console.error('❌ VERIFY 404: Verification request not found for phone:', phoneOrSid);
       return { 
         success: false, 
         error: 'No verification request found. Please request a new code.',
-        details: { status: 404, verificationSid }
+        details: { status: 404, phoneOrSid }
       };
     }
     
@@ -591,7 +591,7 @@ export async function verifyCodeSMS(phoneOrSid: string, code: string): Promise<{
       return { 
         success: false, 
         error: 'Verification expired or not found. Please request a new code.',
-        details: { code: 20404, verificationSid }
+        details: { code: 20404, phoneOrSid }
       };
     }
     
@@ -601,7 +601,7 @@ export async function verifyCodeSMS(phoneOrSid: string, code: string): Promise<{
       details: { 
         errorCode: error.code,
         errorStatus: error.status,
-        verificationSid 
+        phoneOrSid 
       }
     };
   }
