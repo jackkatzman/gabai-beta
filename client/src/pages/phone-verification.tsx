@@ -137,9 +137,23 @@ export default function PhoneVerificationPage() {
 
         // Step 5: Navigate after everything is confirmed
         console.log('📱 Navigating to chat...');
+        
+        // Detect if running as APK (same detection as App.tsx)
+        const isAPK = window.location.protocol === 'file:' || 
+                      window.location.hostname === 'localhost' ||
+                      typeof (window as any).Android !== 'undefined' ||
+                      window.location.hostname.includes('replit');
+        
         requestAnimationFrame(() => {
-          console.log('📱 Navigation frame - navigating now');
-          navigate('/chat', { replace: true });
+          console.log('📱 Navigation frame - navigating now (APK:', isAPK, ')');
+          if (isAPK) {
+            // Use hash routing for APK environments
+            console.log('📱 APK detected - using hash routing');
+            window.location.hash = '#/chat';
+          } else {
+            // Use regular routing for web
+            navigate('/chat', { replace: true });
+          }
         });
         
         return data;
