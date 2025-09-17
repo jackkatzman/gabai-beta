@@ -101,7 +101,7 @@ export function SMSCompliancePage() {
                         htmlFor="sms-consent" 
                         className="text-sm font-normal cursor-pointer leading-relaxed"
                       >
-                        <strong>I consent to receive automated SMS text message reminders at this number from GabAI.</strong> Message frequency varies based on reminders I create. Message & data rates may apply. Reply STOP to unsubscribe at any time. View our privacy policy at gabai.ai/privacy.
+                        <strong>I consent to receive automated SMS text message reminders at this number from Booah LLC (GabAi Reminder App).</strong> Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
                       </Label>
                     </div>
                   </div>

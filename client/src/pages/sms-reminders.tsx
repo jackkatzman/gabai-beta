@@ -428,7 +428,7 @@ export function SMSRemindersPage() {
                       htmlFor="consent" 
                       className="text-sm font-normal cursor-pointer"
                     >
-                      I consent to receive automated {reminderType === 'voice' ? 'voice call' : 'SMS text message'} reminders at this number from GabAI. Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
+                      I consent to receive automated {reminderType === 'voice' ? 'voice call' : 'SMS text message'} reminders at this number from Booah LLC (GabAi Reminder App). Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
                     </Label>
                   </div>
                 </div>
