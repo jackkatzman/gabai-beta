@@ -557,6 +557,90 @@ chmod +x build.sh
 ./build.sh
 ```
 
+## September 17, 2025 - Latest Updates
+
+### SMS Verification Reload Issue
+**Problem**: After SMS verification, APK was getting stuck with infinite loading
+**Root Cause**: Using `window.location.reload()` in APK environment doesn't work properly
+**Solution**: Applied the hash routing fix documented in v7 above
+**Implementation**:
+```javascript
+// FIXED: phone-verification.tsx
+if (isAPK) {
+  // Use hash routing for APK environments
+  window.location.href = '/#/chat';
+} else {
+  // Use regular routing for web
+  navigate('/chat', { replace: true });
+}
+```
+**Result**: ✅ SMS verification now properly redirects to chat in APK
+
+### Camera Integration in Chat
+**Date**: September 17, 2025
+**Feature**: Added camera functionality directly in chat interface
+**Implementation**:
+1. **UI Changes**:
+   - Added purple camera button next to microphone in voice-input.tsx
+   - Camera icon from lucide-react with consistent styling
+   - Loading states and proper touch handling for mobile
+
+2. **Permission System**:
+   - Integrated with PermissionManager for camera permissions
+   - Proper request flow before camera access
+   - Works in both web and APK environments
+
+3. **Photo Capture**:
+   - Created use-camera hook for photo handling
+   - Uses `<input type="file" accept="image/*" capture="environment">`
+   - Images automatically resized to max 1024x1024 for optimization
+
+4. **AI Vision Integration**:
+   - OpenAI GPT-4o vision capabilities added
+   - Analyzes photos to identify items
+   - Suggests appropriate smart lists for categorization
+   - Automatic caption: "📸 [Photo attached] Can you identify what's in this photo?"
+
+**Technical Details**:
+```typescript
+// New camera hook implementation
+const useCamera = () => {
+  const permissionManager = new PermissionManager();
+  
+  const capturePhoto = async () => {
+    await permissionManager.requestCameraPermission();
+    // Trigger file input with camera capture
+    // Convert to base64 and optimize size
+    // Return processed image data
+  };
+};
+```
+
+**Result**: ✅ Full camera-to-AI pipeline working
+
+### Microphone Permission Updates
+**Date**: September 17, 2025
+**Changes**: Enhanced microphone permission handling
+**Implementation**:
+- Modified use-voice.tsx to request permission before recording
+- Added PermissionManager integration
+- Better error handling when permission denied
+**Result**: ✅ Clean permission flow for voice recording
+
+### Current APK Status (v55-pending)
+**Working Features**:
+- ✅ SMS authentication with hash routing
+- ✅ Camera capture in chat
+- ✅ AI vision for item identification
+- ✅ Microphone recording with permissions
+- ✅ Calendar and contact downloads
+- ✅ All navigation flows
+
+**Build Requirements**:
+- Must include hash routing fix for SMS verification
+- Camera permissions properly configured
+- All recent UI and API updates
+
 ## Contact
 
 For APK-related issues or questions about this development process, refer to this document or check the replit.md file for overall project architecture.
