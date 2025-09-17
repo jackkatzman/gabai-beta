@@ -1961,6 +1961,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               user = await storage.getUserByPhone(phoneWithoutPlus) || await storage.getUserByPhone(phoneWithDashes);
             }
             
+            // Also try looking up by the SMS email format (e.g., 17326101200@sms.gabaiapp.com)
+            if (!user) {
+              const phoneDigits = phone.replace(/[^\d]/g, '');
+              const smsEmail = `${phoneDigits}@sms.gabaiapp.com`;
+              console.log('🔍 Trying SMS email format:', smsEmail);
+              user = await storage.getUserByEmail(smsEmail);
+            }
+            
             if (!user) {
               // Create new user with phone number
               // Generate unique username with last 4 digits + random suffix to avoid collisions
@@ -1980,7 +1988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // If user already exists, try to find them with alternate formats
                 console.log('⚠️ User creation failed, trying to find existing user...');
                 
-                // Try all possible phone formats
+                // Try all possible phone formats AND email format
                 const phoneDigits = phone.replace(/[^\d]/g, '');
                 const formats = [
                   phone,
@@ -1991,11 +1999,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ];
                 
                 for (const format of formats) {
-                  console.log('🔍 Trying format:', format);
+                  console.log('🔍 Trying phone format:', format);
                   user = await storage.getUserByPhone(format);
                   if (user) {
-                    console.log('✅ Found existing user with format:', format);
+                    console.log('✅ Found existing user with phone format:', format);
                     break;
+                  }
+                }
+                
+                // Also try the SMS email format
+                if (!user) {
+                  const smsEmail = `${phoneDigits}@sms.gabaiapp.com`;
+                  console.log('🔍 Trying SMS email format:', smsEmail);
+                  user = await storage.getUserByEmail(smsEmail);
+                  if (user) {
+                    console.log('✅ Found existing user with SMS email:', smsEmail);
                   }
                 }
                 
