@@ -147,9 +147,9 @@ export default function PhoneVerificationPage() {
         requestAnimationFrame(() => {
           console.log('📱 Navigation frame - navigating now (APK:', isAPK, ')');
           if (isAPK) {
-            // For APK, reload the page to ensure proper navigation after auth
-            console.log('📱 APK detected - reloading page to complete login');
-            window.location.reload();
+            // Use hash routing for APK environments as per development journal
+            console.log('📱 APK detected - using hash navigation to chat');
+            window.location.href = '/#/chat';
           } else {
             // Use regular routing for web
             navigate('/chat', { replace: true });
