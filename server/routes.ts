@@ -1948,8 +1948,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('👥 Starting user account creation for phone:', phone);
             
             // Check if user already exists with this phone
-            console.log('🔍 Checking for existing user...');
+            console.log('🔍 Checking for existing user with phone:', phone);
+            
+            // Try multiple phone formats to find existing user
             let user = await storage.getUserByPhone(phone);
+            
+            // If not found, try without country code prefix
+            if (!user && phone.startsWith('+1')) {
+              const phoneWithoutPlus = phone.substring(2); // Remove +1
+              const phoneWithDashes = phoneWithoutPlus.slice(0,3) + '-' + phoneWithoutPlus.slice(3,6) + '-' + phoneWithoutPlus.slice(6);
+              console.log('🔍 Trying alternate formats:', phoneWithoutPlus, phoneWithDashes);
+              user = await storage.getUserByPhone(phoneWithoutPlus) || await storage.getUserByPhone(phoneWithDashes);
+            }
             
             if (!user) {
               // Create new user with phone number
@@ -1963,8 +1973,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
               };
               
               console.log('🆕 Creating new user with data:', userData);
-              user = await storage.createUser(userData);
-              console.log('✅ New SMS user created:', user.id);
+              try {
+                user = await storage.createUser(userData);
+                console.log('✅ New SMS user created:', user.id);
+              } catch (createError: any) {
+                // If user already exists, try to find them with alternate formats
+                console.log('⚠️ User creation failed, trying to find existing user...');
+                
+                // Try all possible phone formats
+                const phoneDigits = phone.replace(/[^\d]/g, '');
+                const formats = [
+                  phone,
+                  phoneDigits,
+                  '+' + phoneDigits,
+                  phoneDigits.slice(-10), // Last 10 digits only
+                  phoneDigits.slice(-10).slice(0,3) + '-' + phoneDigits.slice(-10).slice(3,6) + '-' + phoneDigits.slice(-10).slice(6)
+                ];
+                
+                for (const format of formats) {
+                  console.log('🔍 Trying format:', format);
+                  user = await storage.getUserByPhone(format);
+                  if (user) {
+                    console.log('✅ Found existing user with format:', format);
+                    break;
+                  }
+                }
+                
+                if (!user) {
+                  throw createError; // Re-throw if we still can't find the user
+                }
+              }
             } else {
               console.log('✅ Existing SMS user found:', user.id);
             }
