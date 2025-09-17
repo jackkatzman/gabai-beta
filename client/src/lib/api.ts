@@ -368,15 +368,23 @@ export const api = {
       
       console.log('📇 VCard download URL:', downloadUrl);
       
-      // For APK/WebView (without Cordova), open in system browser
+      // For APK/WebView, always use absolute URL and open in system browser
       if (isAPK) {
         console.log('📱 APK detected - opening VCard in system browser');
+        
+        // Ensure URL is absolute
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : 
+                           downloadUrl.startsWith('//') ? `https:${downloadUrl}` :
+                           `https://gabai.ai${downloadUrl}`;
+        
+        console.log('📧 Opening absolute URL:', absoluteUrl);
+        
         // Try multiple methods to open in system browser
         if ((window as any).cordova?.InAppBrowser) {
-          (window as any).cordova.InAppBrowser.open(downloadUrl, '_system');
+          (window as any).cordova.InAppBrowser.open(absoluteUrl, '_system');
         } else {
           // Fallback to window.open with _system
-          window.open(downloadUrl, '_system');
+          window.open(absoluteUrl, '_system');
         }
         return;
       }

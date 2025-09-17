@@ -35,8 +35,31 @@ export async function saveAndOpenICS(options: {
 }) {
   const { filename, icsText, icsUrl } = options;
 
+  // Check if we're in APK/WebView without full Cordova file system
+  const isAPK = window.location.protocol === 'file:' || 
+                window.location.hostname === 'localhost' ||
+                window.location.hostname.includes('replit') ||
+                /wv|Android/.test(navigator.userAgent);
+  
+  // For APK without full Cordova file system, open URL directly
+  if (isAPK && icsUrl) {
+    console.log('📅 APK detected - opening calendar URL directly:', icsUrl);
+    
+    // Ensure it's an absolute URL
+    const fullUrl = icsUrl.startsWith('http') ? icsUrl : `https://gabai.ai${icsUrl}`;
+    
+    // Try multiple methods to open in system browser
+    if ((window as any).cordova?.InAppBrowser) {
+      (window as any).cordova.InAppBrowser.open(fullUrl, '_system');
+    } else {
+      // Fallback to window.open
+      window.open(fullUrl, '_system');
+    }
+    return;
+  }
+
   // Web fallback: plain download
-  if (!isCordova()) {
+  if (!isCordova() || !window.cordova?.file?.cacheDirectory) {
     let text = icsText;
     if (!text && icsUrl) {
       const response = await fetch(icsUrl, { credentials: 'include' });
