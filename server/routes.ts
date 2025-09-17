@@ -1945,7 +1945,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If createAccount is true, create user and login session
         if (createAccount) {
           try {
+            console.log('👥 Starting user account creation for phone:', phone);
+            
             // Check if user already exists with this phone
+            console.log('🔍 Checking for existing user...');
             let user = await storage.getUserByPhone(phone);
             
             if (!user) {
@@ -1959,6 +1962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 onboardingCompleted: false
               };
               
+              console.log('🆕 Creating new user with data:', userData);
               user = await storage.createUser(userData);
               console.log('✅ New SMS user created:', user.id);
             } else {
@@ -1993,8 +1997,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               token: token
             });
           } catch (userError: any) {
-            console.error("Error creating user after SMS verification:", userError);
-            res.status(500).json({ error: "Failed to create user account" });
+            console.error("❌ Error creating user after SMS verification:", {
+              message: userError.message,
+              stack: userError.stack,
+              code: userError.code,
+              phone: phone,
+              timestamp: new Date().toISOString()
+            });
+            
+            // Check for specific database errors
+            if (userError.message?.includes('database') || userError.message?.includes('connection')) {
+              res.status(500).json({ 
+                error: "Database connection error", 
+                details: "Unable to connect to database. Please try again." 
+              });
+            } else if (userError.message?.includes('duplicate')) {
+              res.status(409).json({ 
+                error: "Account already exists", 
+                details: "An account with this phone number already exists." 
+              });
+            } else {
+              res.status(500).json({ 
+                error: "Failed to create user account",
+                details: userError.message || "Unknown error occurred"
+              });
+            }
           }
         } else {
           res.json({ 
@@ -2012,6 +2039,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Verify SMS code error:", error);
       res.status(500).json({ error: "Failed to verify code" });
+    }
+  });
+
+  // Database health check endpoint (for debugging production issues)
+  app.get("/api/health/db", async (req, res) => {
+    try {
+      console.log('🏥 Database health check requested');
+      
+      // Test basic database connectivity
+      const testUser = await storage.getUserByPhone('+15551234567'); // Test phone that likely doesn't exist
+      
+      console.log('✅ Database connection successful');
+      res.json({ 
+        status: 'healthy', 
+        database: 'connected',
+        timestamp: new Date().toISOString(),
+        testQuery: 'success'
+      });
+    } catch (error: any) {
+      console.error('❌ Database health check failed:', error);
+      res.status(500).json({ 
+        status: 'unhealthy', 
+        database: 'error',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
