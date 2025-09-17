@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { CordovaDirect } from "@/lib/cordova-direct";
+import { permissionManager } from "@/lib/permissions";
 
 export interface UseVoiceOptions {
   onTranscriptionComplete?: (text: string) => void;
@@ -39,6 +40,14 @@ export function useVoice(options: UseVoiceOptions = {}) {
       cleanup();
       
       console.log('🎤 Voice Input: Requesting microphone permission...');
+      
+      // Request microphone permission using PermissionManager
+      const hasPermission = await permissionManager.requestMicrophonePermission();
+      if (!hasPermission) {
+        throw new Error('Microphone permission denied');
+      }
+      
+      console.log('🎤 Microphone permission granted, starting recording...');
       
       // Check if we're in APK/Cordova environment
       const isAPK = (window as any).IS_APK || 
