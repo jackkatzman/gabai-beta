@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Phone } from 'lucide-react';
 import { GabaiCheckIcon } from '@/components/ui/gabai-check-icon';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ export default function PhoneVerificationPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationSid, setVerificationSid] = useState<string>('');
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [smsOptIn, setSmsOptIn] = useState(false);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -170,6 +172,15 @@ export default function PhoneVerificationPage() {
       toast({
         title: "Phone number required",
         description: "Please enter your phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!smsOptIn) {
+      toast({
+        title: "Consent required",
+        description: "Please check the consent box to receive SMS messages",
         variant: "destructive",
       });
       return;
@@ -330,6 +341,9 @@ export default function PhoneVerificationPage() {
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Your AI Personal Assistant
           </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            by Booah LLC
+          </p>
         </div>
 
         {/* Phone Number Input Step */}
@@ -341,6 +355,8 @@ export default function PhoneVerificationPage() {
               </CardTitle>
               <CardDescription className="text-base mt-2">
                 We'll text you a verification code
+                <br />
+                <span className="text-xs text-gray-500 mt-1">Service provided by Booah LLC</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -357,6 +373,22 @@ export default function PhoneVerificationPage() {
                   autoComplete="tel"
                   inputMode="numeric"
                 />
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="sms-consent"
+                  checked={smsOptIn}
+                  onCheckedChange={(checked) => setSmsOptIn(checked as boolean)}
+                  className="mt-0.5"
+                  data-testid="checkbox-sms-consent"
+                />
+                <Label
+                  htmlFor="sms-consent"
+                  className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer leading-relaxed"
+                >
+                  I consent to receive automated SMS text message reminders at this number from Booah LLC (GabAi Reminder App). Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
+                </Label>
               </div>
               
               <Button
