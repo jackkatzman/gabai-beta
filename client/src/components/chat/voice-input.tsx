@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Send } from "lucide-react";
+import { Mic, Send, Camera } from "lucide-react";
 import { useVoice } from "@/hooks/use-voice";
+import { useCamera } from "@/hooks/use-camera";
 import { isNativeApp } from "@/utils/capacitor";
 
 interface VoiceInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, imageData?: string) => void;
   disabled?: boolean;
 }
 
@@ -14,6 +15,21 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   const [message, setMessage] = useState("");
   const [isHolding, setIsHolding] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+
+  const { isCapturing, imagePreview, capturePhoto, clearPreview, fileInputRef, handleFileSelect } = useCamera({
+    onCaptureComplete: (imageData) => {
+      console.log("📸 Photo captured, sending with message");
+      setPendingImage(imageData);
+      // Send immediately with a caption
+      onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", imageData);
+      clearPreview();
+      setPendingImage(null);
+    },
+    onError: (error) => {
+      console.error("Camera error:", error);
+    }
+  });
 
   const { isRecording, isTranscribing, toggleRecording } = useVoice({
     onTranscriptionComplete: (text) => {
@@ -60,11 +76,13 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   };
 
   const handleSend = () => {
-    console.log("🔍 handleSend called:", { message: message.trim(), disabled });
+    console.log("🔍 handleSend called:", { message: message.trim(), disabled, hasPendingImage: !!pendingImage });
     if (message.trim() && !disabled) {
       console.log("📤 Sending message:", message.trim());
-      onSendMessage(message.trim());
+      onSendMessage(message.trim(), pendingImage || undefined);
       setMessage("");
+      setPendingImage(null);
+      clearPreview();
       console.log("✅ Message sent and input cleared");
     } else {
       console.log("❌ Send blocked:", { isEmpty: !message.trim(), disabled });
@@ -149,6 +167,11 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
               Voice: "{transcript}"
             </div>
           )}
+          {pendingImage && (
+            <div className="absolute top-0 left-0 right-0 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-2 text-sm text-green-800 dark:text-green-200 z-10">
+              Photo ready to send
+            </div>
+          )}
         </div>
 
         <Button
@@ -162,6 +185,26 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           data-testid="send-button"
         >
           <Send className="h-5 w-5" />
+        </Button>
+
+        {/* Camera Button */}
+        <Button
+          onClick={capturePhoto}
+          disabled={disabled || isCapturing}
+          className={`
+            h-12 w-12 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
+            ${isCapturing
+              ? "animate-pulse shadow-lg shadow-green-500/25 scale-105 bg-green-500 hover:bg-green-600 text-white" 
+              : "bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:scale-105 active:scale-95"
+            }
+          `}
+          style={{ 
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent'
+          }}
+          data-testid="camera-button"
+        >
+          <Camera className={`h-5 w-5 ${isCapturing ? 'animate-pulse' : ''}`} />
         </Button>
 
         {/* Voice Button */}
@@ -187,11 +230,26 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         >
           <Mic className={`h-5 w-5 ${isRecording ? 'animate-pulse' : ''}`} />
         </Button>
+
+        {/* Hidden file input for camera capture */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+        />
       </div>
 
       {isTranscribing && (
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-lg border">
           Processing your voice...
+        </div>
+      )}
+      {isCapturing && (
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-lg border">
+          Capturing photo...
         </div>
       )}
     </div>

@@ -60,8 +60,9 @@ export const api = {
   },
 
   // Chat operations
-  async sendMessage(message: string, userId: string, conversationId?: string): Promise<{
+  async sendMessage(message: string, userId: string, conversationId?: string, imageData?: string): Promise<{
     message: Message;
+    userMessage: Message;
     conversationId: string;
     suggestions?: string[];
     actions?: any[];
@@ -70,6 +71,7 @@ export const api = {
       message,
       userId,
       conversationId,
+      imageData,
     });
     return response.json();
   },

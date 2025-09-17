@@ -35,6 +35,17 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     return (
       <div className="flex items-start space-x-3 justify-end animate-slideUp">
         <div className="bg-blue-500 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
+          {/* Display image if present */}
+          {(message as any).imageUrl && (
+            <div className="mb-2">
+              <img
+                src={(message as any).imageUrl}
+                alt="Attached photo"
+                className="rounded-lg max-w-full max-h-48 object-contain"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              />
+            </div>
+          )}
           <p 
             className="text-white text-sm leading-relaxed" 
             dir={textDirection}

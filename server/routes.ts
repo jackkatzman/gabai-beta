@@ -2387,7 +2387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat route with AI integration
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, userId, conversationId } = req.body;
+      const { message, userId, conversationId, imageData } = req.body;
       
       if (!message || !userId) {
         return res.status(400).json({ message: "Message and userId are required" });
@@ -2418,11 +2418,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentConversationId = conversation.id;
       }
 
-      // Save user message FIRST
+      // Save user message FIRST (with image if provided)
       const userMessage = await storage.createMessage({
         conversationId: currentConversationId,
         role: "user", 
-        content: message
+        content: message,
+        imageUrl: imageData || null
       });
 
       // Re-fetch user to get latest preferences (including SMS consent)
@@ -2441,8 +2442,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasConsent: updatedUser.preferences?.smsConsent === true && updatedUser.phone
       });
 
-      // Generate AI response with updated user data
-      const aiResponse = await generatePersonalizedResponse(message, updatedUser, historyForAI);
+      // Generate AI response with updated user data and image
+      const aiResponse = await generatePersonalizedResponse(message, updatedUser, historyForAI, imageData);
 
       // Process any URLs in the response for affiliate shortening
       const processedContent = await processUrlsInContent(aiResponse.content);

@@ -36,7 +36,7 @@ export function ChatInterface() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (message: string) => {
+    mutationFn: async ({ message, imageData }: { message: string; imageData?: string }) => {
       if (!user) throw new Error("User not authenticated");
 
       // Create conversation if needed
@@ -46,7 +46,7 @@ export function ChatInterface() {
         localStorage.setItem(`gabai_conversation_${user.id}`, newConversation.id);
       }
 
-      return api.sendMessage(message, user.id, currentConversationId!);
+      return api.sendMessage(message, user.id, currentConversationId!, imageData);
     },
     onSuccess: (response) => {
       setCurrentConversationId(response.conversationId);
@@ -101,17 +101,18 @@ export function ChatInterface() {
     },
   });
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (message: string, imageData?: string) => {
     if (sendMessageMutation.isPending || !message.trim()) return;
 
     // Always add temporary user message to show immediately
-    const tempMessage = {
+    const tempMessage: any = {
       id: `temp-${Date.now()}`,
       content: message,
       role: 'user' as const,
       createdAt: new Date(),
       conversationId: currentConversationId || 'temp',
-      audioUrl: null
+      audioUrl: null,
+      imageUrl: imageData || null
     };
 
     // Update messages immediately for better UX
@@ -128,7 +129,7 @@ export function ChatInterface() {
       );
     }
 
-    sendMessageMutation.mutate(message);
+    sendMessageMutation.mutate({ message, imageData });
   };
 
   // Auto scroll to bottom - enhanced for mobile

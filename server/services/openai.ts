@@ -58,7 +58,8 @@ function prepareConversationContext(
 export async function generatePersonalizedResponse(
   userMessage: string,
   user: User,
-  conversationHistory: Array<{ role: "user" | "assistant"; content: string }> = []
+  conversationHistory: Array<{ role: "user" | "assistant"; content: string }> = [],
+  imageData?: string
 ): Promise<AIResponse> {
   try {
     // CRITICAL: Filter user input for profanity before processing (mandatory)
@@ -71,21 +72,55 @@ export async function generatePersonalizedResponse(
     // Use entire conversation thread with smart trimming if needed
     const contextualHistory = prepareConversationContext(conversationHistory);
     
-    const messages = [
-      { role: "system" as const, content: systemPrompt },
-      ...contextualHistory, // Full conversation context
-      { role: "user" as const, content: cleanUserMessage }
-    ];
+    // Prepare messages - if we have an image, use vision capabilities
+    let messages: any[];
+    
+    if (imageData) {
+      // For vision requests, we need to structure the content differently
+      const visionPrompt = systemPrompt + `
+      
+When analyzing images:
+1. Identify all items visible in the photo
+2. Categorize items into appropriate smart lists (groceries, medicines, household items, etc.)
+3. Be specific about quantities if visible
+4. Suggest actions like "Add these to your shopping list?"
+5. Format your response as JSON with content, suggestions, and actions fields`;
+
+      messages = [
+        { role: "system" as const, content: visionPrompt },
+        ...contextualHistory,
+        { 
+          role: "user" as const, 
+          content: [
+            { type: "text", text: cleanUserMessage },
+            { 
+              type: "image_url",
+              image_url: {
+                url: imageData,
+                detail: "low"
+              }
+            }
+          ]
+        }
+      ];
+    } else {
+      messages = [
+        { role: "system" as const, content: systemPrompt },
+        ...contextualHistory, // Full conversation context
+        { role: "user" as const, content: cleanUserMessage }
+      ];
+    }
 
     // Log context usage for monitoring
     console.log(`📚 Using ${contextualHistory.length} messages from conversation history (full thread: ${conversationHistory.length} messages)`);
+    console.log(`📸 Image included: ${!!imageData}`);
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // gpt-4o supports vision
       messages,
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: imageData ? 1500 : 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
