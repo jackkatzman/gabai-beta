@@ -13,6 +13,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authTrigger, setAuthTrigger] = useState(0); // Force refetch when auth changes
 
   // Check if this is a mobile environment (enhanced detection)
   const isMobileEnvironment = () => {
@@ -81,9 +82,37 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
     
     fetchUser();
-  }, []);
+  }, [authTrigger]); // Re-fetch when authTrigger changes
+  
+  // Listen for storage events (when token is set from another component)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'gabai_token' && e.newValue) {
+        console.log('🔑 Token changed - refetching user');
+        setAuthTrigger(prev => prev + 1); // Trigger re-fetch
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically if we don't have a user but have a token
+    const interval = setInterval(() => {
+      const token = getToken();
+      if (token && !user && !isLoading) {
+        console.log('🔄 Found token without user - refetching');
+        setIsLoading(true);
+        fetchUser();
+      }
+    }, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [user, isLoading]);
 
   const setUser = (newUser: User | null) => {
+    console.log('👤 Setting user:', newUser?.id || 'null');
     setUserState(newUser);
   };
 

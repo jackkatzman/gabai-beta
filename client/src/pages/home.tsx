@@ -13,7 +13,7 @@ import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mic, User, Settings, Moon, Sun } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useCapacitorDetection } from "@/hooks/use-capacitor-detection";
@@ -22,9 +22,31 @@ const gabaiLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDA
 export default function HomePage() {
   const { user } = useUser();
   const [location, setLocation] = useLocation();
+  const [loadError, setLoadError] = useState<string | null>(null);
   
   // Enable Capacitor-specific mobile fixes
   useCapacitorDetection();
+  
+  // Add debugging and timeout detection
+  useEffect(() => {
+    console.log("🏠 HomePage mount", { 
+      hasUser: !!user, 
+      userId: user?.id,
+      userName: user?.name,
+      location,
+      timestamp: new Date().toISOString() 
+    });
+    
+    // Timeout detection - if no user after 8 seconds, something's wrong
+    const timeout = setTimeout(() => {
+      if (!user) {
+        console.error("❌ HomePage: User still not loaded after 8s");
+        setLoadError("Authentication timeout - please refresh the page");
+      }
+    }, 8000);
+    
+    return () => clearTimeout(timeout);
+  }, [user, location]);
   
   // Simple theme state without context
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -53,7 +75,17 @@ export default function HomePage() {
       <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            {loadError || "Loading..."}
+          </p>
+          {loadError && (
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Refresh Page
+            </button>
+          )}
         </div>
       </div>
     );
