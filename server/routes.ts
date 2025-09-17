@@ -1853,9 +1853,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let verification;
       
       if (verificationSid) {
-        // New method: Use verificationSid
-        console.log('📱 Verifying with verificationSid:', verificationSid);
-        verification = await verifyCodeSMS(verificationSid, cleanCode);
+        // New method: Try to get phone number for verification
+        console.log('📱 Verifying with verificationSid (need phone):', verificationSid);
+        // Get phone from request body or cookies
+        const phoneForVerify = body.phoneNumber || body.phone || req.cookies?.last_sms_phone;
+        if (phoneForVerify) {
+          console.log('📱 Using phone for verification:', phoneForVerify);
+          verification = await verifyCodeSMS(phoneForVerify, cleanCode);
+        } else {
+          // No phone number available for verification
+          verification = { 
+            success: false, 
+            error: 'Phone number required for verification' 
+          };
+        }
       } else if (phone) {
         // Fallback: Try to verify with phone number directly (ChatGPT recommended flow)
         console.log('📱 FALLBACK: Verifying with phone number:', phone);

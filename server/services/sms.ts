@@ -494,15 +494,15 @@ export async function verifyCodeByPhone(phoneNumber: string, code: string): Prom
   }
 }
 
-// Function to verify code using Twilio Verify with verificationSid
-export async function verifyCodeSMS(verificationSid: string, code: string): Promise<{ success: boolean; error?: string; details?: any }> {
+// Function to verify code using Twilio Verify - requires phone number
+export async function verifyCodeSMS(phoneOrSid: string, code: string): Promise<{ success: boolean; error?: string; details?: any }> {
   // Clean code - digits only, trimmed
   const cleanCode = code.replace(/\D/g, '').trim();
   
-  console.log('📱 VERIFY START: Verifying code with verificationSid:', { 
-    verificationSid, 
-    sidLength: verificationSid?.length,
-    sidPrefix: verificationSid?.substring(0, 10),
+  console.log('📱 VERIFY START: Verifying code:', { 
+    phoneOrSid, 
+    phoneLength: phoneOrSid?.length,
+    phonePrefix: phoneOrSid?.substring(0, 10),
     originalCode: code, 
     cleanCode,
     cleanCodeLength: cleanCode.length,
@@ -522,10 +522,10 @@ export async function verifyCodeSMS(verificationSid: string, code: string): Prom
       }
     }
     
-    // Use Twilio Verify to check the verification code with verificationSid
+    // Use Twilio Verify to check the verification code with phone number
     console.log('📱 VERIFY: Calling Twilio API with:', {
       serviceSid: process.env.TWILIO_VERIFY_SERVICE_SID?.substring(0, 10) + '...',
-      verificationSid: verificationSid,
+      phoneOrSid: phoneOrSid,
       code: cleanCode
     });
     
@@ -533,12 +533,12 @@ export async function verifyCodeSMS(verificationSid: string, code: string): Prom
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verificationChecks
       .create({
-        verificationSid: verificationSid,
+        to: phoneOrSid,  // Phone number in E.164 format
         code: cleanCode
       });
     
     console.log('📱 VERIFY RESULT: Twilio verification response:', {
-      verificationSid,
+      phoneOrSid,
       status: verificationCheck.status,
       valid: verificationCheck.valid,
       dateCreated: verificationCheck.dateCreated,
