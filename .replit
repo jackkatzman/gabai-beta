@@ -1,4 +1,12 @@
-modules = ["nodejs-20", "web", "bash", "swift-5.8", "java-17", "postgresql-16", "python-3.11"]
+modules = [
+  "nodejs-20",
+  "web",
+  "bash",
+  "swift-5.8",
+  "java-17",
+  "postgresql-16",
+  "python-3.11",
+]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -9,7 +17,7 @@ packages = ["docker_28", "imagemagick", "openjdk17", "unzip", "zip"]
 [deployment]
 deploymentTarget = "cloudrun"
 run = ["sh", "-c", "npm start"]
-build = ["sh", "-c", "npm run build "]
+build = ["sh", "-c", "./build-full.sh"]
 
 [env]
 PORT = "5000"
@@ -80,7 +88,10 @@ localPort = 46051
 externalPort = 8000
 
 [agent]
-integrations = ["javascript_database==1.0.0", "javascript_log_in_with_replit==1.0.0"]
+integrations = [
+  "javascript_database==1.0.0",
+  "javascript_log_in_with_replit==1.0.0",
+]
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix"]
