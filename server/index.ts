@@ -171,22 +171,7 @@ app.use((req, res, next) => {
       });
     });
 
-    // Version endpoint with cache busting
-    app.get('/api/version', (_req, res) => {
-      res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-
-      res.json({
-        version: 'V2.2-FRONTEND-CACHE-CLEAR',
-        buildTime: new Date().toISOString(),
-        deployment: 'ORANGE-THEME-FORCED',
-        message: '🟠 ORANGE THEME v2.2 - Frontend Rebuilt with Strong Orange Colors',
-        frontendStatus: 'ORANGE background (not blue) with orange banner should be visible'
-      });
-    });
+    // Version endpoint removed - now handled in routes.ts
 
     const server = await registerRoutes(app);
 

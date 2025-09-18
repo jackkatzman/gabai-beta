@@ -523,6 +523,23 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Version endpoint for debugging deployment
+  app.get('/api/version', (req, res) => {
+    console.log('🔍 Version check requested');
+    res.json({ 
+      version: '1.0.55',
+      buildDate: new Date().toISOString(),
+      buildTime: Date.now(),
+      features: {
+        sms: 'Hash routing fix',
+        camera: 'Integrated in chat',
+        vision: 'AI-powered item identification', 
+        mic: 'Permission handling added',
+        theme: 'Purple gradient - orange removed',
+        deployment: 'Fresh build with SDK 35'
+      }
+    });
+  });
   
   // CRITICAL: Direct ZIP download route (bypass static middleware issues)
   app.get('/download-package/:filename', (req, res) => {
