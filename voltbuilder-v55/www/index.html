@@ -14,33 +14,23 @@
     <meta name="apple-touch-fullscreen" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script>
-      // CRITICAL: V2.2 DEPLOYMENT - FORCE CACHE CLEAR
-      const deployTime = '2024-09-16T20:30:00Z';
-      console.log('🔥 GABAI V2.2 ORANGE THEME DEPLOYMENT - ' + deployTime);
-      
-      // UNREGISTER ALL SERVICE WORKERS
+      // Clean up service workers silently
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for(let registration of registrations) {
-            registration.unregister().then(function(success) {
-              console.log('❌ Unregistered service worker:', registration.scope, success);
-            });
+            registration.unregister();
           }
         });
       }
       
-      // DELETE ALL CACHES
+      // Clear caches silently
       if ('caches' in window) {
         caches.keys().then(function(names) {
           for (let name of names) {
             caches.delete(name);
-            console.log('🗑️ Deleted cache:', name);
           }
         });
       }
-      
-      // Mark deployment version
-      window.DEPLOYMENT_VERSION = 'V2.0-SMS-FIX-' + Date.now();
     </script>
     <style>
       /* IMMEDIATE CRITICAL FIXES */
@@ -127,7 +117,7 @@
     <!-- Immediate fixes applied before React loads -->
     <script>
         // IMMEDIATE FIXES - Run before anything else
-        console.log('Applying immediate fixes...');
+        // Apply fixes silently
         
         // Fix viewport
         const viewport = document.querySelector('meta[name=viewport]');
@@ -155,7 +145,7 @@
                 });
             }, 1000);
             
-            console.log('Mobile fixes active');
+            // Mobile fixes active
         });
     </script>
     
