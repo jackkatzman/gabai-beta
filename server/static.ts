@@ -45,7 +45,7 @@ export function serveStatic(app: Express) {
   console.log(`✅ Serving static files from: ${distPath}`);
   console.log(`📂 Public directory contents:`, fs.readdirSync(distPath).slice(0, 10));
   
-  // Serve zip files directly with proper streaming 
+  // Serve zip files directly with proper streaming - BEFORE static middleware
   app.get('/*.zip', (req, res) => {
     const fileName = req.path.substring(1); // Remove leading slash
     const filePath = path.resolve(distPath, fileName);

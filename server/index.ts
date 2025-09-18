@@ -72,6 +72,53 @@ setupAuth(app);
 // Setup simplified mobile authentication for VoltBuilder apps
 setupSimpleMobileAuth(app);
 
+// Register ZIP download handler BEFORE Vite middleware (works in both dev and prod)
+import fs from "fs";
+import path from "path";
+
+app.get(/^\/.*\.zip$/, (req, res) => {
+  const fileName = req.path.substring(1); // Remove leading slash
+  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  const filePath = path.resolve(distPath, fileName);
+  
+  // Security: Prevent path traversal attacks
+  if (!filePath.startsWith(distPath + path.sep) && filePath !== distPath) {
+    console.log(`⚠️ Security: Path traversal attempt blocked for: ${fileName}`);
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  console.log(`📦 ZIP download request: ${fileName}`);
+  console.log(`📁 Looking for file at: ${filePath}`);
+  
+  if (!fs.existsSync(filePath)) {
+    console.log(`❌ ZIP file not found: ${filePath}`);
+    return res.status(404).json({ error: 'File not found' });
+  }
+  
+  const stat = fs.statSync(filePath);
+  console.log(`✅ Found ZIP file: ${stat.size} bytes`);
+  
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+  res.setHeader('Content-Length', stat.size.toString());
+  res.setHeader('Cache-Control', 'no-cache');
+  
+  // Stream the file
+  const fileStream = fs.createReadStream(filePath);
+  fileStream.pipe(res);
+  
+  fileStream.on('error', (err) => {
+    console.error('❌ ZIP stream error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Download failed' });
+    }
+  });
+  
+  fileStream.on('end', () => {
+    console.log(`✅ ZIP download completed: ${fileName}`);
+  });
+});
+
 // OAuth routes are handled by Passport.js in setupAuth() - no manual routes needed
 
 app.use((req, res, next) => {
