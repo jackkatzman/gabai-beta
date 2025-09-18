@@ -57,8 +57,6 @@ cat > voltbuilder-v55/config.xml << 'EOF'
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
     <!-- Allow cleartext traffic for development -->
@@ -71,7 +69,6 @@ cat > voltbuilder-v55/config.xml << 'EOF'
   <plugin name="cordova-plugin-camera" source="npm" />
   <plugin name="cordova-plugin-media-capture" source="npm" />
   <plugin name="cordova-plugin-media" source="npm" />
-  <plugin name="cordova-plugin-contacts" source="npm" />
   <plugin name="cordova-plugin-file" source="npm" />
   <plugin name="cordova-plugin-device" source="npm" />
   <plugin name="cordova-plugin-inappbrowser" source="npm" />
@@ -79,7 +76,7 @@ cat > voltbuilder-v55/config.xml << 'EOF'
   <!-- Preferences -->
   <preference name="Orientation" value="portrait" />
   <preference name="DisallowOverscroll" value="true" />
-  <preference name="BackgroundColor" value="0xff000000" />
+  <preference name="BackgroundColor" value="#FF000000" />
   <preference name="SplashScreenDelay" value="3000" />
   <preference name="ShowSplashScreenSpinner" value="false" />
   
