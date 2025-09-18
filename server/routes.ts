@@ -2842,55 +2842,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Voice transcription route - NO AUTH REQUIRED for mobile compatibility
-  app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
-    console.log('🎤 Transcribe endpoint hit');
-    console.log('📦 Request headers:', {
-      contentType: req.headers['content-type'],
-      authorization: req.headers.authorization ? 'Present' : 'Missing',
-      userAgent: req.headers['user-agent']
-    });
-    console.log('📁 Request body type:', typeof req.body);
-    console.log('📁 Request body:', req.body);
-    console.log('📁 File received:', req.file ? `Yes - ${req.file.size} bytes, mimetype: ${req.file.mimetype}` : 'No');
-    console.log('📁 File buffer exists:', req.file?.buffer ? 'Yes' : 'No');
-    
-    try {
-      if (!req.file) {
-        console.error('❌ No audio file in request - multer did not process the upload');
-        console.error('❌ Content-Type header:', req.headers['content-type']);
-        return res.status(400).json({ message: "Audio file is required" });
+  // Support both multipart/form-data (for compatibility) and raw binary (for cross-origin)
+  app.post("/api/transcribe", 
+    // Conditionally apply middleware based on Content-Type
+    async (req, res, next) => {
+      const contentType = req.headers['content-type'] || '';
+      
+      if (contentType.includes('multipart/form-data')) {
+        // Use Multer for FormData
+        upload.single("audio")(req, res, next);
+      } else if (contentType === 'application/octet-stream') {
+        // Use express.raw() for binary data
+        express.raw({ type: ['application/octet-stream', 'audio/*'], limit: '10mb' })(req, res, next);
+      } else {
+        next();
       }
-
-      // Check if file is empty
-      if (req.file.buffer.length === 0) {
-        console.error("🔇 Empty audio file received");
-        return res.status(400).json({ 
-          message: "Recording is empty. Please check your microphone permissions and try again." 
-        });
+    },
+    async (req, res) => {
+      console.log('🎤 Transcribe endpoint hit');
+      console.log('📦 Request headers:', {
+        contentType: req.headers['content-type'],
+        authorization: req.headers.authorization ? 'Present' : 'Missing',
+        xAudioMime: req.headers['x-audio-mime'],
+        xAudioExt: req.headers['x-audio-ext'],
+        userAgent: req.headers['user-agent']
+      });
+      console.log('📁 Request body type:', typeof req.body);
+      console.log('📁 File received (multipart):', req.file ? `Yes - ${req.file.size} bytes, mimetype: ${req.file.mimetype}` : 'No');
+      console.log('📁 Raw body received:', Buffer.isBuffer(req.body) ? `Yes - ${req.body.length} bytes` : 'No');
+      
+      try {
+        let audioBuffer: Buffer;
+        let filename: string;
+        let mimeType: string;
+        
+        // Handle multipart/form-data (original approach)
+        if (req.file) {
+          audioBuffer = req.file.buffer;
+          filename = req.file.originalname || "audio.mp3";
+          mimeType = req.file.mimetype || "audio/mpeg";
+        }
+        // Handle raw binary (new approach for cross-origin)
+        else if (Buffer.isBuffer(req.body) && req.body.length > 0) {
+          audioBuffer = req.body;
+          // Get metadata from custom headers
+          mimeType = (req.headers['x-audio-mime'] as string) || 'audio/webm';
+          const ext = (req.headers['x-audio-ext'] as string) || 'webm';
+          filename = `audio.${ext}`;
+          
+          console.log(`🎤 Processing raw audio: size: ${audioBuffer.length} bytes, type: ${mimeType}, filename: ${filename}`);
+        }
+        else {
+          console.error('❌ No audio data in request');
+          console.error('❌ Content-Type header:', req.headers['content-type']);
+          console.error('❌ Body type:', typeof req.body, 'Body length:', (req.body as any)?.length);
+          return res.status(400).json({ message: "Audio file is required" });
+        }
+  
+        // Check if buffer is empty
+        if (audioBuffer.length === 0) {
+          console.error("🔇 Empty audio buffer received");
+          return res.status(400).json({ 
+            message: "Recording is empty. Please check your microphone permissions and try again." 
+          });
+        }
+  
+        // Check minimum file size (at least 100 bytes for a valid audio file)
+        if (audioBuffer.length < 100) {
+          console.error(`🔇 Audio buffer too small: ${audioBuffer.length} bytes`);
+          return res.status(400).json({ 
+            message: "Recording is too short. Please hold the microphone button and speak clearly." 
+          });
+        }
+  
+        console.log(`🎤 Processing audio: ${filename}, size: ${audioBuffer.length} bytes, type: ${mimeType}`);
+  
+        // Pass the filename and mimetype for transcription
+        const transcription = await transcribeAudio(
+          audioBuffer,
+          filename,
+          mimeType
+        );
+        res.json({ text: transcription });
+      } catch (error: any) {
+        console.error("Transcription error:", error);
+        res.status(500).json({ message: error.message });
       }
-
-      // Check minimum file size (at least 100 bytes for a valid audio file)
-      if (req.file.buffer.length < 100) {
-        console.error(`🔇 Audio file too small: ${req.file.buffer.length} bytes`);
-        return res.status(400).json({ 
-          message: "Recording is too short. Please hold the microphone button and speak clearly." 
-        });
-      }
-
-      console.log(`🎤 Processing audio file: ${req.file.originalname}, size: ${req.file.buffer.length} bytes, type: ${req.file.mimetype}`);
-
-      // Pass the filename and mimetype from the uploaded file
-      const transcription = await transcribeAudio(
-        req.file.buffer,
-        req.file.originalname || "audio.mp3",
-        req.file.mimetype || "audio/mpeg"
-      );
-      res.json({ text: transcription });
-    } catch (error: any) {
-      console.error("Transcription error:", error);
-      res.status(500).json({ message: error.message });
     }
-  });
+  );
 
   // OCR endpoint for extracting text from images
   app.post("/api/ocr", upload.single("image"), async (req, res) => {

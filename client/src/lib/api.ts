@@ -93,9 +93,9 @@ export const api = {
       throw new Error('transcribeAudio requires a Blob object');
     }
 
-    // Choose filename based on MIME type
-    let filename = 'audio.bin'; // Default fallback
-    const mimeType = audioBlob.type || 'application/octet-stream';
+    // Determine extension based on MIME type
+    const mimeType = audioBlob.type || 'audio/webm';
+    let ext = 'webm'; // Default fallback
     
     console.log('🎤 Transcribing audio:', {
       mimeType,
@@ -104,21 +104,18 @@ export const api = {
     });
     
     if (mimeType.includes('mp4') || mimeType.includes('m4a')) {
-      filename = 'audio.m4a';
+      ext = 'm4a';
     } else if (mimeType.includes('mpeg')) {
-      filename = 'audio.mp3';  // Use mp3 extension for audio/mpeg
+      ext = 'mp3';
     } else if (mimeType.includes('3gpp') || mimeType.includes('3gp')) {
-      filename = 'audio.3gp';
+      ext = '3gp';
     } else if (mimeType.includes('amr')) {
-      filename = 'audio.amr';
+      ext = 'amr';
     } else if (mimeType.includes('webm')) {
-      filename = 'audio.webm';
+      ext = 'webm';
     } else if (mimeType.includes('wav')) {
-      filename = 'audio.wav';
+      ext = 'wav';
     }
-
-    const formData = new FormData();
-    formData.append("audio", audioBlob, filename);
 
     // Check if we're in production or development
     // APK uses file:// protocol, production uses gabai.ai domain
@@ -128,31 +125,37 @@ export const api = {
     
     const token = localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token') || '';
     
-    console.log('📤 Sending transcription request to:', finalUrl, {
+    // Convert blob to ArrayBuffer for raw binary transmission
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    
+    console.log('📤 Sending raw audio to:', finalUrl, {
       hostname: window.location.hostname,
       protocol: window.location.protocol,
       isProduction,
       hasToken: !!token,
-      tokenLength: token.length
+      tokenLength: token.length,
+      bufferSize: arrayBuffer.byteLength,
+      mimeType,
+      ext
     });
 
     try {
-      // Important: Do NOT set Content-Type header for FormData - browser will set it with boundary
-      const headers: Record<string, string> = {};
+      // Send raw bytes with explicit headers (simpler preflight, fewer proxy issues)
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/octet-stream',
+        'X-Audio-Mime': mimeType,
+        'X-Audio-Ext': ext
+      };
+      
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      console.log('📤 FormData inspection:', {
-        hasFile: formData.has('audio'),
-        entries: Array.from(formData.entries()).map(([k, v]) => [k, v instanceof File ? `File(${(v as File).size} bytes)` : v])
-      });
-      
       const transcribeResponse = await fetch(finalUrl, {
         method: "POST",
-        body: formData,
+        body: arrayBuffer,
         headers,
-        // Ensure cookies are sent for same-origin requests
+        mode: 'cors',
         credentials: isProduction ? 'omit' : 'include'
       });
 
@@ -161,6 +164,10 @@ export const api = {
       if (!transcribeResponse.ok) {
         const errorText = await transcribeResponse.text();
         console.error('❌ Transcription failed:', transcribeResponse.status, errorText);
+        // Provide user-friendly error messages
+        if (errorText.includes('Audio file is required')) {
+          throw new Error('Voice recording failed to upload. Please try again.');
+        }
         throw new Error(`Transcription failed: ${transcribeResponse.statusText}`);
       }
 
