@@ -27,10 +27,14 @@ const ALLOWED_ORIGINS = [
 app.use((req, res, next) => {
   const origin = req.headers.origin as string | undefined;
 
-  // Allow requests from whitelisted origins
-  if (origin && (ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost') || origin.includes('gabai.ai'))) {
-    res.header('Access-Control-Allow-Origin', origin);  // echo back exact origin
-    res.header('Vary', 'Origin');                       // caching correctness
+  // Allow requests from whitelisted origins OR requests with no origin (APK/mobile apps)
+  if (!origin) {
+    // No origin header (typical for mobile apps/APK) - allow the request
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (origin === 'null' || ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost') || origin.includes('gabai.ai')) {
+    // Specific origin or 'null' origin (file:// protocol) - echo back the origin
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
   }
 
   res.header('Access-Control-Allow-Credentials', 'true');
