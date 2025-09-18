@@ -120,16 +120,18 @@ export const api = {
     const formData = new FormData();
     formData.append("audio", audioBlob, filename);
 
-    // Use production API for APK environment
-    const isAPK = window.location.protocol === 'file:' || 
-                  window.location.hostname === 'localhost' || 
-                  window.location.hostname.includes('replit');
-    const apiUrl = isAPK ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
+    // Check if we're in production or development
+    // APK uses file:// protocol, production uses gabai.ai domain
+    const isProduction = window.location.hostname === 'gabai.ai' || 
+                         window.location.protocol === 'file:';
+    const finalUrl = isProduction ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
     
-    console.log('📤 Sending transcription request to:', apiUrl);
+    console.log('📤 Sending transcription request to:', finalUrl, {
+      hostname: window.location.hostname,
+      protocol: window.location.protocol,
+      isProduction
+    });
 
-    // For FormData uploads, use the bulletproof API with the correct URL
-    const finalUrl = isAPK ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
     const transcribeResponse = await fetch(finalUrl, {
       method: "POST",
       body: formData,
