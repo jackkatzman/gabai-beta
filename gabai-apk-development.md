@@ -648,27 +648,40 @@ const useCamera = () => {
 **Initial Solution**: Add explicit compileSdkVersion preference
 **Result**: ❌ Still failed - deeper issues found
 
-### Complete VoltBuilder Build Fix (v55 Final)
+## GabAI Android Build — Complete Fix Log (VoltBuilder)
 **Date**: September 17, 2025
-**Based on**: External build expert analysis
-**Multiple Issues Fixed**:
+**Source**: ChatGPT Build Expert Analysis
+**Status**: ✅ BUILD SUCCESSFUL
 
-#### 1. Align Android SDK + Kotlin
+### 1) Align Android SDK + Kotlin
+
+**Set compile/target SDK = 35 in `config.xml`:**
 ```xml
 <preference name="android-compileSdkVersion" value="35" />
 <preference name="android-targetSdkVersion" value="35" />
+```
+
+**Added Kotlin pin (stops Gradle/KTX gripes):**
+```xml
 <preference name="GradlePluginKotlinVersion" value="1.9.24" />
 ```
 
-#### 2. Modernize + Pin AndroidX
+**Why:** VoltBuilder logs showed project was being built with 35 and warned about mismatches earlier.
+
+### 2) Modernize + Pin AndroidX (and un-stick the camera plugin)
+
+**Forced modern AndroidX to avoid the appcompat/core fistfight:**
 ```xml
 <preference name="AndroidXCoreVersion" value="1.13.0" />
-<preference name="AndroidXAppCompatVersion" value="1.6.1" />
+<preference name="AndroidXAppCompatVersion" value="1.6.1" />   <!-- final stable pin -->
 <preference name="AndroidXWebKitVersion" value="1.10.0" />
 ```
 
-#### 3. Add Gradle resolutionStrategy
-Created `build-extras.gradle` to force dependency versions:
+**Why:** Cordova camera was repeatedly dragging `androidx.core:1.6.+`, clashing with appcompat and exploding in merge. Logs showed `appcompat-1.7.0` throwing `Invalid <color>` during `:app:mergeDebugResources`.
+
+### 3) Add Gradle "resolutionStrategy" hammer
+
+**Dropped `build-extras.gradle` (root and app copies) to force dependency versions at build time:**
 ```gradle
 allprojects {
   configurations.all {
@@ -681,22 +694,44 @@ allprojects {
 }
 ```
 
-#### 4. Remove Obsolete Contacts Plugin
-- Removed `cordova-plugin-contacts` (deprecated, triggers Play policy issues)
-- Removed READ_CONTACTS and WRITE_CONTACTS permissions
-- Switch to VCF export using `cordova-plugin-file` and `cordova-plugin-file-opener2`
+**Why:** Even with XML prefs, Cordova plugins can override. The Gradle force guarantees final say. (We tested with 1.7.0 first; crash persisted; final fix was 1.6.1 for appcompat.)
 
-#### 5. Fix Background Color Format
-**CRITICAL**: Android's aapt expects `#AARRGGBB`, not `0x...`
+### 4) Remove obsolete Contacts plugin + dangerous perms
+
+**Nuked `cordova-plugin-contacts` from `config.xml` and `package.json`.**
+
+**Removed:**
 ```xml
-<!-- WRONG -->
+<uses-permission android:name="android.permission.READ_CONTACTS" />
+<uses-permission android:name="android.permission.WRITE_CONTACTS" />
+```
+
+**Why:** Plugin is deprecated, pulled old AndroidX, and triggers Play policy headaches. Logs also flagged the odd versioning.
+
+### 5) Switch to VCF route for "save contact"
+
+- Kept `cordova-plugin-file` and **added** `cordova-plugin-file-opener2` for vCard export → user saves via native Contacts UI. (No contacts permission needed.)
+- Confirmed in logs that file/file-opener2 were installed.
+
+### 6) Fix bad color literal (the hidden landmine)
+
+**Your `config.xml` had:**
+```xml
 <preference name="BackgroundColor" value="0xff000000" />
-<!-- CORRECT -->
+```
+
+**Android's aapt expects `#AARRGGBB`, not `0x…`.**
+
+**Changed to:**
+```xml
 <preference name="BackgroundColor" value="#FF000000" />
 ```
 
-#### 6. VoltBuilder Metadata
-Added `voltbuilder.json`:
+**Why:** That malformed color bubbles up during **resource merge** and masquerades as an appcompat error. The logs repeatedly died at `values.xml:27:4 Invalid <color>` during `:app:mergeDebugResources`; correcting the literal stops the crash.
+
+### 7) VoltBuilder metadata (optional but helpful)
+
+**Added/updated `voltbuilder.json` with:**
 ```json
 {
   "appId": "com.gabai.app",
@@ -710,7 +745,32 @@ Added `voltbuilder.json`:
 }
 ```
 
-**Result**: ✅ BUILD SUCCESSFUL
+**Why:** Makes runs reproducible; matches what VoltBuilder was spinning up anyway (platform 14.0.1).
+
+---
+
+## Final State (the "good" zip)
+
+- **SDKs**: compile/target 35
+- **Kotlin**: 1.9.24
+- **AndroidX**: core 1.13.0, webkit 1.10.0, **appcompat 1.6.1** (stable with legacy Cordova)
+- **Gradle**: resolutionStrategy forcing the above
+- **Plugins**: camera/media/media-capture/file/file-opener2/device/inappbrowser (contacts removed)
+- **Permissions**: no contacts; `usesCleartextTraffic=true` kept for dev http
+- **BackgroundColor**: `#FF000000` (valid)
+
+---
+
+## What the logs told us (receipts)
+
+- Repeated crash at `:app:mergeDebugResources` with **`Invalid <color>`** inside **appcompat values.xml** until we corrected the color format and pinned deps.
+
+---
+
+## Notes for future builds
+
+- If you re-add any legacy plugin, keep the **Gradle resolutionStrategy** and AndroidX pins.
+- For OTP SMS: prefer **Twilio Verify** (not raw Messaging) so you're not at the mercy of 10DLC/Toll-Free status while testing.
 
 ## Contact
 
