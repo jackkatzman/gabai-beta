@@ -137,12 +137,23 @@ export const api = {
     });
 
     try {
+      // Important: Do NOT set Content-Type header for FormData - browser will set it with boundary
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      console.log('📤 FormData inspection:', {
+        hasFile: formData.has('audio'),
+        entries: Array.from(formData.entries()).map(([k, v]) => [k, v instanceof File ? `File(${(v as File).size} bytes)` : v])
+      });
+      
       const transcribeResponse = await fetch(finalUrl, {
         method: "POST",
         body: formData,
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers,
+        // Ensure cookies are sent for same-origin requests
+        credentials: isProduction ? 'omit' : 'include'
       });
 
       console.log('📥 Transcription response status:', transcribeResponse.status, transcribeResponse.statusText);
