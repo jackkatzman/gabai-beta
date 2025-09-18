@@ -328,6 +328,15 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
       status: verification.status
     });
     
+    // Check if this is a trial account issue
+    if (verification.status === 'pending') {
+      console.log('\n⚠️  SMS sent but status is pending. If you\'re not receiving the SMS:');
+      console.log('   1. For TRIAL accounts: Verify your phone number at:');
+      console.log('      https://console.twilio.com/us1/develop/phone-numbers/manage/verified');
+      console.log('   2. Make sure your phone can receive SMS from the US');
+      console.log('   3. Check if the number is in the correct format: +1XXXXXXXXXX\n');
+    }
+    
     return { 
       success: true, 
       messageId: verification.sid,
@@ -335,6 +344,26 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     };
   } catch (error: any) {
     console.error('❌ Failed to send verification code SMS:', error);
+    
+    // Provide specific error guidance
+    if (error.code === 60200) {
+      console.error('\n📱 INVALID PHONE NUMBER: The number is not valid or not SMS-capable');
+      console.error('   Make sure the number is in E.164 format: +1XXXXXXXXXX\n');
+    } else if (error.code === 60203) {
+      console.error('\n📱 MAX SEND ATTEMPTS REACHED: Too many attempts to this number');
+      console.error('   Wait a few minutes before trying again\n');
+    } else if (error.code === 20404) {
+      console.error('\n📱 VERIFY SERVICE NOT FOUND: Check your TWILIO_VERIFY_SERVICE_SID');
+      console.error('   Create a Verify Service at: https://console.twilio.com/us1/develop/verify/services\n');
+    } else if (error.status === 429) {
+      console.error('\n📱 RATE LIMIT: Too many requests. Wait before trying again.\n');
+    } else if (error.message && error.message.includes('not verified')) {
+      console.error('\n📱 PHONE NOT VERIFIED IN TRIAL ACCOUNT:');
+      console.error('   1. Go to: https://console.twilio.com/us1/develop/phone-numbers/manage/verified');
+      console.error('   2. Add and verify your phone number');
+      console.error('   3. Try sending the SMS again\n');
+    }
+    
     const fallbackCode = code || generateVerificationCode();
     return { 
       success: false, 
