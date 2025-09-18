@@ -259,26 +259,42 @@ export async function sendReminderSMS(phoneNumber: string, title: string, descri
 
 // Updated function to send custom verification SMS with Twilio
 export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<SMSResult> {
+  console.log('\n🚀🚀🚀 sendCodeSMS STARTED 🚀🚀🚀');
+  console.log('🚀 Input phoneNumber:', phoneNumber);
+  console.log('🚀 Input code:', code);
+  
   let cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
   
   // Add +1 if it's a US number without country code
   console.log('📱 Original phone:', phoneNumber);
-  console.log('📱 Cleaned phone:', cleanPhone);
+  console.log('📱 Cleaned phone (removed non-digits except +):', cleanPhone);
   
   if (!cleanPhone.startsWith('+') && cleanPhone.length === 10) {
     cleanPhone = '+1' + cleanPhone;
-    console.log('📱 Added +1 prefix for 10-digit number:', cleanPhone);
+    console.log('📱 Added +1 prefix for 10-digit US number:', cleanPhone);
   } else if (cleanPhone.startsWith('1') && cleanPhone.length === 11) {
     cleanPhone = '+' + cleanPhone;
-    console.log('📱 Added + prefix for 11-digit number:', cleanPhone);
+    console.log('📱 Added + prefix for 11-digit number starting with 1:', cleanPhone);
+  } else if (cleanPhone.startsWith('+')) {
+    console.log('📱 Phone already has + prefix:', cleanPhone);
+  } else {
+    console.log('⚠️  Unusual phone format, keeping as is:', cleanPhone);
   }
   
-  console.log('📱 Final formatted phone:', cleanPhone);
+  console.log('📱 Final formatted phone for Twilio:', cleanPhone);
 
   try {
+    // Check Twilio configuration
+    console.log('🔍 Checking Twilio configuration...');
+    console.log('🔍 twilioClient available:', !!twilioClient);
+    console.log('🔍 TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? 'Present' : 'Missing');
+    console.log('🔍 TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? 'Present' : 'Missing');
+    console.log('🔍 TWILIO_VERIFY_SERVICE_SID:', process.env.TWILIO_VERIFY_SERVICE_SID ? 'Present' : 'Missing');
+    console.log('🔍 TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER ? 'Present' : 'Missing');
+    
     // Handle test numbers only (allow real numbers to use Twilio even in dev)
     if (/^\+1555/.test(cleanPhone)) {
-      console.log('📱 Using development mode for test number:', cleanPhone);
+      console.log('📱 Detected test number (555), using development mode:', cleanPhone);
       const devCode = code || generateVerificationCode();
       console.log('='.repeat(50));
       console.log(`📱 SMS TO: ${cleanPhone}`);
@@ -295,13 +311,18 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     }
 
     if (!twilioClient) {
+      console.log('⚠️  Twilio client not initialized - using Development Mode');
       console.log('📱 SMS Code Development Mode:', { phone: cleanPhone, code });
       const devCode = code || generateVerificationCode();
-      console.log('='.repeat(50));
+      console.log('\n' + '='.repeat(60));
+      console.log('🎯 DEVELOPMENT MODE - SMS SIMULATION');
+      console.log('='.repeat(60));
       console.log(`📱 SMS TO: ${cleanPhone}`);
-      console.log(`🔐 CODE: ${devCode}`);
-      console.log('='.repeat(50));
+      console.log(`🔐 VERIFICATION CODE: ${devCode}`);
+      console.log('='.repeat(60) + '\n');
       
+      console.log('🚀 Returning development mode result');
+      console.log('🚀🚀🚀 sendCodeSMS COMPLETED (dev mode) 🚀🚀🚀\n');
       return { 
         success: true, // Return success in dev mode
         messageId: 'dev-mode-' + Date.now(),
@@ -314,15 +335,26 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     // Check if we should use regular SMS instead of Verify (for better delivery)
     const useRegularSMS = process.env.SMS_ALLOW_LEGACY === 'true';
     const verificationCode = code || generateVerificationCode();
+    console.log('🔧 SMS Configuration:');
+    console.log('  - Use regular SMS:', useRegularSMS);
+    console.log('  - Generated code:', verificationCode);
+    console.log('  - SMS_ALLOW_LEGACY:', process.env.SMS_ALLOW_LEGACY);
     
     if (useRegularSMS || !process.env.TWILIO_VERIFY_SERVICE_SID) {
       // Use regular Twilio SMS (may have better delivery for some carriers)
       console.log('📱 Using REGULAR Twilio SMS (not Verify) for:', cleanPhone);
+      console.log('📱 Reason:', !process.env.TWILIO_VERIFY_SERVICE_SID ? 'No Verify Service SID' : 'Legacy mode enabled');
       
       const fromNumber = process.env.TWILIO_PHONE_NUMBER;
       if (!fromNumber) {
+        console.error('❌ TWILIO_PHONE_NUMBER environment variable is missing!');
         throw new Error('TWILIO_PHONE_NUMBER not configured');
       }
+      
+      console.log('📨 Sending SMS via Twilio messages API...');
+      console.log('  - From:', fromNumber);
+      console.log('  - To:', cleanPhone);
+      console.log('  - Message body:', `Your GabAi verification code is: ${verificationCode}. Valid for 10 minutes.`);
       
       const message = await twilioClient.messages.create({
         body: `Your GabAi verification code is: ${verificationCode}. Valid for 10 minutes.`,
@@ -330,13 +362,20 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
         to: cleanPhone
       });
       
-      console.log('✅ Regular SMS sent:', {
+      console.log('✅ Regular SMS sent successfully via Twilio!');
+      console.log('📨 Message details:', {
         phone: cleanPhone,
         messageId: message.sid,
         status: message.status,
-        code: verificationCode
+        code: verificationCode,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+        dateCreated: message.dateCreated,
+        price: message.price
       });
       
+      console.log('🚀 Returning success result with messageId:', message.sid);
+      console.log('🚀🚀🚀 sendCodeSMS COMPLETED (regular SMS) 🚀🚀🚀\n');
       return {
         success: true,
         messageId: message.sid,
@@ -345,7 +384,10 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
       };
     }
     
+    console.log('📱 Using Twilio VERIFY service');
     console.log('📱 Sending Twilio Verify SMS to:', cleanPhone);
+    console.log('📱 Verify Service SID:', process.env.TWILIO_VERIFY_SERVICE_SID?.substring(0, 10) + '...');
+    console.log('📨 Creating Twilio Verify verification...');
     
     // Use Twilio Verify (works immediately, no A2P registration needed)
     const verification = await twilioClient.verify.v2
@@ -356,10 +398,14 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
         channel: 'sms'
       });
     
-    console.log('✅ Verification code SMS sent via Twilio Verify:', { 
+    console.log('✅ Twilio Verify SMS sent successfully!');
+    console.log('📨 Verification details:', { 
       phone: cleanPhone, 
       verificationSid: verification.sid,
-      status: verification.status
+      status: verification.status,
+      sendCodeAttempts: verification.sendCodeAttempts,
+      dateCreated: verification.dateCreated,
+      valid: verification.valid
     });
     
     // Check if this is a trial account issue
@@ -371,13 +417,21 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
       console.log('   3. Check if the number is in the correct format: +1XXXXXXXXXX\n');
     }
     
+    console.log('🚀 Returning success result with verificationSid:', verification.sid);
+    console.log('🚀🚀🚀 sendCodeSMS COMPLETED (Verify service) 🚀🚀🚀\n');
     return { 
       success: true, 
       messageId: verification.sid,
       verificationSid: verification.sid
     };
   } catch (error: any) {
-    console.error('❌ Failed to send verification code SMS:', error);
+    console.error('\n🚨🚨🚨 SMS SEND ERROR 🚨🚨🚨');
+    console.error('❌ Failed to send verification code SMS:');
+    console.error('  - Error message:', error.message);
+    console.error('  - Error code:', error.code);
+    console.error('  - More info:', error.moreInfo);
+    console.error('  - Details:', error.details);
+    console.error('  - Stack:', error.stack);
     
     // Provide specific error guidance
     if (error.code === 60200) {
@@ -399,12 +453,15 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     }
     
     const fallbackCode = code || generateVerificationCode();
-    return { 
+    const result = { 
       success: false, 
       error: error.message || 'Failed to send SMS',
       devMode: true,
       backupCode: fallbackCode
     };
+    console.log('🚀 Returning error result:', result);
+    console.log('🚀🚀🚀 sendCodeSMS COMPLETED (with error) 🚀🚀🚀\n');
+    return result;
   }
 }
 

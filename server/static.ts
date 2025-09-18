@@ -83,8 +83,18 @@ export function serveStatic(app: Express) {
   // Serve other static files normally
   app.use(express.static(distPath));
 
-  // fall through to index.html for HTML routes only
+  // fall through to index.html for HTML routes only (NOT API routes)
   app.use("*", (req, res, next) => {
+    // CRITICAL: Skip API routes to prevent HTML responses for API calls
+    if (req.path.startsWith('/api/')) {
+      console.log('⚠️ API route not found:', req.path);
+      return res.status(404).json({ 
+        error: 'API endpoint not found',
+        path: req.path,
+        message: 'The requested API endpoint does not exist'
+      });
+    }
+    
     // Skip if already handled or is a static file
     if (res.headersSent || 
         req.path.includes('.zip') || 

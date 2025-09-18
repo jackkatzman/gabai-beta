@@ -1713,14 +1713,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // SMS verification routes
   app.post("/api/sms/send-verification", async (req, res) => {
+    console.log('\n📱📱📱 SMS VERIFICATION REQUEST STARTED 📱📱📱');
+    console.log('📱 Request headers:', req.headers);
+    console.log('📱 Request body:', req.body);
+    console.log('📱 Request method:', req.method);
+    console.log('📱 Request URL:', req.url);
+    
     try {
       const { phoneNumber } = req.body;
       
+      console.log('📱 Extracted phoneNumber from request:', phoneNumber);
+      
       if (!phoneNumber) {
+        console.error('❌ Phone number missing in request');
         return res.status(400).json({ error: "Phone number is required" });
       }
       
       // Normalize phone number to E.164 format for Twilio (handles 10-digit US numbers)
+      console.log('📱 Calling normalizePhoneNumber with:', phoneNumber);
       const normalizedPhone = normalizePhoneNumber(phoneNumber);
       console.log('📱 API received phone:', phoneNumber, '-> normalized to:', normalizedPhone);
       
@@ -1736,9 +1746,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Send SMS using Twilio Verify (with properly formatted phone number)
+      console.log('📱 Calling sendCodeSMS with normalized phone:', normalizedPhone);
       const result = await sendCodeSMS(normalizedPhone);
+      console.log('📱 sendCodeSMS result:', result);
       
       if (result.success) {
+        console.log('✅ SMS sent successfully');
         // Store normalized phone number in cookie for verification fallback
         const normalizedPhoneForCookie = normalizedPhone.replace(/[^\d+]/g, '');
         res.cookie('last_sms_phone', normalizedPhone, {
@@ -1755,16 +1768,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('🍪 Set last_sms_phone cookie:', normalizedPhone);
         
-        res.json({ 
+        const response = { 
           success: true, 
           message: "Verification code sent",
           devMode: result.devMode,
           messageId: result.messageId,
           verificationSid: result.verificationSid
-        });
+        };
+        console.log('📱 Sending JSON response:', response);
+        res.json(response);
+        console.log('✅ Response sent successfully');
       } else {
+        console.error('❌ SMS send failed:', result);
         // Check for specific Twilio error codes
         const errorMessage = result.error || "Failed to send SMS";
+        console.log('❌ Error message:', errorMessage);
         const isInvalidNumber = errorMessage.includes("Invalid parameter") || 
                                errorMessage.includes("60200") ||
                                errorMessage.includes("not a valid phone number");
@@ -1794,8 +1812,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
     } catch (error: any) {
-      console.error("Send verification SMS error:", error);
-      res.status(500).json({ error: "Failed to send verification code" });
+      console.error("❌ Send verification SMS error:", error);
+      console.error("❌ Error stack:", error.stack);
+      const errorResponse = { error: "Failed to send verification code", details: error.message };
+      console.log('❌ Sending error response:', errorResponse);
+      res.status(500).json(errorResponse);
+    } finally {
+      console.log('📱📱📱 SMS VERIFICATION REQUEST COMPLETED 📱📱📱\n');
     }
   });
 
