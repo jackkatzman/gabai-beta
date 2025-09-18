@@ -18,6 +18,16 @@ export interface AIResponse {
   }>;
 }
 
+// Normalize image data to ensure it's always a proper data URL
+function normalizeImageData(imageData: string): string {
+  // If it already starts with data: or https:, leave as-is
+  if (imageData.startsWith('data:') || imageData.startsWith('https://')) {
+    return imageData;
+  }
+  // Otherwise, it's bare base64, so add the data URL prefix
+  return `data:image/jpeg;base64,${imageData}`;
+}
+
 // Approximate token counting (rough estimate: 1 token ≈ 4 characters)
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
@@ -96,7 +106,7 @@ When analyzing images:
             { 
               type: "image_url",
               image_url: {
-                url: imageData,
+                url: normalizeImageData(imageData),
                 detail: "low"
               }
             }
@@ -123,7 +133,19 @@ When analyzing images:
       max_tokens: imageData ? 1500 : 1000,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
+    // Parse response with fallback for non-JSON responses
+    let result: any;
+    try {
+      result = JSON.parse(response.choices[0].message.content || "{}");
+    } catch (parseError) {
+      // If parsing fails, return the raw text as content
+      console.log("📝 Non-JSON response from OpenAI, returning as text");
+      result = {
+        content: response.choices[0].message.content || "I'm here to help! How can I assist you today?",
+        suggestions: [],
+        actions: []
+      };
+    }
     
     // CRITICAL: Filter AI-generated content for profanity before returning (mandatory)
     const cleanContent = censorText(result.content || "I'm here to help! How can I assist you today?", 'ai-response');
@@ -474,15 +496,34 @@ GENERAL PROFESSION SUPPORT:
 
 export async function transcribeAudio(audioBuffer: Buffer, filename?: string, mimeType?: string): Promise<string> {
   try {
-    // Handle 3GPP format from Android by treating it as compatible format
     // Whisper supports: mp3, mp4, mpeg, mpga, m4a, wav, webm
-    let actualFilename = filename || "audio.mp3";
-    let actualMimeType = mimeType || "audio/mpeg";
+    // Preserve the actual MIME type from the client
+    let actualFilename = filename || "audio.webm";
+    let actualMimeType = mimeType || "audio/webm";
     
-    // Convert 3GPP to a format Whisper accepts
-    if (mimeType === 'audio/3gpp' || filename?.endsWith('.3gp')) {
-      actualFilename = 'audio.mp4';  // 3GPP is similar to MP4
-      actualMimeType = 'audio/mp4';   // Whisper accepts MP4
+    // Map MIME types to correct file extensions
+    const mimeToExtension: Record<string, string> = {
+      'audio/webm': '.webm',
+      'audio/mp4': '.mp4',
+      'audio/m4a': '.m4a',
+      'audio/mpeg': '.mp3',
+      'audio/mp3': '.mp3',
+      'audio/wav': '.wav',
+      'audio/3gpp': '.mp4',  // 3GPP can be treated as MP4
+      'audio/ogg': '.ogg'
+    };
+    
+    // Set proper filename based on MIME type
+    if (mimeType && mimeToExtension[mimeType]) {
+      const extension = mimeToExtension[mimeType];
+      actualFilename = `audio${extension}`;
+      // Special case for 3GPP: convert to mp4 MIME type
+      if (mimeType === 'audio/3gpp') {
+        actualMimeType = 'audio/mp4';
+      }
+    } else if (!filename) {
+      // Default to webm if no filename or unknown MIME type
+      actualFilename = 'audio.webm';
     }
     
     console.log('🎤 Transcribing audio:', { 
@@ -530,7 +571,7 @@ export async function extractTextFromImage(base64Image: string): Promise<string>
             {
               type: "image_url",
               image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`
+                url: normalizeImageData(base64Image)
               }
             }
           ],
