@@ -55,6 +55,7 @@ export interface IStorage {
   // Message operations
   getMessages(conversationId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  updateMessage(id: string, updates: Partial<InsertMessage>): Promise<Message>;
   deleteMessage(id: string): Promise<void>;
   
   // Smart list operations
@@ -322,9 +323,19 @@ export class DatabaseStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const messageData = {
       ...insertMessage,
-      role: insertMessage.role as "user" | "assistant"
+      role: insertMessage.role as "user" | "assistant",
+      imageUrl: insertMessage.imageUrl
     };
     const [message] = await db.insert(messages).values([messageData]).returning();
+    return message;
+  }
+
+  async updateMessage(id: string, updates: Partial<InsertMessage>): Promise<Message> {
+    const [message] = await db
+      .update(messages)
+      .set({ ...updates, imageUrl: updates.imageUrl })
+      .where(eq(messages.id, id))
+      .returning();
     return message;
   }
 

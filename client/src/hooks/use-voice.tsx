@@ -50,12 +50,10 @@ export function useVoice(options: UseVoiceOptions = {}) {
       console.log('🎤 Microphone permission granted, starting recording...');
       
       // Check if we're in APK/Cordova environment
-      const isAPK = (window as any).IS_APK || 
-                    (window as any).IS_VOLTBUILDER_APK ||
-                    (navigator.userAgent && navigator.userAgent.includes('Android'));
+      const isAPK = CordovaDirect.isAvailable();
       
       // Use direct Cordova audio capture if available
-      if (isAPK || CordovaDirect.isAvailable()) {
+      if (isAPK) {
         console.log('🎤 APK detected, starting audio recording...');
         
         try {
@@ -243,11 +241,9 @@ export function useVoice(options: UseVoiceOptions = {}) {
   const stopRecording = useCallback(async () => {
     try {
       // Check if we're using Cordova recording
-      const isAPK = (window as any).IS_APK || 
-                    (window as any).IS_VOLTBUILDER_APK ||
-                    (navigator.userAgent && navigator.userAgent.includes('Android'));
+      const isAPK = CordovaDirect.isAvailable();
       
-      if ((isAPK || CordovaDirect.isAvailable()) && CordovaDirect.isRecording()) {
+      if (isAPK && CordovaDirect.isRecording()) {
         console.log('🎤 Stopping Cordova recording...');
         setIsRecording(false);
         setIsTranscribing(true);

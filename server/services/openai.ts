@@ -140,7 +140,7 @@ When analyzing images:
   }
 }
 
-async function createPersonalizedSystemPrompt(user: User, patterns?: UserPattern[]): string {
+async function createPersonalizedSystemPrompt(user: User, patterns?: UserPattern[]): Promise<string> {
   const preferences = user.preferences || {};
   const profession = user.profession?.toLowerCase() || "";
   
