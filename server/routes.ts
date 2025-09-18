@@ -14,7 +14,7 @@ import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
 import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
 import { sendMagicLink } from "./services/email";
-import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, generateVerificationCode, verifyCodeSMS } from "./services/sms";
+import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, generateVerificationCode, verifyCodeSMS, normalizePhoneNumber } from "./services/sms";
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
@@ -1720,8 +1720,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Phone number is required" });
       }
       
+      // Normalize phone number to E.164 format for Twilio (handles 10-digit US numbers)
+      const normalizedPhone = normalizePhoneNumber(phoneNumber);
+      console.log('📱 API received phone:', phoneNumber, '-> normalized to:', normalizedPhone);
+      
       // Basic phone number validation (bypass for test numbers)
-      const cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
+      const cleanPhone = normalizedPhone.replace(/[^\d+]/g, '');
       const isTestNumber = /5555?5/.test(cleanPhone);
       
       if (!isTestNumber && (cleanPhone.length < 10 || cleanPhone.length > 15)) {
@@ -1731,12 +1735,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Send SMS using Twilio Verify (no database storage needed)
-      const result = await sendCodeSMS(phoneNumber);
+      // Send SMS using Twilio Verify (with properly formatted phone number)
+      const result = await sendCodeSMS(normalizedPhone);
       
       if (result.success) {
-        // Store phone number in cookie for verification fallback
-        const normalizedPhone = phoneNumber.replace(/[^\d+]/g, '');
+        // Store normalized phone number in cookie for verification fallback
+        const normalizedPhoneForCookie = normalizedPhone.replace(/[^\d+]/g, '');
         res.cookie('last_sms_phone', normalizedPhone, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',

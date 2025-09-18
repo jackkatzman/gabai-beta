@@ -294,7 +294,7 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
       };
     }
 
-    if (!twilioClient || !process.env.TWILIO_VERIFY_SERVICE_SID) {
+    if (!twilioClient) {
       console.log('📱 SMS Code Development Mode:', { phone: cleanPhone, code });
       const devCode = code || generateVerificationCode();
       console.log('='.repeat(50));
@@ -308,6 +308,40 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
         devMode: true,
         backupCode: devCode,
         verificationSid: 'dev-mode-' + Date.now()
+      };
+    }
+    
+    // Check if we should use regular SMS instead of Verify (for better delivery)
+    const useRegularSMS = process.env.SMS_ALLOW_LEGACY === 'true';
+    const verificationCode = code || generateVerificationCode();
+    
+    if (useRegularSMS || !process.env.TWILIO_VERIFY_SERVICE_SID) {
+      // Use regular Twilio SMS (may have better delivery for some carriers)
+      console.log('📱 Using REGULAR Twilio SMS (not Verify) for:', cleanPhone);
+      
+      const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+      if (!fromNumber) {
+        throw new Error('TWILIO_PHONE_NUMBER not configured');
+      }
+      
+      const message = await twilioClient.messages.create({
+        body: `Your GabAi verification code is: ${verificationCode}. Valid for 10 minutes.`,
+        from: fromNumber,
+        to: cleanPhone
+      });
+      
+      console.log('✅ Regular SMS sent:', {
+        phone: cleanPhone,
+        messageId: message.sid,
+        status: message.status,
+        code: verificationCode
+      });
+      
+      return {
+        success: true,
+        messageId: message.sid,
+        verificationSid: message.sid,
+        backupCode: verificationCode
       };
     }
     
