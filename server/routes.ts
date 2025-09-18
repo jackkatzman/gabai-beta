@@ -2837,10 +2837,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Voice transcription route
+  // Voice transcription route - NO AUTH REQUIRED for mobile compatibility
   app.post("/api/transcribe", upload.single("audio"), async (req, res) => {
+    console.log('🎤 Transcribe endpoint hit');
+    console.log('📦 Request headers:', {
+      contentType: req.headers['content-type'],
+      authorization: req.headers.authorization ? 'Present' : 'Missing',
+      userAgent: req.headers['user-agent']
+    });
+    console.log('📁 File received:', req.file ? `Yes - ${req.file.size} bytes` : 'No');
+    
     try {
       if (!req.file) {
+        console.error('❌ No audio file in request');
         return res.status(400).json({ message: "Audio file is required" });
       }
 
