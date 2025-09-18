@@ -45,20 +45,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Apply JSON parser to all routes EXCEPT multipart upload routes
-app.use((req, res, next) => {
-  // Skip JSON parsing for multipart upload routes
-  if (req.path === '/api/transcribe' || 
-      req.path === '/api/ocr' || 
-      req.path === '/api/upload-image' ||
-      req.path === '/api/images/upload' ||
-      req.path.startsWith('/api/chat')) {
-    return next();
-  }
-  express.json()(req, res, next);
-});
-
-app.use(express.urlencoded({ extended: false }));
+// IMPORTANT: Don't use global body parsers that would interfere with multipart
+// Instead, apply them selectively per route type
 app.use(cookieParser());
 
 // Add security headers for OAuth and cache-busting

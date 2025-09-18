@@ -678,7 +678,16 @@ export default function LoginPage() {
                     
                     try {
                       console.log('📱 Sending SMS verification code to:', normalizedPhone);
-                      const response = await fetch('/api/sms/send-verification', {
+                      
+                      // Detect APK environment for proper API routing
+                      const isAPK = window.location.protocol === 'file:' || 
+                                   (window as any).IS_APK || 
+                                   (window as any).IS_VOLTBUILDER_APK;
+                      const apiUrl = isAPK ? 'https://gabai.ai/api/sms/send-verification' : '/api/sms/send-verification';
+                      
+                      console.log('📡 SMS API URL:', apiUrl, 'isAPK:', isAPK);
+                      
+                      const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ phoneNumber: normalizedPhone })
@@ -793,10 +802,19 @@ export default function LoginPage() {
                           try {
                             // Use proper SMS verification endpoint with verificationSid
                             console.log('📱 Verifying with', verificationSid ? 'verificationSid:' + verificationSid : 'phone number:', normalizedPhone);
-                            const verifyResponse = await fetch('/api/sms/verify-code', {
+                            
+                            // Detect APK environment for proper API routing
+                            const isAPK = window.location.protocol === 'file:' || 
+                                         (window as any).IS_APK || 
+                                         (window as any).IS_VOLTBUILDER_APK;
+                            const verifyUrl = isAPK ? 'https://gabai.ai/api/sms/verify-code' : '/api/sms/verify-code';
+                            
+                            console.log('📡 Verify API URL:', verifyUrl, 'isAPK:', isAPK);
+                            
+                            const verifyResponse = await fetch(verifyUrl, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              credentials: 'include',
+                              credentials: isAPK ? 'omit' : 'include',  // APK doesn't support credentials
                               body: JSON.stringify({ 
                                 code: code,
                                 verificationSid: verificationSid,

@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import { createServer, type Server } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -523,6 +523,10 @@ function getListConfig(type: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add JSON parsing middleware for non-multipart routes
+  const jsonParser = express.json();
+  const urlencodedParser = express.urlencoded({ extended: false });
+  
   // Version endpoint for debugging deployment
   app.get('/api/version', (req, res) => {
     console.log('🔍 Version check requested');
@@ -762,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Native Firebase authentication endpoint for mobile apps
-  app.post("/api/auth/native-login", async (req, res) => {
+  app.post("/api/auth/native-login", jsonParser, async (req, res) => {
     try {
       const { id, email, name, avatar } = req.body;
       
@@ -801,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple login endpoint (dev/testing only)
-  app.post("/api/simple-login", async (req, res) => {
+  app.post("/api/simple-login", jsonParser, async (req, res) => {
     // Only allow in development
     if (process.env.NODE_ENV === "production") {
       return res.status(404).json({ message: "Not available in production" });
@@ -842,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Firebase authentication endpoint
-  app.post("/api/auth/firebase-login", async (req, res) => {
+  app.post("/api/auth/firebase-login", jsonParser, async (req, res) => {
     try {
       console.log('🔥 Firebase login request received');
       const { uid, email, name, photoURL } = req.body;
@@ -1560,7 +1564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Mobile APK bypass authentication - auto-login for WebView users
-  app.post("/api/auth/mobile-bypass", async (req, res) => {
+  app.post("/api/auth/mobile-bypass", jsonParser, async (req, res) => {
     try {
       const userAgent = req.headers['user-agent'] || '';
       const hasWebView = /wv/i.test(userAgent);
@@ -1612,7 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple email/password authentication routes
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", jsonParser, async (req, res) => {
     try {
       const { email, password, name } = req.body;
       
@@ -1663,7 +1667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", jsonParser, async (req, res) => {
     try {
       const { email, password } = req.body;
       
@@ -1729,7 +1733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // SMS verification routes
-  app.post("/api/sms/send-verification", async (req, res) => {
+  app.post("/api/sms/send-verification", jsonParser, async (req, res) => {
     console.log('\n📱📱📱 SMS VERIFICATION REQUEST STARTED 📱📱📱');
     console.log('📱 Request headers:', req.headers);
     console.log('📱 Request body:', req.body);
@@ -1839,7 +1843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/sms/verify-code", async (req, res) => {
+  app.post("/api/sms/verify-code", jsonParser, async (req, res) => {
     try {
       // Parse body tolerantly - handle JSON, form-encoded, or missing Content-Type
       let body = req.body || {};
@@ -2429,7 +2433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat route with AI integration
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", jsonParser, async (req, res) => {
     try {
       const { message, userId, conversationId, imageData } = req.body;
       
@@ -2845,11 +2849,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       authorization: req.headers.authorization ? 'Present' : 'Missing',
       userAgent: req.headers['user-agent']
     });
-    console.log('📁 File received:', req.file ? `Yes - ${req.file.size} bytes` : 'No');
+    console.log('📁 Request body type:', typeof req.body);
+    console.log('📁 Request body:', req.body);
+    console.log('📁 File received:', req.file ? `Yes - ${req.file.size} bytes, mimetype: ${req.file.mimetype}` : 'No');
+    console.log('📁 File buffer exists:', req.file?.buffer ? 'Yes' : 'No');
     
     try {
       if (!req.file) {
-        console.error('❌ No audio file in request');
+        console.error('❌ No audio file in request - multer did not process the upload');
+        console.error('❌ Content-Type header:', req.headers['content-type']);
         return res.status(400).json({ message: "Audio file is required" });
       }
 
@@ -2904,7 +2912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Text-to-speech route
-  app.post("/api/speak", async (req, res) => {
+  app.post("/api/speak", jsonParser, async (req, res) => {
     try {
       const { text } = req.body;
       if (!text) {
