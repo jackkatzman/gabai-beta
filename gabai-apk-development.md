@@ -641,17 +641,76 @@ const useCamera = () => {
 - Camera permissions properly configured
 - All recent UI and API updates
 
-### VoltBuilder CheckAarMetadata Error Fix
+### VoltBuilder CheckAarMetadata Error Fix (Initial Attempt)
 **Date**: September 17, 2025
 **Error**: "A failure occurred while executing CheckAarMetadataWorkAction"
 **Root Cause**: Missing android-compileSdkVersion in config.xml
-**Solution**: Add explicit compileSdkVersion preference:
+**Initial Solution**: Add explicit compileSdkVersion preference
+**Result**: ❌ Still failed - deeper issues found
+
+### Complete VoltBuilder Build Fix (v55 Final)
+**Date**: September 17, 2025
+**Based on**: External build expert analysis
+**Multiple Issues Fixed**:
+
+#### 1. Align Android SDK + Kotlin
 ```xml
-<preference name="android-minSdkVersion" value="24" />
-<preference name="android-targetSdkVersion" value="33" />
-<preference name="android-compileSdkVersion" value="33" />
+<preference name="android-compileSdkVersion" value="35" />
+<preference name="android-targetSdkVersion" value="35" />
+<preference name="GradlePluginKotlinVersion" value="1.9.24" />
 ```
-**Result**: ✅ Build error resolved
+
+#### 2. Modernize + Pin AndroidX
+```xml
+<preference name="AndroidXCoreVersion" value="1.13.0" />
+<preference name="AndroidXAppCompatVersion" value="1.6.1" />
+<preference name="AndroidXWebKitVersion" value="1.10.0" />
+```
+
+#### 3. Add Gradle resolutionStrategy
+Created `build-extras.gradle` to force dependency versions:
+```gradle
+allprojects {
+  configurations.all {
+    resolutionStrategy {
+      force 'androidx.core:core:1.13.0'
+      force 'androidx.appcompat:appcompat:1.6.1'
+      force 'androidx.webkit:webkit:1.10.0'
+    }
+  }
+}
+```
+
+#### 4. Remove Obsolete Contacts Plugin
+- Removed `cordova-plugin-contacts` (deprecated, triggers Play policy issues)
+- Removed READ_CONTACTS and WRITE_CONTACTS permissions
+- Switch to VCF export using `cordova-plugin-file` and `cordova-plugin-file-opener2`
+
+#### 5. Fix Background Color Format
+**CRITICAL**: Android's aapt expects `#AARRGGBB`, not `0x...`
+```xml
+<!-- WRONG -->
+<preference name="BackgroundColor" value="0xff000000" />
+<!-- CORRECT -->
+<preference name="BackgroundColor" value="#FF000000" />
+```
+
+#### 6. VoltBuilder Metadata
+Added `voltbuilder.json`:
+```json
+{
+  "appId": "com.gabai.app",
+  "verbose": true,
+  "android": {
+    "cordovaAndroidVersion": "14.0.1",
+    "gradleVersion": "8.7.0",
+    "compileSdkVersion": 35,
+    "targetSdkVersion": 35
+  }
+}
+```
+
+**Result**: ✅ BUILD SUCCESSFUL
 
 ## Contact
 
