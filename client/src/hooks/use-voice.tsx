@@ -143,6 +143,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
       mediaRecorder.addEventListener("dataavailable", (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+          console.log('📊 Audio chunk received:', event.data.size, 'bytes');
         }
       });
 
@@ -161,6 +162,12 @@ export function useVoice(options: UseVoiceOptions = {}) {
             mimeType,
             blobSize: audioBlob.size
           });
+          
+          // Check if we have actual audio data
+          if (audioBlob.size === 0 || chunksRef.current.length === 0) {
+            console.error('❌ No audio data recorded');
+            throw new Error('No audio was recorded. Please try again and hold the button while speaking.');
+          }
           
           // Add timeout to transcription request
           const transcribePromise = api.transcribeAudio(audioBlob);
@@ -210,9 +217,10 @@ export function useVoice(options: UseVoiceOptions = {}) {
         }
       });
 
-      mediaRecorder.start();
+      // Start recording with timeslice to ensure data is available
+      mediaRecorder.start(100); // Collect data every 100ms
       setIsRecording(true);
-      console.log('🎤 Recording started successfully');
+      console.log('🎤 Recording started successfully with 100ms timeslice');
     } catch (error: any) {
       console.error('🎤 Voice recording failed:', error);
       let userFriendlyMessage = '';
