@@ -2844,6 +2844,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Audio file is required" });
       }
 
+      // Check if file is empty
+      if (req.file.buffer.length === 0) {
+        console.error("🔇 Empty audio file received");
+        return res.status(400).json({ 
+          message: "Recording is empty. Please check your microphone permissions and try again." 
+        });
+      }
+
+      // Check minimum file size (at least 100 bytes for a valid audio file)
+      if (req.file.buffer.length < 100) {
+        console.error(`🔇 Audio file too small: ${req.file.buffer.length} bytes`);
+        return res.status(400).json({ 
+          message: "Recording is too short. Please hold the microphone button and speak clearly." 
+        });
+      }
+
+      console.log(`🎤 Processing audio file: ${req.file.originalname}, size: ${req.file.buffer.length} bytes, type: ${req.file.mimetype}`);
+
       // Pass the filename and mimetype from the uploaded file
       const transcription = await transcribeAudio(
         req.file.buffer,
@@ -3100,7 +3118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         smsSent: false,
         smsSentAt: null,
         smsStatus: req.body.smsStatus || 'pending',
-        reminderMinutes: req.body.reminderMinutes || 15,
+        reminderMinutes: req.body.reminderMinutes || 0,
         timezone: req.body.timezone || 'America/New_York',
         reminderType: req.body.reminderType || 'sms' // ADD THIS LINE - crucial for voice reminders!
       };
