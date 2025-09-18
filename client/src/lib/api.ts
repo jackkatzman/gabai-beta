@@ -126,27 +126,40 @@ export const api = {
                          window.location.protocol === 'file:';
     const finalUrl = isProduction ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
     
+    const token = localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token') || '';
+    
     console.log('📤 Sending transcription request to:', finalUrl, {
       hostname: window.location.hostname,
       protocol: window.location.protocol,
-      isProduction
+      isProduction,
+      hasToken: !!token,
+      tokenLength: token.length
     });
 
-    const transcribeResponse = await fetch(finalUrl, {
-      method: "POST",
-      body: formData,
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token') || ''}`
+    try {
+      const transcribeResponse = await fetch(finalUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📥 Transcription response status:', transcribeResponse.status, transcribeResponse.statusText);
+
+      if (!transcribeResponse.ok) {
+        const errorText = await transcribeResponse.text();
+        console.error('❌ Transcription failed:', transcribeResponse.status, errorText);
+        throw new Error(`Transcription failed: ${transcribeResponse.statusText}`);
       }
-    });
 
-    if (!transcribeResponse.ok) {
-      const errorText = await transcribeResponse.text();
-      console.error('❌ Transcription failed:', transcribeResponse.status, errorText);
-      throw new Error(`Transcription failed: ${transcribeResponse.statusText}`);
+      const result = await transcribeResponse.json();
+      console.log('✅ Transcription result:', result);
+      return result;
+    } catch (error: any) {
+      console.error('❌ Fetch error:', error);
+      throw error;
     }
-
-    return transcribeResponse.json();
   },
 
   async generateSpeech(text: string): Promise<Blob> {

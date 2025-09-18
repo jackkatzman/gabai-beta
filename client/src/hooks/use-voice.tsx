@@ -154,7 +154,23 @@ export function useVoice(options: UseVoiceOptions = {}) {
           // Use the actual mime type from the recorder
           const mimeType = mediaRecorderRef.current?.mimeType || "audio/webm";
           const audioBlob = new Blob(chunksRef.current, { type: mimeType });
-          const { text } = await api.transcribeAudio(audioBlob);
+          
+          console.log('🎙️ Audio recording stopped:', {
+            chunks: chunksRef.current.length,
+            totalSize: chunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0),
+            mimeType,
+            blobSize: audioBlob.size
+          });
+          
+          // Add timeout to transcription request
+          const transcribePromise = api.transcribeAudio(audioBlob);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Transcription timeout after 30 seconds')), 30000)
+          );
+          
+          const { text } = await Promise.race([transcribePromise, timeoutPromise]) as { text: string };
+          
+          console.log('✅ Transcription successful:', text);
           
           if (options.onTranscriptionComplete) {
             options.onTranscriptionComplete(text);
@@ -171,8 +187,8 @@ export function useVoice(options: UseVoiceOptions = {}) {
             }, 1000);
           }
         } catch (error: any) {
-          console.error("Voice transcription error:", error);
-          const errorMessage = `Transcription failed: ${error.message}`;
+          console.error("❌ Voice transcription error:", error);
+          const errorMessage = error.message || 'Transcription failed';
           if (options.onError) {
             options.onError(errorMessage);
           }
