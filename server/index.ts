@@ -45,7 +45,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+// Apply JSON parser to all routes EXCEPT multipart upload routes
+app.use((req, res, next) => {
+  // Skip JSON parsing for multipart upload routes
+  if (req.path === '/api/transcribe' || 
+      req.path === '/api/ocr' || 
+      req.path === '/api/upload-image' ||
+      req.path === '/api/images/upload' ||
+      req.path.startsWith('/api/chat')) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
+
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
