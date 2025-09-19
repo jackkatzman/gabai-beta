@@ -75,12 +75,29 @@ export async function apiRequest(
     console.log('🌐 Public endpoint, no auth needed:', url);
   }
   
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "omit", // FIXED: Never use cookies - always use Bearer tokens
-  });
+  // Add timeout using AbortController (30 seconds for chat, 10 seconds for others)
+  const timeoutMs = url.includes('/api/chat') ? 30000 : 10000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "omit", // FIXED: Never use cookies - always use Bearer tokens
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs/1000} seconds`);
+    }
+    throw error;
+  }
   
   // Handle 401s by clearing token and redirecting
   if (res.status === 401) {
