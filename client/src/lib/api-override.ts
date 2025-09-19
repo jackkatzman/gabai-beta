@@ -108,14 +108,25 @@ export function initializeAPKNetworkOverride() {
         console.log('🌐 Public endpoint, no auth required:', url);
       }
 
-      // Ensure Content-Type for POST/PUT/PATCH (headers spread first, then Content-Type to prevent overwrite)
+      // CRITICAL: Ensure Content-Type for POST/PUT/PATCH so server can parse JSON
       if (['POST', 'PUT', 'PATCH'].includes(finalInit.method?.toUpperCase() || 'GET')) {
         finalInit.headers = {
           ...finalInit.headers,
           'Content-Type': 'application/json'
         };
+        console.log('📦 Added Content-Type: application/json for method:', finalInit.method);
       }
     }
+
+    // Final debug: Log what we're sending to original fetch
+    console.log('🚀 Final fetch call:', {
+      url,
+      method: finalInit.method,
+      hasBody: !!finalInit.body,
+      body: finalInit.body,
+      headers: finalInit.headers,
+      credentials: finalInit.credentials
+    });
 
     // Call original fetch with modified parameters
     return originalFetch(url, finalInit);
