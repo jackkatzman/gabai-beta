@@ -11,6 +11,11 @@ export async function api(path: string, init: RequestInit = {}) {
   const t = getToken();
   if (t) h.set('Authorization', `Bearer ${t}`);
   
+  // CRITICAL FIX: Set Content-Type for JSON body
+  if (init.body && typeof init.body === 'string' && !h.has('Content-Type')) {
+    h.set('Content-Type', 'application/json');
+  }
+  
   // Detect environment
   const isDevelopment = 
     window.location.hostname.includes('localhost') ||
