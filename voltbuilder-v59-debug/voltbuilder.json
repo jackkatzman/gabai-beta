@@ -1,5 +1,9 @@
 {
-  "platform": "android",
-  "release": "debug",
-  "verbose": "true"
+  "appId": "ai.gabai.app",
+  "verbose": true,
+  "android": {
+    "cordovaAndroidVersion": "14.0.1",
+    "compileSdkVersion": 35,
+    "targetSdkVersion": 35
+  }
 }

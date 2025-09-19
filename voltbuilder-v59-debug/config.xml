@@ -20,9 +20,12 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   
-  <!-- Android platform settings -->
+  <!-- Android platform settings - FIXED SDK 35! -->
   <platform name="android">
     <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+    <preference name="android-compileSdkVersion" value="35" />
+    <preference name="android-targetSdkVersion" value="35" />
+    <preference name="GradlePluginKotlinVersion" value="1.9.24" />
   </platform>
   
   <!-- Cordova preferences -->
@@ -30,12 +33,11 @@
   <preference name="BackupWebStorage" value="cloud" />
   <preference name="Orientation" value="portrait" />
   
-  <!-- ALL PLUGINS WE HAD WORKING -->
+  <!-- Plugins (removed contacts as recommended) -->
   <plugin name="cordova-plugin-device" />
   <plugin name="cordova-plugin-inappbrowser" />
   <plugin name="cordova-plugin-media" />
   <plugin name="cordova-plugin-camera" />
-  <plugin name="cordova-plugin-contacts" />
   <plugin name="cordova-plugin-file" />
   
   <!-- Enable mixed content -->
@@ -44,7 +46,7 @@
   <!-- Access origins -->
   <access origin="*" />
   
-  <!-- Android API Level -->
+  <!-- Android API Level - Also updating here -->
   <preference name="android-minSdkVersion" value="23" />
-  <preference name="android-targetSdkVersion" value="34" />
+  <preference name="android-targetSdkVersion" value="35" />
 </widget>
