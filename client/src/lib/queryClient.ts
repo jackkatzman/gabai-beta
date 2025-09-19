@@ -53,7 +53,12 @@ export async function apiRequest(
   
   console.log('🔑 Token found:', !!token, 'for URL:', url);
   
-  const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  const headers = new Headers();
+  
+  // CRITICAL: Always set Content-Type for JSON requests
+  if (data && method !== "GET") {
+    headers.set("Content-Type", "application/json");
+  }
   
   // List of public endpoints that don't need authentication
   const publicEndpoints = [
@@ -69,14 +74,14 @@ export async function apiRequest(
   
   // Add Bearer token for authenticated endpoints only
   if (token && needsAuth && (url.startsWith('/api') || url.includes('gabai.ai'))) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
     console.log('✅ Adding Bearer token to authenticated endpoint:', url);
   } else if (!needsAuth) {
     console.log('🌐 Public endpoint, no auth needed:', url);
   }
   
-  // Add timeout using AbortController (30 seconds for chat, 10 seconds for others)
-  const timeoutMs = url.includes('/api/chat') ? 30000 : 10000;
+  // Add timeout using AbortController (60 seconds for chat to handle OpenAI delays, 15 seconds for others)
+  const timeoutMs = url.includes('/api/chat') ? 60000 : 15000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   

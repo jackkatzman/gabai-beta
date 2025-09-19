@@ -93,9 +93,31 @@ export function ChatInterface() {
       }
     },
     onError: (error: any) => {
+      console.error('❌ Chat error:', error);
+      
+      // Remove temporary message on error
+      if (currentConversationId) {
+        queryClient.setQueryData(
+          ["/api/messages", currentConversationId],
+          (oldMessages: Message[] = []) => oldMessages.filter(msg => !msg.id.toString().startsWith('temp-'))
+        );
+      }
+      
+      // Better error messages
+      let errorMessage = "Failed to send message";
+      if (error.message?.includes('timeout')) {
+        errorMessage = "Request timed out. The AI service is slow right now. Please try again.";
+      } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        errorMessage = "Your session has expired. Please sign in again.";
+      } else if (error.message?.includes('OpenAI')) {
+        errorMessage = "AI service is temporarily unavailable. Please try again in a moment.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
+        title: "Message Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
