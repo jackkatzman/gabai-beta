@@ -30,7 +30,7 @@ export default function PhoneVerificationPage() {
       console.log('📱 Sending SMS verification code to:', phone);
       return await api('/api/sms/send-verification', {
         method: 'POST',
-        body: JSON.stringify({ phoneNumber: phone })
+        body: JSON.stringify({ phone: phone, smsOptIn: smsOptIn })
       });
     },
     onSuccess: (data: any) => {
