@@ -6,14 +6,23 @@ export function initializeAPKNetworkOverride() {
     return;
   }
 
-  // Detect if we're in APK/WebView environment
-  const isAPK = window.location.protocol === 'file:' ||
-                (typeof (window as any).cordova !== 'undefined') ||
-                (typeof (window as any).Capacitor !== 'undefined') ||
-                (navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android'));
+  // Debug detailed APK detection  
+  const protocolCheck = window.location.protocol === 'file:';
+  const cordovaCheck = typeof (window as any).cordova !== 'undefined';
+  const capacitorCheck = typeof (window as any).Capacitor !== 'undefined';
+  const androidWebViewCheck = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
+  
+  // CRITICAL FIX: Exclude web browsers even if Capacitor is loaded
+  const isWebBrowser = window.location.protocol.startsWith('http') && 
+                       !navigator.userAgent.includes('wv') && 
+                       !navigator.userAgent.includes('Android');
+  
+  const isAPK = (protocolCheck || cordovaCheck || capacitorCheck || androidWebViewCheck) && !isWebBrowser;
+  
+  console.log('🔍 APK Detection:', { isAPK, protocol: window.location.protocol });
 
   if (!isAPK) {
-    console.log('🌐 Web environment - using default fetch');
+    console.log('🌐 Web environment - using default fetch (no override needed)');
     return;
   }
 
