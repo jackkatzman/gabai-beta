@@ -258,7 +258,8 @@ export async function sendReminderSMS(phoneNumber: string, title: string, descri
 }
 
 // Updated function to send custom verification SMS with Twilio
-export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<SMSResult> {
+// Add optional channel parameter for voice fallback (ChatGPT recommended)
+export async function sendCodeSMS(phoneNumber: string, code?: string, channel: 'sms' | 'call' = 'sms'): Promise<SMSResult> {
   console.log('\n🚀🚀🚀 sendCodeSMS STARTED 🚀🚀🚀');
   console.log('🚀 Input phoneNumber:', phoneNumber);
   console.log('🚀 Input code:', code);
@@ -333,12 +334,16 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     }
     
     // Check if we should use regular SMS instead of Verify (for better delivery)
-    const useRegularSMS = process.env.SMS_ALLOW_LEGACY === 'true';
+    // PRODUCTION GUARD: Always use Verify in production regardless of SMS_ALLOW_LEGACY
+    const isProduction = process.env.NODE_ENV === 'production';
+    const useRegularSMS = !isProduction && process.env.SMS_ALLOW_LEGACY === 'true';
     const verificationCode = code || generateVerificationCode();
     console.log('🔧 SMS Configuration:');
+    console.log('  - Environment:', process.env.NODE_ENV);
     console.log('  - Use regular SMS:', useRegularSMS);
     console.log('  - Generated code:', verificationCode);
     console.log('  - SMS_ALLOW_LEGACY:', process.env.SMS_ALLOW_LEGACY);
+    console.log('  - Force Verify in production:', isProduction);
     
     if (useRegularSMS || !process.env.TWILIO_VERIFY_SERVICE_SID) {
       // Use regular Twilio SMS (may have better delivery for some carriers)
@@ -385,17 +390,18 @@ export async function sendCodeSMS(phoneNumber: string, code?: string): Promise<S
     }
     
     console.log('📱 Using Twilio VERIFY service');
-    console.log('📱 Sending Twilio Verify SMS to:', cleanPhone);
+    console.log('📱 Sending Twilio Verify', channel === 'call' ? 'VOICE CALL' : 'SMS', 'to:', cleanPhone);
     console.log('📱 Verify Service SID:', process.env.TWILIO_VERIFY_SERVICE_SID?.substring(0, 10) + '...');
     console.log('📨 Creating Twilio Verify verification...');
     
     // Use Twilio Verify (works immediately, no A2P registration needed)
+    // Support voice fallback for stubborn carriers (ChatGPT recommended)
     const verification = await twilioClient.verify.v2
       .services(process.env.TWILIO_VERIFY_SERVICE_SID)
       .verifications
       .create({
         to: cleanPhone,
-        channel: 'sms'
+        channel: channel  // Can be 'sms' or 'call' for voice fallback
       });
     
     console.log('✅ Twilio Verify SMS sent successfully!');

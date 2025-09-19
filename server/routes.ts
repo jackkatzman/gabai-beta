@@ -1779,13 +1779,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Check for voice fallback option (ChatGPT recommended)
+      const channel = body.channel || 'sms'; // Default to SMS, allow 'call' for voice
+      
       // Send SMS using Twilio Verify (with properly formatted phone number)
-      console.log('📱 Calling sendCodeSMS with normalized phone:', normalizedPhone);
-      const result = await sendCodeSMS(normalizedPhone);
+      console.log('📱 Calling sendCodeSMS with normalized phone:', normalizedPhone, 'channel:', channel);
+      const result = await sendCodeSMS(normalizedPhone, undefined, channel as 'sms' | 'call');
       console.log('📱 sendCodeSMS result:', result);
       
       if (result.success) {
         console.log('✅ SMS sent successfully');
+        
+        // Log whether using Twilio Verify or regular SMS
+        if (result.verificationSid && result.verificationSid.startsWith('VE')) {
+          console.log('✅ Using Twilio Verify (from SMS Verify) - SID:', result.verificationSid);
+        } else if (result.messageId && result.messageId.startsWith('SM')) {
+          console.log('⚠️ Using regular SMS (from 888 number) - MessageId:', result.messageId);
+        }
+        
         // Store normalized phone number in cookie for verification fallback
         const normalizedPhoneForCookie = normalizedPhone.replace(/[^\d+]/g, '');
         res.cookie('last_sms_phone', normalizedPhone, {
@@ -1809,7 +1820,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           devMode: result.devMode,
           messageId: result.messageId,
           verificationSid: result.verificationSid,
-          backupCode: result.backupCode  // Include backup code if in dev mode
+          backupCode: result.backupCode,  // Include backup code if in dev mode
+          // Add method for debugging (ChatGPT recommended)
+          method: result.verificationSid?.startsWith('VE') ? 'twilio_verify' : 'regular_sms'
         };
         console.log('📱 Sending JSON response:', response);
         res.json(response);
