@@ -30,6 +30,16 @@ export function initializeAPKNetworkOverride() {
     let url: string;
     let finalInit = init ? { ...init } : {};
 
+    // DEBUG: Log what we received
+    console.log('🔍 Fetch override called with:', {
+      inputType: typeof input,
+      isRequest: input instanceof Request,
+      url: input instanceof Request ? input.url : input.toString(),
+      hasBody: !!finalInit.body,
+      body: finalInit.body,
+      method: finalInit.method
+    });
+
     // Handle Request object or URL
     if (input instanceof Request) {
       url = input.url;
