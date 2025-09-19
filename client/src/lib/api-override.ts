@@ -54,10 +54,12 @@ export function initializeAPKNetworkOverride() {
       url = input.url;
       // Copy ALL properties from Request if not overridden
       if (!finalInit.headers && input.headers) {
-        finalInit.headers = {};
+        // Use new Headers to properly copy headers
+        const headers = new Headers();
         input.headers.forEach((value, key) => {
-          (finalInit.headers as any)[key] = value;
+          headers.set(key, value);
         });
+        finalInit.headers = headers;
       }
       // CRITICAL: Copy body from Request object
       if (!finalInit.body && input.body) {
@@ -105,10 +107,10 @@ export function initializeAPKNetworkOverride() {
                      sessionStorage.getItem('token');
         
         if (token) {
-          finalInit.headers = {
-            ...finalInit.headers,
-            'Authorization': `Bearer ${token}`
-          };
+          // Use new Headers to properly normalize and set headers
+          const headers = new Headers(finalInit.headers || {});
+          headers.set('Authorization', `Bearer ${token}`);
+          finalInit.headers = headers;
           console.log('🔑 Bearer token auth applied for:', url);
         } else {
           console.log('⚠️ No auth token found for authenticated endpoint:', url);
@@ -119,10 +121,13 @@ export function initializeAPKNetworkOverride() {
 
       // CRITICAL: Ensure Content-Type for POST/PUT/PATCH so server can parse JSON
       if (['POST', 'PUT', 'PATCH'].includes(finalInit.method?.toUpperCase() || 'GET')) {
-        finalInit.headers = {
-          ...finalInit.headers,
-          'Content-Type': 'application/json'
-        };
+        // Use new Headers to properly normalize and set headers
+        const headers = new Headers(finalInit.headers || {});
+        // Only set Content-Type if not already set
+        if (!headers.has('Content-Type')) {
+          headers.set('Content-Type', 'application/json');
+        }
+        finalInit.headers = headers;
         console.log('📦 Added Content-Type: application/json for method:', finalInit.method);
       }
     }

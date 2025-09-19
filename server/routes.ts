@@ -1741,9 +1741,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('📱 Request URL:', req.url);
     
     try {
-      const { phoneNumber } = req.body;
+      // Parse body if it's a string
+      let body = req.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+          console.log('📱 Parsed string body to JSON:', body);
+        } catch (e) {
+          console.error('❌ Failed to parse JSON body:', e);
+          return res.status(400).json({ error: "Invalid JSON in request body" });
+        }
+      }
       
-      console.log('📱 Extracted phoneNumber from request:', phoneNumber);
+      // Accept multiple phone field names: phoneNumber, phone, or to
+      const phoneNumber = body.phoneNumber || body.phone || body.to;
+      
+      console.log('📱 Extracted phone from request (checked phoneNumber, phone, to):', phoneNumber);
       
       if (!phoneNumber) {
         console.error('❌ Phone number missing in request');
@@ -1792,9 +1805,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const response = { 
           success: true, 
           message: "Verification code sent",
+          phone: normalizedPhone,  // Include phone in response
           devMode: result.devMode,
           messageId: result.messageId,
-          verificationSid: result.verificationSid
+          verificationSid: result.verificationSid,
+          backupCode: result.backupCode  // Include backup code if in dev mode
         };
         console.log('📱 Sending JSON response:', response);
         res.json(response);
