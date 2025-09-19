@@ -1,6 +1,6 @@
 {
   "platform": "android",
-  "release": "release",
+  "release": "debug",
   "minify": "false",
   "verbose": "true",
   "cordova": {
