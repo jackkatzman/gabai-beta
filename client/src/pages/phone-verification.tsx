@@ -190,7 +190,10 @@ export default function PhoneVerificationPage() {
   });
 
   const handleSendCode = () => {
+    console.log('📱📱📱 handleSendCode clicked', { phoneNumber, smsOptIn });
+    
     if (!phoneNumber.trim()) {
+      console.log('❌ No phone number provided');
       toast({
         title: "Phone number required",
         description: "Please enter your phone number",
@@ -200,6 +203,7 @@ export default function PhoneVerificationPage() {
     }
     
     if (!smsOptIn) {
+      console.log('❌ SMS consent not checked - smsOptIn:', smsOptIn);
       toast({
         title: "Consent required",
         description: "Please check the consent box to receive SMS messages",
