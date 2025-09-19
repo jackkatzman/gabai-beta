@@ -90,11 +90,11 @@ export function initializeAPKNetworkOverride() {
         console.log('🌐 Public endpoint, no auth required:', url);
       }
 
-      // Ensure Content-Type for POST/PUT/PATCH
+      // Ensure Content-Type for POST/PUT/PATCH (headers spread first, then Content-Type to prevent overwrite)
       if (['POST', 'PUT', 'PATCH'].includes(finalInit.method?.toUpperCase() || 'GET')) {
         finalInit.headers = {
-          'Content-Type': 'application/json',
-          ...finalInit.headers
+          ...finalInit.headers,
+          'Content-Type': 'application/json'
         };
       }
     }
