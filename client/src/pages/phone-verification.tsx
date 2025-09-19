@@ -397,17 +397,20 @@ export default function PhoneVerificationPage() {
                 />
               </div>
               
-              <div className="flex items-start space-x-2">
+              <div 
+                className="flex items-start space-x-2 cursor-pointer p-2 -m-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => setSmsOptIn(!smsOptIn)}
+                data-testid="checkbox-container-sms-consent"
+              >
                 <Checkbox
                   id="sms-consent"
                   checked={smsOptIn}
                   onCheckedChange={(checked) => setSmsOptIn(checked as boolean)}
-                  className="mt-0.5"
+                  className="mt-0.5 pointer-events-none"
                   data-testid="checkbox-sms-consent"
                 />
                 <Label
-                  htmlFor="sms-consent"
-                  className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer leading-relaxed"
+                  className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer leading-relaxed pointer-events-none"
                 >
                   I consent to receive automated SMS text message reminders at this number from Booah LLC (GabAi Reminder App). Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
                 </Label>
