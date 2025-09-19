@@ -33,12 +33,20 @@ export function initializeAPKNetworkOverride() {
     // Handle Request object or URL
     if (input instanceof Request) {
       url = input.url;
-      // Copy headers from Request if not overridden
+      // Copy ALL properties from Request if not overridden
       if (!finalInit.headers && input.headers) {
         finalInit.headers = {};
         input.headers.forEach((value, key) => {
           (finalInit.headers as any)[key] = value;
         });
+      }
+      // CRITICAL: Copy body from Request object
+      if (!finalInit.body && input.body) {
+        finalInit.body = input.body;
+      }
+      // Copy method if not specified
+      if (!finalInit.method && input.method) {
+        finalInit.method = input.method;
       }
     } else {
       url = input.toString();
