@@ -1,17 +1,13 @@
 [build]
-  command = "NETLIFY=true esbuild server/index.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/index.js && npx vite build"
-  publish = "dist/public"
-  functions = "netlify/functions"
+# Build ONLY the client app on Netlify (your API is on gabai.ai)
+command = "npm --prefix client ci && npm --prefix client run build"
+publish = "client/dist"
 
 [build.environment]
-  NODE_VERSION = "18"
-  NETLIFY = "true"
+NODE_VERSION = "18"
+NETLIFY = "true"
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
-
+# Optional: keep these headers if you want
 [[headers]]
   for = "/*"
   [headers.values]
