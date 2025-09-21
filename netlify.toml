@@ -1,12 +1,17 @@
 [build]
-# Build ONLY the client app on Netlify
+# Build ONLY the client app on Netlify (static site)
 command = "npm --prefix client install && npm --prefix client run build"
 publish = "client/dist"
 
 [build.environment]
-# Vite/@vitejs/plugin-react wants Node 20+
 NODE_VERSION = "20.19.0"
 NETLIFY = "true"
+
+# Force Netlify to look at an empty functions folder
+[functions]
+directory = "netlify/no-functions"
+
+# (Make sure you do NOT have a redirects block to /.netlify/functions/*)
 
 [[headers]]
   for = "/*"
