@@ -1,9 +1,18 @@
-import React from 'react';
+// client/src/main.tsx  — PROBE ENTRY
 import { createRoot } from 'react-dom/client';
-import App from './App';
+import { useEffect } from 'react';
 
-console.log('React runtime:', (React as any).version, typeof (React as any).useEffect);
+function Probe() {
+  useEffect(() => {
+    console.log('Probe useEffect fired ✅');
+  }, []);
+  return (
+    <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+      🔍 Probe OK — React hooks working
+    </div>
+  );
+}
 
 const el = document.getElementById('root');
-if (!el) throw new Error('#root not found in index.html');
-createRoot(el).render(<App />);
+if (!el) throw new Error('#root not found');
+createRoot(el).render(<Probe />);
