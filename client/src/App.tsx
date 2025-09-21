@@ -8,7 +8,7 @@ const HomePage = React.lazy(() => import('./pages/home'));
 
 const qc = new QueryClient();
 
-// Simple error boundary (no React mutation, no TS generics)
+// Minimal error boundary
 class AppErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
@@ -49,12 +49,14 @@ function Inner() {
     return (
       <PhoneVerificationPage
         onVerified={() => {
+          // After verify, reload so UserProvider refetches /api/auth/user
           window.location.replace('/chat');
         }}
       />
     );
   }
 
+  // Signed in → load HomePage lazily
   return (
     <React.Suspense
       fallback={
@@ -64,3 +66,18 @@ function Inner() {
       }
     >
       <HomePage />
+    </React.Suspense>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={qc}>
+      <UserProvider>
+        <AppErrorBoundary>
+          <Inner />
+        </AppErrorBoundary>
+      </UserProvider>
+    </QueryClientProvider>
+  );
+}
