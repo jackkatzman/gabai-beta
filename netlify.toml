@@ -1,13 +1,13 @@
 [build]
-# Build ONLY the client app on Netlify (your API is on gabai.ai)
-command = "npm --prefix client ci && npm --prefix client run build"
+# Build ONLY the client app on Netlify
+command = "npm --prefix client install && npm --prefix client run build"
 publish = "client/dist"
 
 [build.environment]
-NODE_VERSION = "18"
+# Vite/@vitejs/plugin-react wants Node 20+
+NODE_VERSION = "20.19.0"
 NETLIFY = "true"
 
-# Optional: keep these headers if you want
 [[headers]]
   for = "/*"
   [headers.values]
