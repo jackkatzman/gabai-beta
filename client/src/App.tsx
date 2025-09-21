@@ -1,15 +1,16 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { UserProvider, useUser } from '@/context/user-context';
 import PhoneVerificationPage from './pages/phone-verification';
 
-// Lazy load the real home/chat page so a bad import can’t white-screen
+// Lazy load the real home/chat page
 const HomePage = React.lazy(() => import('./pages/home'));
 
 const qc = new QueryClient();
 
-// Our own error boundary (no mutation of React import)
+// Local error boundary (do NOT mutate React)
 class AppErrorBoundary extends React.Component<
-  { fallback?: React.ReactNode; onError?: (err: unknown) => void; children: React.ReactNode },
+  { children: React.ReactNode },
   { hasError: boolean; err?: unknown }
 > {
   constructor(props: any) {
@@ -19,15 +20,15 @@ class AppErrorBoundary extends React.Component<
   static getDerivedStateFromError(err: unknown) {
     return { hasError: true, err };
   }
-  componentDidCatch(err: unknown) {
-    this.props.onError?.(err);
+  componentDidCatch(err: unknown, info: unknown) {
+    console.error('AppErrorBoundary caught:', err, info);
   }
   render() {
     if (this.state.hasError) {
       return (
         <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
           <h2>Something went wrong</h2>
-          <pre style={{ whiteSpace: 'pre-wrap' }}>{String(this.state.err)}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{String(this.state.err ?? '')}</pre>
         </div>
       );
     }
@@ -35,48 +36,54 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
+// Inner app that uses user-context to decide
+function Inner() {
+  const { user, isLoading } = useUser(); // requires UserProvider
+
+  // If still checking auth, show a neutral loader
+  if (isLoading) {
+    return (
+      <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+        Loading…
+      </div>
+    );
+  }
+
+  // Not signed in yet → show phone verify screen
+  if (!user) {
+    return (
+      <PhoneVerificationPage
+        onVerified={() => {
+          // after verify, just reload and UserProvider will fetch /api/auth/user
+          window.location.replace('/chat');
+        }}
+      />
+    );
+  }
+
+  // Signed in → load HomePage lazily
+  return (
+    <React.Suspense
+      fallback={
+        <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+          Loading…
+        </div>
+      }
+    >
+      <HomePage />
+    </React.Suspense>
+  );
+}
+
 export default function App() {
-  const [path, setPath] = React.useState(window.location.pathname);
-
-  // Decide initial route based on token
-  React.useEffect(() => {
-    const token = localStorage.getItem('gabai_token');
-    const desired = token ? '/chat' : '/phone';
-    if (window.location.pathname !== desired) {
-      window.history.replaceState({}, '', desired);
-      setPath(desired);
-    }
-  }, []);
-
-  // Track back/forward
-  React.useEffect(() => {
-    const onPop = () => setPath(window.location.pathname);
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-
+  // Keep QueryClientProvider (your main.tsx might also provide one; double-wrapping is harmless)
   return (
     <QueryClientProvider client={qc}>
-      {path === '/chat' ? (
+      <UserProvider>
         <AppErrorBoundary>
-          <React.Suspense
-            fallback={
-              <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-                Loading…
-              </div>
-            }
-          >
-            <HomePage />
-          </React.Suspense>
+          <Inner />
         </AppErrorBoundary>
-      ) : (
-        <PhoneVerificationPage
-          onVerified={() => {
-            window.history.replaceState({}, '', '/chat');
-            setPath('/chat');
-          }}
-        />
-      )}
+      </UserProvider>
     </QueryClientProvider>
   );
 }
