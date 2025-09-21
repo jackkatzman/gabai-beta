@@ -8,14 +8,11 @@ const HomePage = React.lazy(() => import('./pages/home'));
 
 const qc = new QueryClient();
 
-// Local error boundary (do NOT mutate React)
-class AppErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; err?: unknown }
-> {
+// Simple error boundary (no React mutation, no TS generics)
+class AppErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, err: null };
   }
   static getDerivedStateFromError(err: unknown) {
     return { hasError: true, err };
@@ -40,28 +37,24 @@ class AppErrorBoundary extends React.Component<
 function Inner() {
   const { user, isLoading } = useUser(); // requires UserProvider
 
-// Signed in → TEMP stub to isolate HomePage
-return (
-  <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-    ✅ Auth OK. App shell is rendering.
-  </div>
-);
-
+  if (isLoading) {
+    return (
+      <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+        Loading…
+      </div>
+    );
   }
 
-  // Not signed in yet → show phone verify screen
   if (!user) {
     return (
       <PhoneVerificationPage
         onVerified={() => {
-          // after verify, just reload and UserProvider will fetch /api/auth/user
           window.location.replace('/chat');
         }}
       />
     );
   }
 
-  // Signed in → load HomePage lazily
   return (
     <React.Suspense
       fallback={
@@ -71,19 +64,3 @@ return (
       }
     >
       <HomePage />
-    </React.Suspense>
-  );
-}
-
-export default function App() {
-  // Keep QueryClientProvider (your main.tsx might also provide one; double-wrapping is harmless)
-  return (
-    <QueryClientProvider client={qc}>
-      <UserProvider>
-        <AppErrorBoundary>
-          <Inner />
-        </AppErrorBoundary>
-      </UserProvider>
-    </QueryClientProvider>
-  );
-}
