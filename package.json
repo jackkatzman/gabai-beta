@@ -96,6 +96,7 @@
     "react-icons": "^5.0.0",
     "react-resizable-panels": "^2.0.0",
     "recharts": "^2.8.0",
+    "serverless-http": "^4.0.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.0",
     "twilio": "^5.9.0",
