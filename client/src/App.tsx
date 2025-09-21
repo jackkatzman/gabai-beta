@@ -1,7 +1,8 @@
-// client/src/App.tsx
 import * as React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import HomePage from './pages/home';                 // ← this exists (default export) :contentReference[oaicite:2]{index=2}
+
+// Use your actual home/chat page:
+import HomePage from './pages/home';
 import PhoneVerificationPage from './pages/phone-verification';
 
 const qc = new QueryClient();
@@ -9,6 +10,7 @@ const qc = new QueryClient();
 export default function App() {
   const [path, setPath] = React.useState(window.location.pathname);
 
+  // Decide initial route based on token
   React.useEffect(() => {
     const token = localStorage.getItem('gabai_token');
     const desired = token ? '/chat' : '/phone';
@@ -18,6 +20,7 @@ export default function App() {
     }
   }, []);
 
+  // Track back/forward
   React.useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
     window.addEventListener('popstate', onPop);
@@ -27,7 +30,7 @@ export default function App() {
   return (
     <QueryClientProvider client={qc}>
       {path === '/chat' ? (
-        <HomePage />        {/* shows ChatInterface by default */}
+        <HomePage />
       ) : (
         <PhoneVerificationPage
           onVerified={() => {
