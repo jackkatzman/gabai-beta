@@ -8,7 +8,6 @@
     />
     <title>GabAi — NEW PUBLISH TEST</title>
 
-    <!-- (Optional) keep your favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>G</text></svg>" />
     <script>
       // kill any old service workers/caches (safe)
@@ -18,16 +17,18 @@
       if ('caches' in window) {
         caches.keys().then(names => names.forEach(name => caches.delete(name)));
       }
-      // Let the app know the API base (web uses origin)
+
+      // ✅ SINGLE source of truth for API calls (bypass Netlify SPA)
       window.API_BASE = 'https://gabai.ai';
-      window.globalThis = window.globalThis || window;
-      window.globalThis.APP_API_BASE = window.location.origin;
-      window.__API_BASE__ = window.location.origin;
+
+      // ❌ DO NOT set these; they force calls back to the SPA origin:
+      // window.globalThis = window.globalThis || window;
+      // window.globalThis.APP_API_BASE = window.location.origin;
+      // window.__API_BASE__ = window.location.origin;
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <!-- Vite entry -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
