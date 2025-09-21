@@ -1,4 +1,3 @@
-```tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,9 +15,9 @@ function toE164US(input: string): string | null {
   const clean = (input || '').replace(/\D/g, '');
   if (clean.length === 11 && clean.startsWith('1')) {
     const us = clean.slice(1);
-    if (us.length === 10 && !/^[01]/.test(us[0])) return `+1${us}`;
+    if (us.length === 10 && !/^[01]/.test(us[0])) return '+1' + us;     // no backticks
   } else if (clean.length === 10 && !/^[01]/.test(clean[0])) {
-    return `+1${clean}`;
+    return '+1' + clean;                                               // no backticks
   }
   return null;
 }
@@ -35,14 +34,14 @@ export default function PhoneVerificationPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const queryClient = useQueryClient();
 
-  // --- SEND CODE ---
+  // SEND CODE
   const sendCodeMutation = useMutation({
     mutationFn: async (e164Phone: string) => {
       const url = apiUrl('/api/sms/send-verification');
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164Phone }),
+        body: JSON.stringify({ phone: e164Phone }),   // <-- key is phone
       });
       const text = await res.text();
       if (!res.ok) throw new Error(text || 'Failed to send verification code');
@@ -57,17 +56,17 @@ export default function PhoneVerificationPage() {
     },
   });
 
-  // --- VERIFY CODE ---
+  // VERIFY CODE
   const verifyCodeMutation = useMutation({
     mutationFn: async (code: string) => {
       const e164 = toE164US(phoneNumber);
       if (!e164) throw new Error('Invalid phone number format');
 
-      const url = apiUrl('/api/sms/verify-code'); // change to '/api/sms/check-code' if that’s your server route
+      const url = apiUrl('/api/sms/verify-code'); // change if your server uses /api/sms/check-code
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164, code, createAccount: true }),
+        body: JSON.stringify({ phone: e164, code, createAccount: true }), // <-- phone
       });
       const text = await res.text();
       if (!res.ok) throw new Error(`verify-code ${res.status}: ${text}`);
@@ -77,14 +76,12 @@ export default function PhoneVerificationPage() {
     onSuccess: (result) => {
       if (!result?.verified || !result?.token) throw new Error('Code not approved yet');
 
-      // Store token & user
       localStorage.setItem('gabai_token', result.token!);
       localStorage.setItem('gabai_user', JSON.stringify(result.user || {}));
       sessionStorage.setItem('gabai_token', result.token!);
       sessionStorage.setItem('gabai_user', JSON.stringify(result.user || {}));
       document.cookie = `gabai_token=${result.token}; path=/; max-age=${7*24*60*60}; SameSite=None; Secure`;
 
-      // Seed React Query cache
       queryClient.setQueryData(['/api/auth/user'], result.user || {});
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'], refetchType: 'none' });
 
@@ -96,7 +93,6 @@ export default function PhoneVerificationPage() {
     },
   });
 
-  // --- Handlers ---
   const handleSendCode = () => {
     if (!phoneNumber.trim()) {
       toast({ title: 'Phone number required', description: 'Please enter your phone number', variant: 'destructive' });
@@ -131,7 +127,6 @@ export default function PhoneVerificationPage() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     const cleaned = input.replace(/[^\d-]/g, '');
-    // deletion-friendly formatting
     if (cleaned.length < phoneNumber.length) {
       const digitsOnly = cleaned.replace(/-/g, '');
       setPhoneNumber(digitsOnly.length ? formatPhoneForInput(digitsOnly) : '');
@@ -145,11 +140,9 @@ export default function PhoneVerificationPage() {
     else if (step === 'success') { setStep('phone'); setPhoneNumber(''); }
   };
 
-  // --- UI ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-blue-600 rounded-full">
             <Phone className="w-10 h-10 text-white" />
@@ -158,7 +151,6 @@ export default function PhoneVerificationPage() {
           <p className="text-lg text-gray-600 dark:text-gray-300">Your AI Personal Assistant</p>
         </div>
 
-        {/* Step: Phone */}
         {step === 'phone' && (
           <Card className="shadow-lg border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
@@ -201,7 +193,6 @@ export default function PhoneVerificationPage() {
           </Card>
         )}
 
-        {/* Step: Verification */}
         {step === 'verification' && (
           <div className="space-y-4">
             <Button variant="ghost" onClick={goBack} className="mb-4 hover:bg-gray-100 dark:hover:bg-gray-800" data-testid="button-back">
@@ -226,7 +217,6 @@ export default function PhoneVerificationPage() {
           </div>
         )}
 
-        {/* Step: Success */}
         {step === 'success' && (
           <Card className="shadow-lg border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
             <CardHeader className="text-center">
@@ -244,7 +234,7 @@ export default function PhoneVerificationPage() {
                 <div className="mt-4">
                   <svg className="animate-spin h-8 w-8 mx-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 </div>
               </div>
@@ -255,4 +245,3 @@ export default function PhoneVerificationPage() {
     </div>
   );
 }
-```
