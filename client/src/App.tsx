@@ -3,12 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider, useUser } from '@/context/user-context';
 import PhoneVerificationPage from './pages/phone-verification';
 
-// Lazy load the real home/chat page
-const HomePage = React.lazy(() => import('./pages/home'));
+// NOTE: We are intentionally NOT importing HomePage yet.
+// Once this renders, we’ll swap the stub for HomePage to find the offender.
 
 const qc = new QueryClient();
 
-// Minimal error boundary
+// Minimal error boundary (no React mutation)
 class AppErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
@@ -56,17 +56,11 @@ function Inner() {
     );
   }
 
-  // Signed in → load HomePage lazily
+  // ✅ TEMP STUB (isolation): prove the shell renders when signed in
   return (
-    <React.Suspense
-      fallback={
-        <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-          Loading…
-        </div>
-      }
-    >
-      <HomePage />
-    </React.Suspense>
+    <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+      ✅ Auth OK. App shell is rendering.
+    </div>
   );
 }
 
