@@ -14,16 +14,18 @@ export function log(message: string, source = "express") {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  // Use __dirname for CommonJS compatibility (Netlify) or import.meta.dirname for ESM
+  const dirname = typeof __dirname !== 'undefined' ? __dirname : import.meta.dirname;
+  const distPath = path.resolve(dirname, "..", "dist", "public");
 
   if (!fs.existsSync(distPath)) {
     console.log(`❌ Public directory not found at: ${distPath}`);
-    console.log(`📁 Current dirname: ${import.meta.dirname}`);
+    console.log(`📁 Current dirname: ${dirname}`);
     console.log(`📁 Checking if public exists at alternate locations...`);
     
     // Try other potential locations
     const altPaths = [
-      path.resolve(import.meta.dirname, "public"),
+      path.resolve(dirname, "public"),
       path.resolve(process.cwd(), "public"),
       path.resolve(".", "public")
     ];

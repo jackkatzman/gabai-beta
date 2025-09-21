@@ -82,7 +82,9 @@ import path from "path";
 
 app.get(/^\/.*\.zip$/, (req, res) => {
   const fileName = req.path.substring(1); // Remove leading slash
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  // Use __dirname for CommonJS compatibility (Netlify) or import.meta.dirname for ESM
+  const dirname = typeof __dirname !== 'undefined' ? __dirname : import.meta.dirname;
+  const distPath = path.resolve(dirname, "..", "dist", "public");
   const filePath = path.resolve(distPath, fileName);
   
   // Security: Prevent path traversal attacks
@@ -155,29 +157,31 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add a test route to verify OAuth routes are working
+app.get('/api/test-route', (req, res) => {
+  console.log('✅ Test route accessed successfully!');
+  res.json({ message: 'Express routes are working', timestamp: new Date().toISOString() });
+});
+
+// Add health check endpoint with /api prefix for monitoring
+app.get('/api/health', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ 
+    ok: true,
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    domain: process.env.REPLIT_DOMAINS || 'localhost'
+  });
+});
+
+// Register routes (required for both serverless and regular server)
 (async () => {
   try {
-    // Add a test route to verify OAuth routes are working
-    app.get('/api/test-route', (req, res) => {
-      console.log('✅ Test route accessed successfully!');
-      res.json({ message: 'Express routes are working', timestamp: new Date().toISOString() });
-    });
-
-    // Add health check endpoint with /api prefix for monitoring
-    app.get('/api/health', (req, res) => {
-      res.set('Cache-Control', 'no-store');
-      res.status(200).json({ 
-        ok: true,
-        status: 'healthy', 
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        domain: process.env.REPLIT_DOMAINS || 'localhost'
-      });
-    });
-
-    // Version endpoint removed - now handled in routes.ts
-
     const server = await registerRoutes(app);
+    
+    // Only start the actual server if not in serverless environment
+    if (process.env.NETLIFY !== 'true' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
 
     // Start SMS reminder checking (every 1 minute) - disabled in Cloud Run
     // Cloud Run doesn't support background intervals, use Cloud Scheduler instead
@@ -329,8 +333,14 @@ app.use((req, res, next) => {
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+    }
   } catch (error) {
     console.error('❌ Failed to initialize application:', error);
-    process.exit(1);
+    if (process.env.NETLIFY !== 'true') {
+      process.exit(1);
+    }
   }
 })();
+
+// Export app for serverless environments
+export default app;

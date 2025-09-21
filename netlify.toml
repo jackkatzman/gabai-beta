@@ -1,10 +1,11 @@
 [build]
-  command = "npx vite build"
+  command = "NETLIFY=true esbuild server/index.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/index.js && npx vite build"
   publish = "dist/public"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
+  NETLIFY = "true"
 
 [[redirects]]
   from = "/api/*"
