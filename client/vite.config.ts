@@ -1,17 +1,21 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'node:path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/',
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: [] // make sure 'react' is NOT excluded anywhere
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      // leave React to resolve normally; don't alias 'react' here
-      // (optional) these lines are safe but not required:
-      // 'react/jsx-runtime': 'react/jsx-runtime',
-      // 'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
-    },
-  },
-  build: { outDir: 'dist' },
+      // important: do NOT alias react/react-dom to anything weird
+    }
+  }
 });
