@@ -71,3 +71,34 @@ www.zip
 replit.nix
 
 attached_assets/
+# ---- Node/Vite/React
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# ---- Build outputs (VERY IMPORTANT)
+dist/
+client/dist/
+coverage/
+*.log
+
+# ---- Env & local
+.env
+.env.*
+!.env.example
+
+# ---- IDE junk
+.vscode/
+.idea/
+.DS_Store
+
+# ---- Netlify local artifacts
+.netlify/
+netlify/functions/
+
+# ---- Cordova/VoltBuilder (if present)
+platforms/
+plugins/
+certificates/
