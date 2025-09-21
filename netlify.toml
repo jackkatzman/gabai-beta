@@ -1,21 +1,25 @@
 [build]
-# Build ONLY the client app on Netlify (static site)
-command = "npm --prefix client install && npm --prefix client run build"
-publish = "client/dist"
+  command = "npm --prefix client install && npm --prefix client run build"
+  publish = "client/dist"
 
 [build.environment]
-NODE_VERSION = "20.19.0"
-NETLIFY = "true"
+  NODE_VERSION = "20.19.0"
+  NETLIFY = "true"
 
-# Force Netlify to look at an empty functions folder
 [functions]
-directory = "netlify/no-functions"
+  directory = "netlify/no-functions"
 
-# (Make sure you do NOT have a redirects block to /.netlify/functions/*)
-
+# Security-ish headers (optional but nice)
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+
+# SPA routing: send every path to index.html
+# (Works alongside client/public/_redirects — belt & suspenders)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
