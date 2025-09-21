@@ -40,13 +40,13 @@ class AppErrorBoundary extends React.Component<
 function Inner() {
   const { user, isLoading } = useUser(); // requires UserProvider
 
-  // If still checking auth, show a neutral loader
-  if (isLoading) {
-    return (
-      <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-        Loading…
-      </div>
-    );
+// Signed in → TEMP stub to isolate HomePage
+return (
+  <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+    ✅ Auth OK. App shell is rendering.
+  </div>
+);
+
   }
 
   // Not signed in yet → show phone verify screen
