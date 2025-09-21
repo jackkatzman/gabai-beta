@@ -1,132 +1,127 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import type { User } from "@shared/schema";
-import { getToken } from '@/lib/auth';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-interface UserContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
+type User = {
+  id: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  // add any other fields you use in HomePage
+} | null;
+
+type Ctx = {
+  user: User;
   isLoading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+  logout: () => Promise<void>;
+};
+
+const UserContext = createContext<Ctx | undefined>(undefined);
+
+// -------- API BASE (one source of truth) --------
+const API_BASE =
+  (typeof window !== 'undefined' && (window as any).API_BASE) ||
+  import.meta.env.VITE_API_BASE ||
+  'https://gabai.ai';
+
+// -------- JSON helper that refuses HTML --------
+async function getJSON(url: string, init?: RequestInit) {
+  const res = await fetch(url, { credentials: 'include', ...init });
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    const text = await res.text();
+    throw new Error(
+      `Expected JSON, got ${ct}. First chars: ${text.slice(0, 80)}`
+    );
+  }
+  // If the server sometimes returns 204 with no JSON, guard it:
+  if (res.status === 204) return null as any;
+  return res.json();
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+// -------- Public helpers you can import elsewhere --------
+export async function sendVerify(phone: string) {
+  return getJSON(`${API_BASE}/api/sms/send-verification`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone }),
+  });
+}
 
+export async function verifyCode(phone: string, code: string) {
+  return getJSON(`${API_BASE}/api/sms/verify-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, code }),
+  });
+}
+
+export async function fetchCurrentUser(): Promise<{ user: User }> {
+  return getJSON(`${API_BASE}/api/auth/user`);
+}
+
+export async function doLogout() {
+  // adjust endpoint if your API uses a different path
+  await getJSON(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+}
+
+// -------- Provider --------
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [authTrigger, setAuthTrigger] = useState(0); // Force refetch when auth changes
+  const [user, setUser] = useState<User>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check if this is a mobile environment (enhanced detection)
-  const isMobileEnvironment = () => {
-    const userAgent = navigator.userAgent || '';
-    const isAndroidWebView = userAgent.includes('wv') || userAgent.includes('Android');
-    const isMobileDevice = /Android|iPhone|iPad|Mobile/.test(userAgent);
-    const isCapacitorApp = window.location.protocol === 'file:' || 
-                          window.location.hostname.includes('capacitor') ||
-                          window.location.href.includes('capacitor://');
-    const isVoltBuilderAPK = userAgent.includes('Chrome') && userAgent.includes('Mobile') && isAndroidWebView;
-    
-    console.log('🔍 Mobile environment check:', {
-      userAgent: userAgent.substring(0, 100),
-      isAndroidWebView,
-      isMobileDevice,
-      isCapacitorApp,
-      isVoltBuilderAPK,
-      protocol: window.location.protocol,
-      hostname: window.location.hostname,
-      href: window.location.href.substring(0, 100)
-    });
-    
-    return isVoltBuilderAPK || isMobileDevice || isCapacitorApp;
-  };
-
-  // Fetch user authentication for both web and mobile
-  const fetchUser = async () => {
+  const refresh = useCallback(async () => {
     try {
-      console.log("🔐 Fetching user authentication...");
-      
-      // Mobile environments use the same authentication as web
-      if (isMobileEnvironment()) {
-        console.log("📱 Mobile environment detected - using standard Google authentication");
-      }
-      
-      // Regular authentication check for web environments
-      const response = await fetch('/api/auth/user', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        console.log("✅ User authenticated:", userData);
-        setUserState(userData);
-      } else {
-        console.log("❌ No authenticated user");
-        setUserState(null);
-      }
-    } catch (error) {
-      console.error("🔥 Authentication error:", error);
-      setUserState(null);
+      setError(null);
+      const data = await fetchCurrentUser();
+      setUser(data?.user ?? null);
+    } catch (err: any) {
+      console.error('🔥 /api/auth/user failed:', err);
+      setError(err?.message ?? 'Failed to load user');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    console.log("🔐 Initializing authentication...");
-    
-    // ChatGPT fix: Only fetch user if we have a token (prevent early 401s)
-    const token = getToken();
-    if (!token) {
-      console.log("❌ No token found - skipping user fetch");
-      setIsLoading(false);
-      return;
+  const logout = useCallback(async () => {
+    try {
+      await doLogout();
+    } catch (err) {
+      console.warn('logout error:', err);
+    } finally {
+      setUser(null);
     }
-    
-    fetchUser();
-  }, [authTrigger]); // Re-fetch when authTrigger changes
-  
-  // Listen for storage events (when token is set from another component)
+  }, []);
+
+  // Initial load
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'gabai_token' && e.newValue) {
-        console.log('🔑 Token changed - refetching user');
-        setAuthTrigger(prev => prev + 1); // Trigger re-fetch
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically if we don't have a user but have a token
-    const interval = setInterval(() => {
-      const token = getToken();
-      if (token && !user && !isLoading) {
-        console.log('🔄 Found token without user - refetching');
-        setIsLoading(true);
-        fetchUser();
-      }
-    }, 1000);
-    
+    let alive = true;
+    (async () => {
+      await refresh();
+      // Optional: light polling to keep session fresh; comment out if not needed
+      // const timer = window.setInterval(refresh, 60_000);
+      // return () => { alive = false; window.clearInterval(timer); };
+    })();
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      alive = false;
     };
-  }, [user, isLoading]);
+  }, [refresh]);
 
-  const setUser = (newUser: User | null) => {
-    console.log('👤 Setting user:', newUser?.id || 'null');
-    setUserState(newUser);
-  };
-
-  return (
-    <UserContext.Provider value={{ user, setUser, isLoading }}>
-      {children}
-    </UserContext.Provider>
+  const value = useMemo<Ctx>(
+    () => ({ user, isLoading, error, refresh, logout }),
+    [user, isLoading, error, refresh, logout]
   );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
+// -------- Hook --------
 export function useUser() {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
+  const ctx = useContext(UserContext);
+  if (!ctx) {
+    throw new Error('useUser() must be used inside <UserProvider>');
   }
-  return context;
+  return ctx;
 }
