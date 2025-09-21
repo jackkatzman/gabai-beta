@@ -6,14 +6,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      // Ensure all modules get the same React object
-      'react': path.resolve(__dirname, './src/react-shim.ts'),
       '@': path.resolve(__dirname, './src'),
+      // leave React to resolve normally; don't alias 'react' here
+      // (optional) these lines are safe but not required:
+      // 'react/jsx-runtime': 'react/jsx-runtime',
+      // 'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
     },
-  },
-  optimizeDeps: {
-    // Force pre-bundle of core React deps to avoid edge cases
-    include: ['react', 'react-dom', 'react-dom/client'],
   },
   build: { outDir: 'dist' },
 });
