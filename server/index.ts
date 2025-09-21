@@ -3,18 +3,17 @@ import express, { Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 
-// --- Create app and baseline config ---
 const app = express();
 
-// If you're behind a proxy (Replit/NGINX/Netlify functions/etc.)
+// If behind a proxy (Replit/NGINX/etc.) this lets Secure cookies work
 app.set('trust proxy', 1);
 
-// Body & cookie parsing
+// Body & cookies
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// --- CORS for www.gabai.ai <-> gabai.ai with credentials (cookies) ---
+// ===== CORS for www.gabai.ai <-> gabai.ai (send cookies) =====
 const FRONTEND_ORIGIN = 'https://www.gabai.ai';
 
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -26,74 +25,23 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// --- Health check (optional but handy) ---
+// Health (nice to have)
 app.get('/health', (_req, res) => res.status(200).send('OK'));
 
-// ===================================================================
-// MOUNT YOUR EXISTING ROUTES BELOW (leave your structure as-is)
-// ===================================================================
-// If your routes export a default function like (app) => { ... }:
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const routesModule = require('./routes'); // TS will transpile this
-  const maybeFn = routesModule?.default ?? routesModule;
-  if (typeof maybeFn === 'function') {
-    // Pattern: export default function register(app) { ... }
-    maybeFn(app);
-  } else if (routesModule?.router) {
-    // Pattern: export const router = express.Router()...
-    app.use('/api', routesModule.router);
-  }
-} catch (e) {
-  // If you don't have a central routes module, ignore this.
-  // Your code may mount routes elsewhere; that's fine.
-}
+// ===== Mount API routes =====
+import { router as apiRouter } from './routes';
+app.use('/', apiRouter); // routes file defines /api/... paths
 
-// If you also have static/Vite wiring modules, keep them:
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const staticModule = require('./static');
-  const maybeFn = staticModule?.default ?? staticModule;
-  if (typeof maybeFn === 'function') maybeFn(app);
-} catch { /* noop */ }
+// (Optional) serve any static public files your server hosts
+app.use('/public', express.static(path.join(process.cwd(), 'public')));
 
-try {
-  // If you have a vite/dev helper (local dev only), it might export a function
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const viteModule = require('./vite');
-  const maybeFn = viteModule?.default ?? viteModule;
-  if (typeof maybeFn === 'function') maybeFn(app);
-} catch { /* noop */ }
+// 404 for unknown API routes
+app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
-// ===================================================================
-// IMPORTANT: In your verify-code handler (POST /api/sms/verify-code),
-// after you confirm the code and generate a session token, set the cookie:
-// ===================================================================
-//
-//   res.cookie('session', token, {
-//     domain: '.gabai.ai',      // share cookie between apex and www
-//     path: '/',
-//     httpOnly: true,
-//     secure: true,             // required with SameSite=None
-//     sameSite: 'none',         // allow cross-site cookie from www -> apex
-//     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-//   });
-//   return res.json({ ok: true });
-//
-// And make sure GET /api/auth/user reads req.cookies.session to return { user }.
-
-// --- 404 fallback for unknown API routes (optional) ---
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'Not found' });
+// Start server (if run directly)
+const PORT = Number(process.env.PORT || 3000);
+app.listen(PORT, () => {
+  console.log(`Server listening on :${PORT}`);
 });
 
-// --- Start server if this file is run directly ---
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-if (import.meta && (import.meta as any).url && process.argv[1]?.includes('index')) {
-  app.listen(PORT, () => {
-    console.log(`Server listening on :${PORT}`);
-  });
-}
-
-// Export the app (useful if something else imports it, or for tests)
 export default app;
