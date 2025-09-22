@@ -34,7 +34,7 @@ async function getJSON<T = any>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-/** Public helpers (import these elsewhere if needed) */
+/** Public helpers */
 export async function sendVerify(phone: string) {
   return getJSON(`${API_BASE}/api/sms/send-verification`, {
     method: "POST",
@@ -53,22 +53,30 @@ export async function verifyCode(phone: string, code: string, verificationSid?: 
     body: JSON.stringify(payload),
   });
 
-  // If you want a temporary client-only bypass while server cookies are being wired:
-  // localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
+  // ✅ DEV BYPASS — REMOVE when server cookie works
+  try {
+    localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
+  } catch {}
 
   return out;
 }
 
 export async function fetchCurrentUser(): Promise<{ user: User | null }> {
-  // Dev bypass (uncomment while server cookies are being fixed)
-  // const dev = localStorage.getItem("gabai_dev_user");
-  // if (dev) return { user: JSON.parse(dev) };
-
+  // ✅ DEV BYPASS — short-circuit to pretend logged-in (remove later)
+  try {
+    const dev = localStorage.getItem("gabai_dev_user");
+    if (dev) return { user: JSON.parse(dev) as User };
+  } catch {}
   return getJSON(`${API_BASE}/api/auth/user`);
 }
 
 export async function doLogout() {
-  await getJSON(`${API_BASE}/api/auth/logout`, { method: "POST" });
+  try {
+    await getJSON(`${API_BASE}/api/auth/logout`, { method: "POST" });
+  } finally {
+    // clear dev bypass on logout
+    try { localStorage.removeItem("gabai_dev_user"); } catch {}
+  }
 }
 
 /** Provider */
@@ -98,16 +106,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       console.warn("logout error:", e);
     } finally {
       setUser(null);
-      // localStorage.removeItem("gabai_dev_user"); // if using dev bypass
     }
   }, []);
 
   useEffect(() => {
-    // Initial load
     refresh();
-    // Optional: light polling to keep session fresh. Uncomment if desired.
-    // const t = window.setInterval(refresh, 60_000);
-    // return () => window.clearInterval(t);
   }, [refresh]);
 
   const value = useMemo<Ctx>(
