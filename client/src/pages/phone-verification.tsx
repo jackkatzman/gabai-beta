@@ -8,23 +8,23 @@ const API_BASE =
 
 type Props = { onVerified?: () => void };
 
+async function getJSON(url: string, init?: RequestInit) {
+  const res = await fetch(url, { credentials: "include", ...init });
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) {
+    const text = await res.text();
+    throw new Error(`Expected JSON but got ${ct}. First chars: ${text.slice(0, 80)}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
 export default function PhoneVerificationPage({ onVerified }: Props) {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"enter" | "code">("enter");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
-  async function getJSON(url: string, init?: RequestInit) {
-    const res = await fetch(url, { credentials: "include", ...init });
-    const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) {
-      const text = await res.text();
-      throw new Error(`Expected JSON but got ${ct}. First chars: ${text.slice(0, 80)}`);
-    }
-    if (res.status === 204) return null;
-    return res.json();
-  }
 
   async function sendVerification() {
     try {
@@ -53,10 +53,11 @@ export default function PhoneVerificationPage({ onVerified }: Props) {
         body: JSON.stringify({ phone, code }),
       });
 
-      // ✅ DEV BYPASS — force the app to treat us as logged-in
-      try { localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone })); } catch {}
+      // ✅ DEV BYPASS — remove once server cookie works
+      try {
+        localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
+      } catch {}
 
-      // prefer parent handler if provided
       if (onVerified) onVerified();
       else window.location.replace("/chat");
     } catch (e: any) {
@@ -76,7 +77,16 @@ export default function PhoneVerificationPage({ onVerified }: Props) {
         fontFamily: "system-ui, sans-serif",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 420, background: "white", borderRadius: 12, padding: 20, boxShadow: "0 6px 24px rgba(0,0,0,0.08)" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          background: "white",
+          borderRadius: 12,
+          padding: 20,
+          boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+        }}
+      >
         <h1 style={{ margin: "0 0 12px", fontSize: 24 }}>Sign in with SMS</h1>
 
         {step === "enter" ? (
@@ -87,12 +97,27 @@ export default function PhoneVerificationPage({ onVerified }: Props) {
               placeholder="555-123-4567"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              style={{ width: "100%", padding: 12, fontSize: 16, marginBottom: 12, border: "1px solid #ddd", borderRadius: 8 }}
+              style={{
+                width: "100%",
+                padding: 12,
+                fontSize: 16,
+                marginBottom: 12,
+                border: "1px solid #ddd",
+                borderRadius: 8,
+              }}
             />
             <button
               onClick={sendVerification}
               disabled={!phone || loading}
-              style={{ width: "100%", padding: 12, fontSize: 16, background: "#2563eb", color: "#fff", border: 0, borderRadius: 8 }}
+              style={{
+                width: "100%",
+                padding: 12,
+                fontSize: 16,
+                background: "#2563eb",
+                color: "#fff",
+                border: 0,
+                borderRadius: 8,
+              }}
             >
               {loading ? "Sending…" : "Get Verification Code"}
             </button>
@@ -106,3 +131,48 @@ export default function PhoneVerificationPage({ onVerified }: Props) {
               placeholder="123456"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 12,
+                fontSize: 16,
+                marginBottom: 12,
+                border: "1px solid #ddd",
+                borderRadius: 8,
+              }}
+            />
+            <button
+              onClick={verify}
+              disabled={!code || loading}
+              style={{
+                width: "100%",
+                padding: 12,
+                fontSize: 16,
+                background: "#16a34a",
+                color: "#fff",
+                border: 0,
+                borderRadius: 8,
+              }}
+            >
+              {loading ? "Verifying…" : "Verify & Continue"}
+            </button>
+            <button
+              onClick={() => setStep("enter")}
+              style={{
+                width: "100%",
+                marginTop: 10,
+                padding: 10,
+                background: "#f3f4f6",
+                border: 0,
+                borderRadius: 8,
+              }}
+            >
+              Change Phone
+            </button>
+          </>
+        )}
+
+        {err && <div style={{ marginTop: 10, color: "#b91c1c" }}>{err}</div>}
+      </div>
+    </div>
+  );
+}
