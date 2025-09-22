@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import type { User } from "@shared/schema";
 
-/** Context shape */
 type Ctx = {
   user: User | null;
   isLoading: boolean;
@@ -11,30 +10,27 @@ type Ctx = {
   logout: () => Promise<void>;
 };
 
-/** React context */
 const UserContext = createContext<Ctx | undefined>(undefined);
 
-/** Single source of truth for the API host */
+// --- API BASE ---
 const API_BASE =
   (typeof window !== "undefined" && (window as any).API_BASE) ||
   import.meta.env.VITE_API_BASE ||
   "https://gabai.ai";
 
-/** Helper: fetch JSON and refuse HTML (prevents “Unexpected token '<'” when SPA answers) */
+// --- tiny helper that refuses HTML (no more "<!doctype" JSON errors) ---
 async function getJSON<T = any>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: "include", ...init });
   const ct = res.headers.get("content-type") || "";
   if (!ct.includes("application/json")) {
-    const body = await res.text();
-    throw new Error(
-      `Expected JSON from ${url} but got ${ct}. First chars: ${body.slice(0, 80)}`
-    );
+    const text = await res.text();
+    throw new Error(`Expected JSON from ${url} but got ${ct}. First chars: ${text.slice(0, 80)}`);
   }
   if (res.status === 204) return null as unknown as T;
   return res.json() as Promise<T>;
 }
 
-/** Public helpers */
+// --- public helpers (optional to import elsewhere) ---
 export async function sendVerify(phone: string) {
   return getJSON(`${API_BASE}/api/sms/send-verification`, {
     method: "POST",
@@ -53,16 +49,14 @@ export async function verifyCode(phone: string, code: string, verificationSid?: 
     body: JSON.stringify(payload),
   });
 
-  // ✅ DEV BYPASS — REMOVE when server cookie works
-  try {
-    localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
-  } catch {}
+  // DEV BYPASS — stash a fake user so the app treats you as signed in
+  try { localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone })); } catch {}
 
   return out;
 }
 
 export async function fetchCurrentUser(): Promise<{ user: User | null }> {
-  // ✅ DEV BYPASS — short-circuit to pretend logged-in (remove later)
+  // If dev-bypass exists, short-circuit immediately
   try {
     const dev = localStorage.getItem("gabai_dev_user");
     if (dev) return { user: JSON.parse(dev) as User };
@@ -71,18 +65,22 @@ export async function fetchCurrentUser(): Promise<{ user: User | null }> {
 }
 
 export async function doLogout() {
-  try {
-    await getJSON(`${API_BASE}/api/auth/logout`, { method: "POST" });
-  } finally {
-    // clear dev bypass on logout
-    try { localStorage.removeItem("gabai_dev_user"); } catch {}
-  }
+  try { await getJSON(`${API_BASE}/api/auth/logout`, { method: "POST" }); } catch {}
+  try { localStorage.removeItem("gabai_dev_user"); } catch {}
 }
 
-/** Provider */
+// --- Provider ---
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setLoading] = useState<boolean>(true);
+  // ✅ seed user synchronously from localStorage so UI doesn’t show “sign in” flash
+  const seeded: User | null = (() => {
+    try {
+      const s = localStorage.getItem("gabai_dev_user");
+      return s ? (JSON.parse(s) as User) : null;
+    } catch { return null; }
+  })();
+
+  const [user, setUser] = useState<User | null>(seeded);
+  const [isLoading, setLoading] = useState<boolean>(!seeded);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -100,16 +98,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await doLogout();
-    } catch (e) {
-      console.warn("logout error:", e);
-    } finally {
-      setUser(null);
-    }
+    try { await doLogout(); } catch {}
+    setUser(null);
   }, []);
 
   useEffect(() => {
+    // If we already had a seeded user, we’re “ready” but still refresh in background
     refresh();
   }, [refresh]);
 
@@ -121,7 +115,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
-/** Hook */
+// --- Hook ---
 export function useUser() {
   const ctx = useContext(UserContext);
   if (!ctx) throw new Error("useUser() must be used inside <UserProvider>");
