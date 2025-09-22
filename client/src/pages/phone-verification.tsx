@@ -54,9 +54,13 @@ export default function PhoneVerificationPage({ onVerified }: Props) {
       });
 
       // ✅ DEV BYPASS — remove once server cookie works
-      try {
-        localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
-      } catch {}
+try {
+  localStorage.setItem("gabai_dev_user", JSON.stringify({ id: "dev", name: phone }));
+} catch {}
+
+// ⬇️ put this RIGHT after the setItem
+if (onVerified) onVerified();
+else window.location.replace("/chat");
 
       if (onVerified) onVerified();
       else window.location.replace("/chat");
