@@ -1108,7 +1108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save SMS consent to user preferences
-  app.post('/api/auth/sms-consent', async (req, res) => {
+  app.post('/api/auth/sms-consent', jsonParser, async (req, res) => {
     try {
       console.log('📝 SMS consent request received');
       
