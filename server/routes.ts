@@ -957,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // SMS authentication endpoint - sends magic link via SMS
-  app.post('/api/auth/sms-login', async (req, res) => {
+  app.post('/api/auth/sms-login', jsonParser, async (req, res) => {
     try {
       const { phone, name } = req.body;
       
@@ -1017,7 +1017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // SMS verification code endpoint - sends short code via SMS
-  app.post('/api/auth/sms-code', async (req, res) => {
+  app.post('/api/auth/sms-code', jsonParser, async (req, res) => {
     console.log('🔍 SMS Code Endpoint Hit (legacy)!', {
       method: req.method,
       url: req.url,
@@ -2201,7 +2201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // SMS reminder routes
-  app.post("/api/sms/send-reminder", async (req, res) => {
+  app.post("/api/sms/send-reminder", jsonParser, async (req, res) => {
     try {
       const { phoneNumber, title, description } = req.body;
       
@@ -3184,7 +3184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/reminders", async (req, res) => {
+  app.post("/api/reminders", jsonParser, async (req, res) => {
     try {
       console.log('📝 Received reminder creation request:', req.body);
       
@@ -3230,7 +3230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/reminders/:id", async (req, res) => {
+  app.patch("/api/reminders/:id", jsonParser, async (req, res) => {
     try {
       // Convert dueDate string to Date object if needed
       const bodyWithDate = {
@@ -3258,7 +3258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // SMS Reminder routes
-  app.post("/api/reminders/:id/send-sms", async (req, res) => {
+  app.post("/api/reminders/:id/send-sms", jsonParser, async (req, res) => {
     try {
       const { sendSMSReminder } = await import('./sms-reminder-service');
       const result = await sendSMSReminder(req.params.id);
@@ -3301,9 +3301,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Support both GET and POST for Cloud Scheduler compatibility
   app.get("/api/reminders/check-and-send", handleCloudSchedulerRequest);
-  app.post("/api/reminders/check-and-send", handleCloudSchedulerRequest);
+  app.post("/api/reminders/check-and-send", jsonParser, handleCloudSchedulerRequest);
 
-  app.post("/api/sms/test", async (req, res) => {
+  app.post("/api/sms/test", jsonParser, async (req, res) => {
     try {
       console.log('📱 Test SMS endpoint hit');
       console.log('📱 Request body:', req.body);
@@ -3357,7 +3357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Twilio SMS webhook endpoint - receives delivery status updates
-  app.post("/api/webhooks/twilio/sms", async (req, res) => {
+  app.post("/api/webhooks/twilio/sms", jsonParser, async (req, res) => {
     try {
       console.log('📱 Twilio SMS webhook received:', {
         messageSid: req.body.MessageSid,
