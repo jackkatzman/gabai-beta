@@ -2415,7 +2415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/conversations", async (req, res) => {
+  app.post("/api/conversations", jsonParser, async (req, res) => {
     try {
       let conversationData = req.body;
       
