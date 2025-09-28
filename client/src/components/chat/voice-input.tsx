@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Send, Camera } from "lucide-react";
+import { Mic, Send, Camera, Paperclip, X } from "lucide-react";
 import { useVoice } from "@/hooks/use-voice";
 import { useCamera } from "@/hooks/use-camera";
 import { isNativeApp } from "@/utils/capacitor";
 
 interface VoiceInputProps {
-  onSendMessage: (message: string, imageData?: string) => void;
+  onSendMessage: (message: string, attachments?: File[]) => void;
   disabled?: boolean;
 }
 
@@ -16,13 +16,19 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   const [isHolding, setIsHolding] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
 
   const { isCapturing, imagePreview, capturePhoto, clearPreview, fileInputRef, handleFileSelect } = useCamera({
     onCaptureComplete: (imageData) => {
       console.log("📸 Photo captured, sending with message");
       setPendingImage(imageData);
-      // Send immediately with a caption
-      onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", imageData);
+      // Convert base64 image to File object for consistency
+      const blob = fetch(imageData).then(res => res.blob());
+      blob.then(b => {
+        const file = new File([b], "camera-photo.jpg", { type: "image/jpeg" });
+        onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
+      });
       clearPreview();
       setPendingImage(null);
     },
@@ -75,17 +81,30 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
     }
   };
 
+  const handleAttachmentSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
+      setAttachments(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = () => {
-    console.log("🔍 handleSend called:", { message: message.trim(), disabled, hasPendingImage: !!pendingImage });
-    if (message.trim() && !disabled) {
-      console.log("📤 Sending message:", message.trim());
-      onSendMessage(message.trim(), pendingImage || undefined);
+    console.log("🔍 handleSend called:", { message: message.trim(), disabled, hasAttachments: attachments.length > 0 });
+    if ((message.trim() || attachments.length > 0) && !disabled) {
+      console.log("📤 Sending message:", message.trim(), "with", attachments.length, "attachments");
+      onSendMessage(message.trim() || "[Files attached]", attachments.length > 0 ? attachments : undefined);
       setMessage("");
       setPendingImage(null);
+      setAttachments([]);
       clearPreview();
       console.log("✅ Message sent and input cleared");
     } else {
-      console.log("❌ Send blocked:", { isEmpty: !message.trim(), disabled });
+      console.log("❌ Send blocked:", { isEmpty: !message.trim() && attachments.length === 0, disabled });
     }
   };
 
@@ -147,6 +166,29 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
   return (
     <div className="relative">
+      {/* Display attached files */}
+      {attachments.length > 0 && (
+        <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="flex flex-wrap gap-2">
+            {attachments.map((file, index) => (
+              <div key={index} className="flex items-center gap-1 bg-white dark:bg-gray-700 px-2 py-1 rounded-md border border-gray-200 dark:border-gray-600">
+                <Paperclip className="h-3 w-3 text-gray-500" />
+                <span className="text-sm text-gray-700 dark:text-gray-300 max-w-[150px] truncate">
+                  {file.name}
+                </span>
+                <button
+                  onClick={() => removeAttachment(index)}
+                  className="ml-1 text-gray-400 hover:text-red-500"
+                  data-testid={`remove-attachment-${index}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="flex items-center space-x-3 max-w-4xl mx-auto bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex-1 relative">
           <Input
@@ -176,7 +218,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
         <Button
           onClick={handleSend}
-          disabled={!message.trim() || disabled}
+          disabled={(!message.trim() && attachments.length === 0) || disabled}
           className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white touch-manipulation flex-shrink-0"
           style={{ 
             touchAction: 'manipulation',
@@ -185,6 +227,20 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           data-testid="send-button"
         >
           <Send className="h-5 w-5" />
+        </Button>
+
+        {/* Attachment Button */}
+        <Button
+          onClick={() => attachmentInputRef.current?.click()}
+          disabled={disabled}
+          className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white touch-manipulation flex-shrink-0"
+          style={{ 
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent'
+          }}
+          data-testid="attachment-button"
+        >
+          <Paperclip className="h-5 w-5" />
         </Button>
 
         {/* Camera Button */}
@@ -239,6 +295,17 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           capture="environment"
           onChange={handleFileSelect}
           style={{ display: 'none' }}
+        />
+        
+        {/* Hidden file input for general attachments */}
+        <input
+          ref={attachmentInputRef}
+          type="file"
+          multiple
+          accept="image/*,application/pdf,.doc,.docx,.txt"
+          onChange={handleAttachmentSelect}
+          style={{ display: 'none' }}
+          data-testid="file-input"
         />
       </div>
 

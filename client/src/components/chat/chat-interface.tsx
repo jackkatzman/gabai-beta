@@ -36,7 +36,7 @@ export function ChatInterface() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ message, imageData }: { message: string; imageData?: string }) => {
+    mutationFn: async ({ message, attachments }: { message: string; attachments?: File[] }) => {
       if (!user) throw new Error("User not authenticated");
 
       // Create conversation if needed
@@ -44,6 +44,21 @@ export function ChatInterface() {
         const newConversation = await api.createConversation({ userId: user.id });
         setCurrentConversationId(newConversation.id);
         localStorage.setItem(`gabai_conversation_${user.id}`, newConversation.id);
+      }
+
+      // Convert attachments to base64 or FormData if needed
+      let imageData: string | undefined;
+      if (attachments && attachments.length > 0) {
+        // For now, handle the first attachment as an image
+        const file = attachments[0];
+        if (file.type.startsWith('image/')) {
+          // Convert to base64 for images
+          imageData = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+        }
       }
 
       return api.sendMessage(message, user.id, currentConversationId!, imageData);
@@ -123,8 +138,8 @@ export function ChatInterface() {
     },
   });
 
-  const handleSendMessage = (message: string, imageData?: string) => {
-    if (sendMessageMutation.isPending || !message.trim()) return;
+  const handleSendMessage = (message: string, attachments?: File[]) => {
+    if (sendMessageMutation.isPending || (!message.trim() && !attachments?.length)) return;
 
     // Always add temporary user message to show immediately
     const tempMessage: any = {
@@ -134,7 +149,8 @@ export function ChatInterface() {
       createdAt: new Date(),
       conversationId: currentConversationId || 'temp',
       audioUrl: null,
-      imageUrl: imageData || null
+      imageUrl: null,
+      attachments: attachments?.map(f => f.name) || []
     };
 
     // Update messages immediately for better UX
@@ -151,7 +167,7 @@ export function ChatInterface() {
       );
     }
 
-    sendMessageMutation.mutate({ message, imageData });
+    sendMessageMutation.mutate({ message, attachments });
   };
 
   // Auto scroll to bottom - enhanced for mobile
