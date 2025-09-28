@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Paperclip, FileText, Image } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { LogoBubble } from "@/components/ui/logo-spinner";
 import { linkifyText } from "@/utils/linkify";
@@ -32,6 +32,8 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
 
   if (isUser) {
     const textDirection = detectTextDirection(message.content || '');
+    const attachments = (message as any).metadata?.attachments || [];
+    
     return (
       <div className="flex items-start space-x-3 justify-end animate-slideUp">
         <div className="bg-blue-500 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
@@ -46,6 +48,25 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
               />
             </div>
           )}
+          
+          {/* Display attachments if present */}
+          {attachments.length > 0 && (
+            <div className="mb-2 space-y-1">
+              {attachments.map((attachment: any, index: number) => (
+                <div key={index} className="flex items-center gap-2 bg-blue-600 bg-opacity-50 rounded px-2 py-1">
+                  {attachment.mimetype?.startsWith('image/') ? (
+                    <Image className="h-4 w-4 text-white" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-white" />
+                  )}
+                  <span className="text-xs text-white truncate max-w-[150px]">
+                    {attachment.filename}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <p 
             className="text-white text-sm leading-relaxed" 
             dir={textDirection}

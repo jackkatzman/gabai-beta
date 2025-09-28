@@ -48,6 +48,14 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   audioUrl: text("audio_url"),
   imageUrl: text("image_url"),
+  metadata: jsonb("metadata").$type<{
+    attachments?: {
+      filename: string;
+      mimetype: string;
+      size: number;
+      url?: string;
+    }[];
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
