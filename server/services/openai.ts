@@ -265,7 +265,10 @@ TIME PARSING RULES:
 - For times like "8:00", "9:15", "10:30", interpret as AM if between 6:00-11:59 AM
 - IMPORTANT: Convert times to Eastern Time Zone (EST/EDT) when creating appointments
 - ALWAYS use TODAY'S DATE (${new Date().toISOString().split('T')[0]}) when creating appointments unless user specifies otherwise
-- Example: "remind me at 1:40" should become "${new Date().toISOString().split('T')[0]}T18:40:00.000Z" (1:40 PM EST converted to UTC)
+- CRITICAL: Parse the EXACT time the user requests - do NOT use hardcoded times like T14:00:00
+- Example: "remind me at 1:40" → Calculate UTC time as: 1:40 PM EST = 18:40 UTC (during EST) or 17:40 UTC (during EDT)
+- Example: "remind me at 2:30 PM" → Calculate UTC time as: 2:30 PM EST = 19:30 UTC (during EST) or 18:30 UTC (during EDT)
+- Current time offset: ${new Date().toLocaleString('en-US', { timeZoneName: 'short', timeZone: 'America/New_York' }).includes('EST') ? '-05:00 (EST)' : '-04:00 (EDT)'}
 
 Always respond with valid JSON in this format:
 
@@ -304,7 +307,7 @@ For appointments:
         "appointment": {
           "title": "appointment title",
           "description": "optional description",
-          "date": "${new Date().toISOString().split('T')[0]}T19:30:00.000Z"
+          "date": "[CALCULATE: Convert user's requested time to UTC. Example: 2:30 PM EST = today at 19:30 UTC]"
         }
       }
     }
@@ -312,6 +315,18 @@ For appointments:
 }
 
 For reminders (IMPORTANT - Check SMS consent first):
+CRITICAL TIME CALCULATION:
+1. Parse the user's requested time (e.g., "1:40 PM", "2:30", "3:15 PM")
+2. If no AM/PM specified: 1:00-11:59 = PM, 6:00-11:59 = AM
+3. Convert to 24-hour format (e.g., 1:40 PM = 13:40, 2:30 PM = 14:30)
+4. Add timezone offset: EST = +5 hours to get UTC, EDT = +4 hours to get UTC
+5. Format as ISO: YYYY-MM-DDTHH:mm:ss.000Z
+
+Example calculations:
+- User says "remind me at 1:40" → 1:40 PM EST → 13:40 + 5 = 18:40 UTC → date: "${new Date().toISOString().split('T')[0]}T18:40:00.000Z"
+- User says "remind me at 2:30 PM" → 2:30 PM EST → 14:30 + 5 = 19:30 UTC → date: "${new Date().toISOString().split('T')[0]}T19:30:00.000Z"
+- User says "remind me at 9:15 AM" → 9:15 AM EST → 09:15 + 5 = 14:15 UTC → date: "${new Date().toISOString().split('T')[0]}T14:15:00.000Z"
+
 {
   "content": "I'll set that reminder for you!",
   "actions": [
@@ -321,7 +336,7 @@ For reminders (IMPORTANT - Check SMS consent first):
         "reminder": {
           "title": "Reminder title",
           "description": "What to remember",
-          "date": "${new Date().toISOString().split('T')[0]}T14:00:00.000Z",
+          "date": "[USE THE EXACT TIME THE USER REQUESTED, CONVERTED TO UTC]",
           "smsEnabled": false,
           "reminderType": "notification",
           "targetPhone": null,
@@ -342,7 +357,7 @@ For friend/contact reminders (sending to someone else):
         "reminder": {
           "title": "Pick up milk on your way home",
           "description": "Reminder for: John",
-          "date": "${new Date().toISOString().split('T')[0]}T18:00:00.000Z",
+          "date": "[CALCULATE: Convert user's exact requested time to UTC ISO format. DO NOT use hardcoded times.]",
           "smsEnabled": true,
           "reminderType": "sms",
           "targetPhone": "+15551234567",
