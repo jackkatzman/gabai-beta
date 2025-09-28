@@ -60,13 +60,40 @@ export const api = {
   },
 
   // Chat operations
-  async sendMessage(message: string, userId: string, conversationId?: string, imageData?: string): Promise<{
+  async sendMessage(message: string, userId: string, conversationId?: string, imageData?: string, attachments?: File[]): Promise<{
     message: Message;
     userMessage: Message;
     conversationId: string;
     suggestions?: string[];
     actions?: any[];
   }> {
+    // If we have attachments, use the upload endpoint with FormData
+    if (attachments && attachments.length > 0) {
+      const formData = new FormData();
+      formData.append("message", message);
+      formData.append("userId", userId);
+      if (conversationId) {
+        formData.append("conversationId", conversationId);
+      }
+      
+      // Append each attachment
+      attachments.forEach((file) => {
+        formData.append("attachments", file);
+      });
+      
+      const response = await fetch("/api/chat/upload", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send message with attachments: ${response.statusText}`);
+      }
+      
+      return response.json();
+    }
+    
+    // Otherwise use the regular JSON endpoint
     const response = await apiRequest("/api/chat", "POST", {
       message,
       userId,

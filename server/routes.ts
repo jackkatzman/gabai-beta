@@ -2460,7 +2460,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat route with AI integration
+  // Enhanced chat route with file upload support
+  app.post("/api/chat/upload", upload.array("attachments", 5), async (req, res) => {
+    try {
+      const { message, userId, conversationId } = req.body;
+      const files = req.files as Express.Multer.File[];
+      
+      if (!message || !userId) {
+        return res.status(400).json({ message: "Message and userId are required" });
+      }
+
+      // Process uploaded files
+      let imageData: string | undefined;
+      const attachmentInfo: any[] = [];
+      
+      if (files && files.length > 0) {
+        for (const file of files) {
+          if (file.mimetype.startsWith('image/')) {
+            // Convert first image to base64 for AI processing
+            if (!imageData) {
+              imageData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+            }
+          }
+          
+          // Store attachment info
+          attachmentInfo.push({
+            filename: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+        }
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get conversation history
+      const conversationHistory = conversationId 
+        ? await storage.getMessages(conversationId)
+        : [];
+
+      const historyForAI = conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Create conversation if needed
+      let currentConversationId = conversationId;
+      if (!currentConversationId) {
+        const conversation = await storage.createConversation({
+          userId,
+          title: message.substring(0, 50) + "..."
+        });
+        currentConversationId = conversation.id;
+      }
+
+      // Save user message with attachments info
+      const userMessage = await storage.createMessage({
+        conversationId: currentConversationId,
+        role: "user", 
+        content: message,
+        imageUrl: imageData || null,
+        metadata: attachmentInfo.length > 0 ? { attachments: attachmentInfo } : null
+      });
+
+      // Generate AI response with attachment context
+      const messageWithAttachments = attachmentInfo.length > 0 
+        ? `${message}\n\n[Attached files: ${attachmentInfo.map(a => a.filename).join(', ')}]`
+        : message;
+      
+      const aiResponse = await generatePersonalizedResponse(messageWithAttachments, user, historyForAI, imageData);
+
+      // Process any URLs in the response for affiliate shortening
+      const processedContent = await processUrlsInContent(aiResponse.content);
+
+      // Save assistant message
+      const assistantMessage = await storage.createMessage({
+        conversationId: currentConversationId,
+        role: "assistant",
+        content: processedContent
+      });
+
+      res.json({
+        conversationId: currentConversationId,
+        userMessage,
+        message: assistantMessage,
+        actions: aiResponse.actions || [],
+        suggestions: aiResponse.suggestions || []
+      });
+    } catch (error: any) {
+      console.error("Chat error:", error);
+      res.status(500).json({ 
+        message: error.message || "An error occurred during chat processing",
+        error: process.env.NODE_ENV === "development" ? error : undefined 
+      });
+    }
+  });
+
+  // Original chat route with AI integration (kept for backwards compatibility)
   app.post("/api/chat", jsonParser, async (req, res) => {
     try {
       const { message, userId, conversationId, imageData } = req.body;
