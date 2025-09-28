@@ -334,9 +334,8 @@ export async function sendCodeSMS(phoneNumber: string, code?: string, channel: '
     }
     
     // Check if we should use regular SMS instead of Verify (for better delivery)
-    // PRODUCTION GUARD: Always use Verify in production regardless of SMS_ALLOW_LEGACY
-    const isProduction = process.env.NODE_ENV === 'production';
-    const useRegularSMS = !isProduction && process.env.SMS_ALLOW_LEGACY === 'true';
+    // Allow SMS_ALLOW_LEGACY to work in production for better carrier compatibility
+    const useRegularSMS = process.env.SMS_ALLOW_LEGACY === '1' || process.env.SMS_ALLOW_LEGACY === 'true';
     const verificationCode = code || generateVerificationCode();
     console.log('🔧 SMS Configuration:');
     console.log('  - Environment:', process.env.NODE_ENV);
