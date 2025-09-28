@@ -81,13 +81,39 @@ export const api = {
         formData.append("attachments", file);
       });
       
-      const response = await fetch("/api/chat/upload", {
+      // Detect if running as APK for proper URL
+      const isAPK = typeof (window as any).cordova !== 'undefined' || 
+                   typeof (window as any).Capacitor !== 'undefined' ||
+                   (navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android')) ||
+                   (window as any).IS_VOLTBUILDER_APK;
+      
+      let url = "/api/chat/upload";
+      if (isAPK && url.startsWith('/api/')) {
+        url = `https://gabai.ai${url}`;
+      }
+      
+      // Get token for authentication
+      const token = localStorage.getItem('gabai_token') || 
+                   sessionStorage.getItem('gabai_token') || 
+                   localStorage.getItem('token') ||
+                   sessionStorage.getItem('token');
+      
+      const headers = new Headers();
+      // Don't set Content-Type for FormData - browser will set it with boundary
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      
+      const response = await fetch(url, {
         method: "POST",
+        headers,
         body: formData,
+        credentials: "omit",
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to send message with attachments: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to send message with attachments: ${errorText}`);
       }
       
       return response.json();
