@@ -2637,6 +2637,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const smsPhone = targetPhone || (action.data.reminder.smsEnabled ? userDetails?.phone : null);
               const smsEnabled = !!smsPhone; // Enable SMS if we have any phone number
               
+              // Use user's timezone preference, fall back to Eastern Time
+              const userTimezone = userDetails?.timezone || "America/New_York";
+              
+              // Log the parsed time for debugging
+              console.log(`📅 Reminder time parsing:
+                - Original date from AI: ${action.data.reminder.date}
+                - Parsed as UTC: ${reminderDate.toISOString()}
+                - In user's timezone (${userTimezone}): ${reminderDate.toLocaleString('en-US', { timeZone: userTimezone })}
+              `);
+              
               await storage.createReminder({
                 userId,
                 title: action.data.reminder.title || "Reminder",
@@ -2647,7 +2657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 smsPhone: smsPhone,
                 reminderMinutes: 0, // Default to exact time (not offset)
                 reminderType: action.data.reminder.reminderType || "sms", // Support voice reminders
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                timezone: userTimezone // Use user's timezone, not server timezone
               });
               
               console.log(`✅ Created reminder: ${action.data.reminder.title} for ${reminderDate.toISOString()}`);
