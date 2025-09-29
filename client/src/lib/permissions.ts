@@ -15,52 +15,67 @@ export class PermissionManager {
            window.location.hostname === 'localhost' ||
            window.location.hostname.includes('replit') ||
            /wv|Android/.test(navigator.userAgent) ||
-           typeof (window as any).cordova !== 'undefined';
+           typeof (window as any).cordova !== 'undefined' ||
+           (window as any).IS_APK === true ||
+           (window as any).IS_VOLTBUILDER_APK === true;
   }
 
   // Request camera permission
   async requestCameraPermission(): Promise<boolean> {
     console.log('📸 Requesting camera permission...');
     
-    if (!this.isAPK()) {
-      // Web: Use browser's permission API
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop());
-        console.log('✅ Camera permission granted (web)');
-        return true;
-      } catch (error) {
-        console.error('❌ Camera permission denied:', error);
-        return false;
-      }
-    }
-
-    // APK/Cordova: Use plugin if available
-    if ((window as any).cordova?.plugins?.permissions) {
+    // Check if we're in APK environment first
+    if (this.isAPK() && (window as any).cordova?.plugins?.permissions) {
+      console.log('📸 Using Cordova permissions plugin for camera');
+      
       return new Promise((resolve) => {
         const permissions = (window as any).cordova.plugins.permissions;
-        permissions.requestPermission(
-          permissions.CAMERA,
+        
+        // First check if we already have permission
+        permissions.hasPermission(permissions.CAMERA, 
           (status: any) => {
-            console.log('📸 Camera permission status:', status);
-            resolve(status.hasPermission);
+            console.log('📸 Current camera permission status:', status);
+            
+            if (status.hasPermission) {
+              console.log('✅ Camera permission already granted');
+              resolve(true);
+            } else {
+              // Request permission
+              console.log('📸 Requesting camera permission from user...');
+              permissions.requestPermission(
+                permissions.CAMERA,
+                (status: any) => {
+                  console.log('📸 Camera permission result:', status);
+                  if (status.hasPermission) {
+                    console.log('✅ Camera permission granted');
+                  } else {
+                    console.log('❌ Camera permission denied');
+                  }
+                  resolve(status.hasPermission);
+                },
+                () => {
+                  console.error('❌ Camera permission request failed');
+                  resolve(false);
+                }
+              );
+            }
           },
           () => {
-            console.error('❌ Camera permission request failed');
+            console.error('❌ Failed to check camera permission');
             resolve(false);
           }
         );
       });
     }
-
-    // Fallback: Try to trigger permission through getUserMedia
+    
+    // Web or fallback: Use browser's permission API
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
-      console.log('✅ Camera permission granted (fallback)');
+      console.log('✅ Camera permission granted (web/fallback)');
       return true;
     } catch (error) {
-      console.error('❌ Camera permission denied (fallback):', error);
+      console.error('❌ Camera permission denied:', error);
       return false;
     }
   }
@@ -69,45 +84,58 @@ export class PermissionManager {
   async requestMicrophonePermission(): Promise<boolean> {
     console.log('🎤 Requesting microphone permission...');
     
-    if (!this.isAPK()) {
-      // Web: Use browser's permission API
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop());
-        console.log('✅ Microphone permission granted (web)');
-        return true;
-      } catch (error) {
-        console.error('❌ Microphone permission denied:', error);
-        return false;
-      }
-    }
-
-    // APK/Cordova: Use plugin if available
-    if ((window as any).cordova?.plugins?.permissions) {
+    // Check if we're in APK environment first
+    if (this.isAPK() && (window as any).cordova?.plugins?.permissions) {
+      console.log('🎤 Using Cordova permissions plugin for microphone');
+      
       return new Promise((resolve) => {
         const permissions = (window as any).cordova.plugins.permissions;
-        permissions.requestPermission(
-          permissions.RECORD_AUDIO,
+        
+        // First check if we already have permission
+        permissions.hasPermission(permissions.RECORD_AUDIO, 
           (status: any) => {
-            console.log('🎤 Microphone permission status:', status);
-            resolve(status.hasPermission);
+            console.log('🎤 Current microphone permission status:', status);
+            
+            if (status.hasPermission) {
+              console.log('✅ Microphone permission already granted');
+              resolve(true);
+            } else {
+              // Request permission
+              console.log('🎤 Requesting microphone permission from user...');
+              permissions.requestPermission(
+                permissions.RECORD_AUDIO,
+                (status: any) => {
+                  console.log('🎤 Microphone permission result:', status);
+                  if (status.hasPermission) {
+                    console.log('✅ Microphone permission granted');
+                  } else {
+                    console.log('❌ Microphone permission denied');
+                  }
+                  resolve(status.hasPermission);
+                },
+                () => {
+                  console.error('❌ Microphone permission request failed');
+                  resolve(false);
+                }
+              );
+            }
           },
           () => {
-            console.error('❌ Microphone permission request failed');
+            console.error('❌ Failed to check microphone permission');
             resolve(false);
           }
         );
       });
     }
-
-    // Fallback: Try to trigger permission through getUserMedia
+    
+    // Web or fallback: Use browser's permission API
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
-      console.log('✅ Microphone permission granted (fallback)');
+      console.log('✅ Microphone permission granted (web/fallback)');
       return true;
     } catch (error) {
-      console.error('❌ Microphone permission denied (fallback):', error);
+      console.error('❌ Microphone permission denied:', error);
       return false;
     }
   }
@@ -116,30 +144,57 @@ export class PermissionManager {
   async requestContactsPermission(): Promise<boolean> {
     console.log('📱 Requesting contacts permission...');
     
-    if (!this.isAPK()) {
-      console.log('📱 Contacts permission not needed on web');
-      return true;
-    }
-
-    // APK/Cordova: Use plugin if available
-    if ((window as any).cordova?.plugins?.permissions) {
+    // Check if we're in APK environment first
+    if (this.isAPK() && (window as any).cordova?.plugins?.permissions) {
+      console.log('📱 Using Cordova permissions plugin for contacts');
+      
       return new Promise((resolve) => {
         const permissions = (window as any).cordova.plugins.permissions;
-        permissions.requestPermission(
-          permissions.READ_CONTACTS,
+        
+        // First check if we already have permission
+        permissions.hasPermission(permissions.READ_CONTACTS, 
           (status: any) => {
-            console.log('📱 Contacts permission status:', status);
-            resolve(status.hasPermission);
+            console.log('📱 Current contacts permission status:', status);
+            
+            if (status.hasPermission) {
+              console.log('✅ Contacts permission already granted');
+              resolve(true);
+            } else {
+              // Request permission
+              console.log('📱 Requesting contacts permission from user...');
+              permissions.requestPermission(
+                permissions.READ_CONTACTS,
+                (status: any) => {
+                  console.log('📱 Contacts permission result:', status);
+                  if (status.hasPermission) {
+                    console.log('✅ Contacts permission granted');
+                  } else {
+                    console.log('❌ Contacts permission denied');
+                  }
+                  resolve(status.hasPermission);
+                },
+                () => {
+                  console.error('❌ Contacts permission request failed');
+                  resolve(false);
+                }
+              );
+            }
           },
           () => {
-            console.error('❌ Contacts permission request failed');
+            console.error('❌ Failed to check contacts permission');
             resolve(false);
           }
         );
       });
     }
-
-    // No fallback for contacts - it's a native-only feature
+    
+    // Web: Contacts not available
+    if (!this.isAPK()) {
+      console.log('📱 Contacts permission not needed on web');
+      return true;
+    }
+    
+    // No plugin available
     console.log('⚠️ Contacts permission not available without Cordova plugin');
     return false;
   }
