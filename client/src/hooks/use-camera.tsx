@@ -73,19 +73,13 @@ export function useCamera({ onCaptureComplete, onError }: UseCameraOptions = {})
     setIsCapturing(true);
 
     try {
-      // Request camera permission
-      const hasPermission = await permissionManager.requestCameraPermission();
-      if (!hasPermission) {
-        throw new Error("Camera permission denied");
-      }
-
       // Check if we're in APK/Cordova environment
       const isAPK = CordovaDirect.isAvailable();
       
       if (isAPK) {
-        console.log("📸 APK detected, using native camera...");
+        console.log("📸 APK detected, using native camera directly...");
         try {
-          // Use native camera through CordovaDirect
+          // Use native camera through CordovaDirect - it will handle its own permissions
           const imageBlob = await CordovaDirect.capturePhoto();
           console.log("📸 Native photo captured:", imageBlob.type, imageBlob.size);
           
@@ -106,8 +100,14 @@ export function useCamera({ onCaptureComplete, onError }: UseCameraOptions = {})
           setIsCapturing(false);
         }
       } else {
-        // Fall back to file input for web
-        console.log("📸 Web environment, using file input...");
+        // Fall back to file input for web - request permission first
+        console.log("📸 Web environment, checking permission...");
+        const hasPermission = await permissionManager.requestCameraPermission();
+        if (!hasPermission) {
+          throw new Error("Camera permission denied");
+        }
+        
+        console.log("📸 Using file input...");
         if (fileInputRef.current) {
           fileInputRef.current.click();
         } else {
