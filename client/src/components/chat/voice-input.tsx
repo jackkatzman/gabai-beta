@@ -21,19 +21,31 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
   const { isCapturing, imagePreview, capturePhoto, clearPreview, fileInputRef, handleFileSelect } = useCamera({
     onCaptureComplete: async (imageData) => {
-      console.log("📸 Photo captured, sending with message");
+      console.log("📸 Photo captured, processing image data");
       setPendingImage(imageData);
       
       try {
+        // Check if we received data
+        if (!imageData) {
+          throw new Error("No image data received");
+        }
+        
+        console.log("📸 Image data type:", typeof imageData);
+        console.log("📸 Image data preview:", imageData.substring(0, 100));
+        
         // Convert base64 image to File object for consistency
         // Extract the MIME type and base64 data
         const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
         if (!matches) {
-          throw new Error("Invalid base64 image data");
+          console.error("📸 Regex match failed. Data format:", imageData.substring(0, 50));
+          throw new Error("Invalid base64 image data format");
         }
         
         const mimeType = matches[1] || 'image/jpeg';
         const base64Data = matches[2];
+        
+        console.log("📸 MIME type:", mimeType);
+        console.log("📸 Base64 data length:", base64Data.length);
         
         // Convert base64 to binary
         const binaryString = atob(base64Data);
@@ -46,7 +58,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         const blob = new Blob([bytes], { type: mimeType });
         const file = new File([blob], "camera-photo.jpg", { type: mimeType });
         
-        console.log("📸 Sending photo:", file.size, "bytes, type:", file.type);
+        console.log("📸 Converted to File:", file.size, "bytes, type:", file.type);
         
         // Verify we have actual data
         if (file.size === 0) {
@@ -54,8 +66,48 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         }
         
         onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
-      } catch (error) {
-        console.error("📸 Error converting photo:", error);
+      } catch (error: any) {
+        console.error("📸 Error converting photo:", error.message || error);
+        console.error("📸 Full error:", error);
+        // Try fallback - handle different data URL formats
+        if (imageData && imageData.startsWith('data:')) {
+          console.log("📸 Attempting fallback with raw data URL");
+          try {
+            // Try a more lenient regex that handles different formats
+            const fallbackMatch = imageData.match(/^data:([^;,]+)(;base64)?,(.+)$/);
+            if (fallbackMatch) {
+              const mimeType = fallbackMatch[1] || 'image/jpeg';
+              const isBase64 = !!fallbackMatch[2];
+              const data = fallbackMatch[3];
+              
+              let bytes: Uint8Array;
+              if (isBase64) {
+                // Handle base64 encoded data
+                const binaryString = atob(data);
+                bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+              } else {
+                // Handle URL encoded data
+                const decoded = decodeURIComponent(data);
+                bytes = new TextEncoder().encode(decoded);
+              }
+              
+              const blob = new Blob([bytes], { type: mimeType });
+              const file = new File([blob], "camera-photo.jpg", { type: mimeType });
+              console.log("📸 Fallback file created:", file.size, "bytes");
+              
+              if (file.size > 0) {
+                onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
+                return;
+              }
+            }
+          } catch (fallbackError) {
+            console.error("📸 Fallback also failed:", fallbackError);
+          }
+        }
+        alert("Failed to process camera image. Please try again.");
       }
       
       clearPreview();
