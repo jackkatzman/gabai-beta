@@ -21,8 +21,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
 
   const { isCapturing, imagePreview, capturePhoto, clearPreview, fileInputRef, handleFileSelect } = useCamera({
     onCaptureComplete: async (imageData) => {
-      console.log("📸 Photo captured, processing image data");
-      setPendingImage(imageData);
+      console.log("📸 Photo captured, processing image");
       
       try {
         // Check if we received data
@@ -30,88 +29,52 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           throw new Error("No image data received");
         }
         
-        console.log("📸 Image data type:", typeof imageData);
-        console.log("📸 Image data preview:", imageData.substring(0, 100));
+        let file: File;
         
-        // Convert base64 image to File object for consistency
-        // Extract the MIME type and base64 data
-        const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
-        if (!matches) {
-          console.error("📸 Regex match failed. Data format:", imageData.substring(0, 50));
-          throw new Error("Invalid base64 image data format");
+        // Check if it's already a Blob (from native camera)
+        if (imageData instanceof Blob) {
+          console.log("📸 Received blob directly:", imageData.size, "bytes, type:", imageData.type);
+          file = new File([imageData], "camera-photo.jpg", { type: imageData.type || 'image/jpeg' });
+          console.log("📸 Created file from blob:", file.size, "bytes");
+        } 
+        // Handle base64 string (from web file input)
+        else if (typeof imageData === 'string' && imageData.startsWith('data:')) {
+          console.log("📸 Received base64 string, converting to file");
+          const response = await fetch(imageData);
+          const blob = await response.blob();
+          file = new File([blob], "camera-photo.jpg", { type: blob.type || 'image/jpeg' });
+          console.log("📸 Created file from base64:", file.size, "bytes");
+        } 
+        else {
+          throw new Error("Unknown image data format");
         }
-        
-        const mimeType = matches[1] || 'image/jpeg';
-        const base64Data = matches[2];
-        
-        console.log("📸 MIME type:", mimeType);
-        console.log("📸 Base64 data length:", base64Data.length);
-        
-        // Convert base64 to binary
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        // Create blob from binary data
-        const blob = new Blob([bytes], { type: mimeType });
-        const file = new File([blob], "camera-photo.jpg", { type: mimeType });
-        
-        console.log("📸 Converted to File:", file.size, "bytes, type:", file.type);
         
         // Verify we have actual data
         if (file.size === 0) {
           throw new Error("Photo conversion resulted in empty file");
         }
         
+        console.log("📸 Sending photo with message, size:", file.size);
         onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
-      } catch (error: any) {
-        console.error("📸 Error converting photo:", error.message || error);
-        console.error("📸 Full error:", error);
-        // Try fallback - handle different data URL formats
-        if (imageData && imageData.startsWith('data:')) {
-          console.log("📸 Attempting fallback with raw data URL");
-          try {
-            // Try a more lenient regex that handles different formats
-            const fallbackMatch = imageData.match(/^data:([^;,]+)(;base64)?,(.+)$/);
-            if (fallbackMatch) {
-              const mimeType = fallbackMatch[1] || 'image/jpeg';
-              const isBase64 = !!fallbackMatch[2];
-              const data = fallbackMatch[3];
-              
-              let bytes: Uint8Array;
-              if (isBase64) {
-                // Handle base64 encoded data
-                const binaryString = atob(data);
-                bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  bytes[i] = binaryString.charCodeAt(i);
-                }
-              } else {
-                // Handle URL encoded data
-                const decoded = decodeURIComponent(data);
-                bytes = new TextEncoder().encode(decoded);
-              }
-              
-              const blob = new Blob([bytes], { type: mimeType });
-              const file = new File([blob], "camera-photo.jpg", { type: mimeType });
-              console.log("📸 Fallback file created:", file.size, "bytes");
-              
-              if (file.size > 0) {
-                onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
-                return;
-              }
-            }
-          } catch (fallbackError) {
-            console.error("📸 Fallback also failed:", fallbackError);
-          }
+        
+        // Set preview for display (convert blob to data URL if needed)
+        if (imageData instanceof Blob) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPendingImage(reader.result as string);
+          };
+          reader.readAsDataURL(imageData);
+        } else {
+          setPendingImage(imageData);
         }
+        
+      } catch (error: any) {
+        console.error("📸 Error processing photo:", error.message || error);
         alert("Failed to process camera image. Please try again.");
       }
       
       clearPreview();
-      setPendingImage(null);
+      setTimeout(() => setPendingImage(null), 100);
     },
     onError: (error) => {
       console.error("Camera error:", error);
