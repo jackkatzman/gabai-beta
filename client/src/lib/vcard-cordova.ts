@@ -18,8 +18,14 @@ function writeVCardToCache(filename: string, data: string): Promise<any> {
     (window as any).resolveLocalFileSystemURL(baseDir, (dir: any) => {
       dir.getFile(filename, { create: true }, (fileEntry: any) => {
         fileEntry.createWriter((writer: any) => {
-          writer.onwriteend = () => resolve(fileEntry);
-          writer.onerror = (e: any) => reject(e);
+          writer.onwriteend = () => {
+            console.log('📇 VCard written successfully');
+            resolve(fileEntry);
+          };
+          writer.onerror = (e: any) => {
+            console.error('📇 VCard write error:', e);
+            reject(e);
+          };
           const blob = new Blob([data], { type: 'text/vcard;charset=utf-8' });
           writer.write(blob);
         }, reject);
@@ -60,27 +66,20 @@ export async function saveAndOpenVCard(options: {
       
       // Try to save using Cordova file system if available
       if ((window as any).cordova?.file?.cacheDirectory) {
-        const fileEntry = await writeVCardToCache(filename, vcardData);
-        
-        // Try to open with file opener
-        if ((window as any).cordova?.plugins?.fileOpener2) {
-          (window as any).cordova.plugins.fileOpener2.open(
-            fileEntry.toURL(),
-            'text/vcard',
-            {
-              error: (e: any) => {
-                console.log('VCard open failed, trying fallback', e);
-                // Fallback to download
-                const blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = filename;
-                a.click();
-              },
-              success: () => console.log('VCard opened successfully')
-            }
-          );
+        try {
+          const fileEntry = await writeVCardToCache(filename, vcardData);
+          console.log('📇 VCard saved to:', fileEntry.toURL());
+          
+          // Since fileOpener2 is not available, directly trigger download
+          const blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          console.log('📇 VCard download triggered');
           return;
+        } catch (error) {
+          console.error('📇 Failed to save to cache:', error);
         }
       }
       
@@ -140,22 +139,14 @@ export async function saveAndOpenVCard(options: {
 
   const fileEntry = await writeVCardToCache(filename, text);
 
-  // Open with contacts app
-  (window as any).cordova?.plugins?.fileOpener2?.open(
-    fileEntry.toURL(),
-    'text/vcard',
-    {
-      error: (e: any) => {
-        console.log('VCard open failed, trying fallback', e);
-        // Fallback to InAppBrowser if file opener fails
-        if ((window as any).cordova?.InAppBrowser) {
-          (window as any).cordova.InAppBrowser.open(
-            vcardUrl || fileEntry.toURL(),
-            '_system'
-          );
-        }
-      },
-      success: () => console.log('VCard opened successfully')
-    }
-  );
+  // Since fileOpener2 is not available, download directly
+  console.log('📇 VCard saved to:', fileEntry.toURL());
+  
+  // Trigger download
+  const blob = new Blob([text], { type: 'text/vcard;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  console.log('📇 VCard download triggered');
 }

@@ -98,22 +98,14 @@ export async function saveAndOpenICS(options: {
 
   const fileEntry = await writeToCache(filename, text);
 
-  // Open with default calendar chooser
-  (window as any).cordova?.plugins?.fileOpener2?.open(
-    fileEntry.toURL(),
-    'text/calendar',
-    {
-      error: (e: any) => {
-        console.log('ICS open failed, trying fallback', e);
-        // Fallback to InAppBrowser if file opener fails
-        if ((window as any).cordova?.InAppBrowser) {
-          (window as any).cordova.InAppBrowser.open(
-            icsUrl || fileEntry.toURL(),
-            '_system'
-          );
-        }
-      },
-      success: () => console.log('ICS opened successfully')
-    }
-  );
+  // Since fileOpener2 is not available, download directly
+  console.log('📅 ICS saved to:', fileEntry.toURL());
+  
+  // Trigger download
+  const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  console.log('📅 ICS download triggered');
 }
