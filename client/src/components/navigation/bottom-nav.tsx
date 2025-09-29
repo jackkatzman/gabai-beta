@@ -8,7 +8,7 @@ const navItems = [
   { path: "/calendar", icon: Calendar, label: "Calendar" },
   { path: "/reminders", icon: Bell, label: "Reminders" },
   { path: "/contacts", icon: Users, label: "Contacts" },
-  { path: "/ocr", icon: FileText, label: "Scanner" },
+  { path: "/files", icon: FileText, label: "Files" },
 ];
 
 export function BottomNav() {

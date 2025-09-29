@@ -9,7 +9,7 @@ import HomePage from "./pages/home";
 import OnboardingPage from "./pages/onboarding";
 import { SharedListPage } from "./pages/shared-list";
 import SimpleLoginPage from "./pages/simple-login";
-import { OCRPage } from "./pages/ocr";
+import { LocalFilesPage } from "./pages/local-files";
 import SettingsPage from "./pages/settings";
 import { ContactsPage } from "./components/contacts/contacts-page";
 import { SMSRemindersPage } from "./pages/sms-reminders";
@@ -146,7 +146,7 @@ function AppContent() {
           <Route path="/cordova-test" component={CordovaTestPage} />
           <Route path="/simple-login" component={SimpleAuthPage} />
           <Route path="/shared/:listId" component={SharedListPage} />
-          <Route path="/ocr" component={OCRPage} />
+          <Route path="/files" component={LocalFilesPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/contacts" component={ContactsPage} />
           <Route path="/sms-reminders" component={SMSRemindersPage} />
