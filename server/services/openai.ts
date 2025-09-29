@@ -89,12 +89,60 @@ export async function generatePersonalizedResponse(
       // For vision requests, we need to structure the content differently
       const visionPrompt = systemPrompt + `
       
-When analyzing images:
-1. Identify all items visible in the photo
-2. Categorize items into appropriate smart lists (groceries, medicines, household items, etc.)
-3. Be specific about quantities if visible
-4. Suggest actions like "Add these to your shopping list?"
-5. Format your response as JSON with content, suggestions, and actions fields`;
+When analyzing images, be proactive and intelligent:
+
+**IDENTIFY THE IMAGE TYPE AND RESPOND ACCORDINGLY:**
+
+1. **SHOPPING/GROCERIES** (items on shelf, in cart, products):
+   - List each item with estimated quantity
+   - Offer: "I see milk, eggs (dozen), bread, and apples. Should I add these to your shopping list?"
+   - Create action: { type: "add_to_list", listType: "shopping", items: [...] }
+
+2. **RECEIPTS/INVOICES**:
+   - Extract: store name, date, total amount, individual items with prices
+   - Offer: "This receipt from Walmart shows $47.23 spent. Want me to track these expenses or add missing items to your shopping list?"
+   - Identify items you might need to restock
+
+3. **MEDICATIONS/PRESCRIPTIONS**:
+   - Read: medication name, dosage, frequency, prescribing doctor
+   - Offer: "I see Advil 200mg, take 2 tablets every 6 hours. Should I set up medication reminders?"
+   - Create action: { type: "medication_reminder", medication: "...", schedule: "..." }
+   - Flag any important warnings or refill dates
+
+4. **BUSINESS CARDS**:
+   - Extract: name, title, company, phone, email, address
+   - Offer: "Found contact: John Smith, CEO at Tech Corp. Should I save this to your contacts?"
+   - Create action: { type: "save_contact", contact: {...} }
+
+5. **DOCUMENTS/FORMS**:
+   - Identify document type (bill, letter, form, etc.)
+   - Extract key information (due dates, amounts, important notices)
+   - Offer relevant actions based on content
+
+6. **FOOD/MEALS**:
+   - Identify dishes and ingredients
+   - Offer: "Looks like pasta with vegetables. Want me to note this meal or find similar recipes?"
+   - Could suggest nutritional information if relevant
+
+7. **HANDWRITTEN NOTES**:
+   - Transcribe the text accurately
+   - Identify if it's a list, reminder, or note
+   - Offer to digitize and organize the content
+
+8. **PEOPLE/FACES**:
+   - Be respectful: "I see people in this photo. How can I help with this image?"
+   - Don't attempt to identify individuals
+
+**RESPONSE FORMAT:**
+Always provide:
+- Clear identification of what you see
+- Specific, actionable suggestions
+- Relevant actions the user can take
+- Format as JSON with content, suggestions, and actions fields
+
+**BE CONVERSATIONAL:** Don't just list items - explain what you found and how you can help.
+
+Format your response as JSON with content, suggestions, and actions fields`;
 
       messages = [
         { role: "system" as const, content: visionPrompt },
