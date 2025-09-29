@@ -403,10 +403,57 @@ export const api = {
   },
 
   async downloadVCard(contactId: string): Promise<void> {
+    console.log('📇 Starting VCard download for contact:', contactId);
+    
     try {
-      // Check if Cordova native is available
+      // Import the vCard download function (same approach as calendar)
+      const { saveAndOpenVCard } = await import('./vcard-cordova');
+      
+      // Get auth token
+      let gabaiToken = localStorage.getItem('gabai_token') || 
+                       sessionStorage.getItem('gabai_token') || 
+                       localStorage.getItem('token') || 
+                       sessionStorage.getItem('token');
+      
+      // Detect if running as APK
+      const isAPK = window.location.protocol === 'file:' || 
+                    window.location.hostname === 'localhost' ||
+                    typeof (window as any).cordova !== 'undefined';
+      
+      const baseUrl = isAPK ? 'https://gabai.ai' : window.location.origin;
+      const endpoint = `/api/contacts/${contactId}/vcard`;
+      
+      // Build URL with auth token for APK/Cordova
+      const downloadUrl = gabaiToken 
+        ? `${baseUrl}${endpoint}?token=${encodeURIComponent(gabaiToken)}`
+        : `${baseUrl}${endpoint}`;
+      
+      console.log('📇 VCard download URL:', downloadUrl);
+      
+      // For APK, ensure we use the full URL with https://
+      const fullDownloadUrl = downloadUrl.startsWith('http') ? downloadUrl : 
+                             downloadUrl.startsWith('//') ? `https:${downloadUrl}` :
+                             downloadUrl.startsWith('/') ? `https://gabai.ai${downloadUrl}` :
+                             downloadUrl;
+      
+      console.log('📇 Full download URL:', fullDownloadUrl);
+      
+      // Use the Cordova-compatible download function (same as calendar)
+      await saveAndOpenVCard({
+        filename: 'gabai-contact.vcf',
+        vcardUrl: fullDownloadUrl
+      });
+      
+      console.log('📇 VCard export initiated successfully');
+      return;
+    } catch (error) {
+      console.error('📇 VCard download error (trying CordovaNative):', error);
+    }
+    
+    // Fallback to CordovaNative if available
+    try {
       if (CordovaNative.isAvailable()) {
-        console.log('📇 Using native Cordova VCard download');
+        console.log('📇 Trying CordovaNative fallback');
         
         // Fetch the VCard data using bulletproof API
         const token = localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token');
