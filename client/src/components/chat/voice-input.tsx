@@ -189,125 +189,135 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         </div>
       )}
       
-      <div className="flex items-center space-x-3 max-w-4xl mx-auto bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex-1 relative">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message or hold mic to speak..."
+      {/* Main input row with text field and secondary buttons */}
+      <div className="flex flex-col gap-3 max-w-4xl mx-auto">
+        <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+          {/* Attachment Button */}
+          <Button
+            onClick={() => attachmentInputRef.current?.click()}
             disabled={disabled}
-            className="mobile-text-input pr-4"
+            className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 touch-manipulation flex-shrink-0"
             style={{ 
-              fontSize: '16px',
-              minHeight: '44px'
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
             }}
-            data-testid="message-input"
-          />
-          {transcript && (
-            <div className="absolute top-0 left-0 right-0 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-2 text-sm text-blue-800 dark:text-blue-200 z-10">
-              Voice: "{transcript}"
-            </div>
-          )}
-          {pendingImage && (
-            <div className="absolute top-0 left-0 right-0 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-2 text-sm text-green-800 dark:text-green-200 z-10">
-              Photo ready to send
-            </div>
-          )}
+            data-testid="attachment-button"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+
+          {/* Camera Button */}
+          <Button
+            onClick={capturePhoto}
+            disabled={disabled || isCapturing}
+            className={`
+              h-10 w-10 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
+              ${isCapturing
+                ? "animate-pulse bg-purple-500 hover:bg-purple-600 text-white" 
+                : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+              }
+            `}
+            style={{ 
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+            data-testid="camera-button"
+          >
+            <Camera className={`h-4 w-4 ${isCapturing ? 'animate-pulse' : ''}`} />
+          </Button>
+
+          {/* Text Input */}
+          <div className="flex-1 relative">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              disabled={disabled}
+              className="mobile-text-input pr-4"
+              style={{ 
+                fontSize: '16px',
+                minHeight: '44px'
+              }}
+              data-testid="message-input"
+            />
+            {transcript && (
+              <div className="absolute top-0 left-0 right-0 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-2 text-sm text-blue-800 dark:text-blue-200 z-10">
+                Voice: "{transcript}"
+              </div>
+            )}
+            {pendingImage && (
+              <div className="absolute top-0 left-0 right-0 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-2 text-sm text-green-800 dark:text-green-200 z-10">
+                Photo ready to send
+              </div>
+            )}
+          </div>
+
+          {/* Send Button */}
+          <Button
+            onClick={handleSend}
+            disabled={(!message.trim() && attachments.length === 0) || disabled}
+            className="h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white touch-manipulation flex-shrink-0"
+            style={{ 
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+            data-testid="send-button"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
 
-        <Button
-          onClick={handleSend}
-          disabled={(!message.trim() && attachments.length === 0) || disabled}
-          className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white touch-manipulation flex-shrink-0"
-          style={{ 
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent'
-          }}
-          data-testid="send-button"
-        >
-          <Send className="h-5 w-5" />
-        </Button>
-
-        {/* Attachment Button */}
-        <Button
-          onClick={() => attachmentInputRef.current?.click()}
-          disabled={disabled}
-          className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white touch-manipulation flex-shrink-0"
-          style={{ 
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent'
-          }}
-          data-testid="attachment-button"
-        >
-          <Paperclip className="h-5 w-5" />
-        </Button>
-
-        {/* Camera Button */}
-        <Button
-          onClick={capturePhoto}
-          disabled={disabled || isCapturing}
-          className={`
-            h-12 w-12 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
-            ${isCapturing
-              ? "animate-pulse shadow-lg shadow-green-500/25 scale-105 bg-green-500 hover:bg-green-600 text-white" 
-              : "bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:scale-105 active:scale-95"
-            }
-          `}
-          style={{ 
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent'
-          }}
-          data-testid="camera-button"
-        >
-          <Camera className={`h-5 w-5 ${isCapturing ? 'animate-pulse' : ''}`} />
-        </Button>
-
-        {/* Voice Button */}
-        <Button
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchCancel}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          disabled={disabled || isTranscribing}
-          className={`
-            h-12 w-12 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
-            ${isRecording
-              ? "animate-pulse shadow-lg shadow-red-500/25 scale-105 bg-red-500 hover:bg-red-600 text-white" 
-              : "bg-gray-500 hover:bg-gray-600 text-white shadow-lg hover:scale-105 active:scale-95"
-            }
-          `}
-          style={{ 
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent'
-          }}
-          data-testid="voice-button"
-        >
-          <Mic className={`h-5 w-5 ${isRecording ? 'animate-pulse' : ''}`} />
-        </Button>
-
-        {/* Hidden file input for camera capture */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-        
-        {/* Hidden file input for general attachments */}
-        <input
-          ref={attachmentInputRef}
-          type="file"
-          multiple
-          accept="image/*,application/pdf,.doc,.docx,.txt"
-          onChange={handleAttachmentSelect}
-          style={{ display: 'none' }}
-          data-testid="file-input"
-        />
+        {/* Prominent Voice Button - below the input row */}
+        <div className="flex flex-col items-center gap-1">
+          <Button
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            disabled={disabled || isTranscribing}
+            className={`
+              h-20 w-20 rounded-full transition-all duration-200 touch-manipulation shadow-lg
+              ${isRecording
+                ? "animate-pulse shadow-red-500/50 scale-110 bg-red-500 hover:bg-red-600 text-white" 
+                : "bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/30"
+              }
+            `}
+            style={{ 
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+            data-testid="voice-button"
+          >
+            <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
+          </Button>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {isRecording ? "Release to send" : "Hold to speak"}
+          </span>
+        </div>
       </div>
+
+      {/* Hidden file input for camera capture */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+      />
+      
+      {/* Hidden file input for general attachments */}
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,.doc,.docx,.txt"
+        onChange={handleAttachmentSelect}
+        style={{ display: 'none' }}
+        data-testid="file-input"
+      />
 
       {isTranscribing && (
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-lg border">

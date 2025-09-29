@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { permissionManager } from "@/lib/permissions";
 import { useToast } from "@/hooks/use-toast";
+import { CordovaDirect } from "@/lib/cordova-direct";
 
 interface UseCameraOptions {
   onCaptureComplete?: (imageData: string) => void;
@@ -78,11 +79,40 @@ export function useCamera({ onCaptureComplete, onError }: UseCameraOptions = {})
         throw new Error("Camera permission denied");
       }
 
-      // Trigger file input with camera capture
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
+      // Check if we're in APK/Cordova environment
+      const isAPK = CordovaDirect.isAvailable();
+      
+      if (isAPK) {
+        console.log("📸 APK detected, using native camera...");
+        try {
+          // Use native camera through CordovaDirect
+          const imageBlob = await CordovaDirect.capturePhoto();
+          console.log("📸 Native photo captured:", imageBlob.type, imageBlob.size);
+          
+          // Convert blob to base64 for preview
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result as string;
+            setImagePreview(base64);
+            if (onCaptureComplete) {
+              onCaptureComplete(base64);
+            }
+          };
+          reader.readAsDataURL(imageBlob);
+        } catch (error: any) {
+          console.error("📸 Native camera error:", error);
+          throw error;
+        } finally {
+          setIsCapturing(false);
+        }
       } else {
-        throw new Error("Camera input not initialized");
+        // Fall back to file input for web
+        console.log("📸 Web environment, using file input...");
+        if (fileInputRef.current) {
+          fileInputRef.current.click();
+        } else {
+          throw new Error("Camera input not initialized");
+        }
       }
     } catch (error: any) {
       console.error("📸 Camera error:", error);

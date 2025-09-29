@@ -54,7 +54,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
       
       // Use direct Cordova audio capture if available
       if (isAPK) {
-        console.log('🎤 APK detected, starting audio recording...');
+        console.log('🎤 APK detected, starting native audio recording...');
         
         try {
           // Start recording (non-blocking)
@@ -62,13 +62,13 @@ export function useVoice(options: UseVoiceOptions = {}) {
           await CordovaDirect.startAudioCapture();
           
           // Recording is now active - it will continue until stopRecording is called
-          console.log('🎤 Recording started successfully');
+          console.log('🎤 Native recording started successfully');
           return;
         } catch (error: any) {
-          console.error("Failed to start audio recording:", error);
-          setIsRecording(false);
-          setIsTranscribing(false);
-          throw error;
+          console.error("Failed to start native audio recording:", error);
+          // If native recording fails, fall back to web recording
+          console.log('🎤 Falling back to web recording...');
+          // Don't throw here, let it fall through to web recording
         }
       }
       
@@ -267,31 +267,41 @@ export function useVoice(options: UseVoiceOptions = {}) {
       // Check if we're using Cordova recording
       const isAPK = CordovaDirect.isAvailable();
       
-      if (isAPK && CordovaDirect.isRecording()) {
-        console.log('🎤 Stopping Cordova recording...');
+      if (isAPK) {
+        console.log('🎤 Stopping native Cordova recording...');
         setIsRecording(false);
         setIsTranscribing(true);
         
-        const audioBlob = await CordovaDirect.stopAudioCapture();
-        if (audioBlob) {
-          console.log('🎤 Got audio blob:', audioBlob.type, audioBlob.size);
-          const { text } = await api.transcribeAudio(audioBlob);
-          
-          if (options.onTranscriptionComplete) {
-            options.onTranscriptionComplete(text);
+        try {
+          const audioBlob = await CordovaDirect.stopAudioCapture();
+          if (audioBlob && audioBlob.size > 0) {
+            console.log('🎤 Got audio blob:', audioBlob.type, audioBlob.size);
+            const { text } = await api.transcribeAudio(audioBlob);
+            
+            if (options.onTranscriptionComplete) {
+              options.onTranscriptionComplete(text);
+            }
+            
+            if (options.onTranscriptUpdate) {
+              options.onTranscriptUpdate(text);
+              setTimeout(() => {
+                if (options.onTranscriptUpdate) {
+                  options.onTranscriptUpdate('');
+                }
+              }, 1000);
+            }
+          } else {
+            console.log('⚠️ No audio data captured');
+            throw new Error('No audio was recorded. Please try again.');
           }
-          
-          if (options.onTranscriptUpdate) {
-            options.onTranscriptUpdate(text);
-            setTimeout(() => {
-              if (options.onTranscriptUpdate) {
-                options.onTranscriptUpdate('');
-              }
-            }, 1000);
+        } catch (error: any) {
+          console.error('❌ Native recording error:', error);
+          if (options.onError) {
+            options.onError(error.message || 'Recording failed');
           }
+        } finally {
+          setIsTranscribing(false);
         }
-        
-        setIsTranscribing(false);
         return;
       }
       
