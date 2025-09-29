@@ -288,6 +288,11 @@ export const api = {
     return response.json();
   },
 
+  async updateShareMode(listId: string, shareMode: 'view' | 'edit'): Promise<SmartList> {
+    const response = await apiRequest(`/api/lists/${listId}/share-mode`, "POST", { shareMode });
+    return response.json();
+  },
+
   async joinSharedList(shareCode: string, userId: string): Promise<SmartList> {
     const response = await apiRequest("/api/smart-lists/join", "POST", {
       shareCode,

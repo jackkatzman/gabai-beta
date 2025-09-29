@@ -4006,6 +4006,36 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // Update share mode for a list
+  app.post("/api/lists/:listId/share-mode", async (req, res) => {
+    try {
+      const { listId } = req.params;
+      const { shareMode } = req.body;
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Validate share mode
+      if (!['view', 'edit'].includes(shareMode)) {
+        return res.status(400).json({ message: "Invalid share mode. Must be 'view' or 'edit'" });
+      }
+
+      // Check if user owns the list
+      const list = await storage.getSmartList(listId);
+      if (!list || list.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to modify this list" });
+      }
+
+      const updatedList = await storage.updateSmartList(listId, { shareMode });
+      res.json(updatedList);
+    } catch (error: any) {
+      console.error("Update share mode error:", error);
+      res.status(500).json({ message: "Failed to update share mode" });
+    }
+  });
+
   // Add collaborator to list endpoint
   app.post("/api/smart-lists/:id/collaborators", async (req, res) => {
     try {

@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 // Removed Card imports for borderless Superlist-style interface
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -1042,6 +1043,26 @@ const getSimpleCategory = (itemName: string): string => {
     },
   });
 
+  // Update share mode mutation
+  const updateShareModeMutation = useMutation({
+    mutationFn: ({ listId, shareMode }: { listId: string; shareMode: 'view' | 'edit' }) => 
+      api.updateShareMode(listId, shareMode),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      toast({
+        title: "Share mode updated!",
+        description: "List permissions have been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating share mode",
+        description: error.message || "Failed to update share mode",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Join shared list mutation
   const joinListMutation = useMutation({
     mutationFn: () => api.joinSharedList(shareCode, user.id),
@@ -1564,6 +1585,37 @@ const getSimpleCategory = (itemName: string): string => {
                             <DropdownMenuItem onClick={() => shareViaEmail(list.shareCode!, list.name)}>
                               <Mail className="h-4 w-4 mr-2" />
                               Share via Email
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            <DropdownMenuLabel className="text-xs text-gray-500">Share Mode</DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                updateShareModeMutation.mutate({ 
+                                  listId: list.id, 
+                                  shareMode: list.shareMode === 'edit' ? 'view' : 'edit' 
+                                });
+                              }}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="flex items-center">
+                                {list.shareMode === 'edit' ? (
+                                  <>
+                                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                    Can Edit
+                                  </>
+                                ) : (
+                                  <>
+                                    <Circle className="h-4 w-4 mr-2" />
+                                    View Only
+                                  </>
+                                )}
+                              </span>
+                              <span className="text-xs text-gray-400 ml-2">
+                                {list.shareMode === 'edit' ? 'Click for View Only' : 'Click for Can Edit'}
+                              </span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

@@ -67,6 +67,7 @@ export const smartLists = pgTable("smart_lists", {
   description: text("description"),
   isShared: boolean("is_shared").default(false),
   shareCode: varchar("share_code").unique(),
+  shareMode: text("share_mode").default("view"), // 'view' | 'edit' - determines if shared users can edit
   collaborators: jsonb("collaborators").$type<string[]>().default([]),
   sortBy: text("sort_by").default("category"), // category, priority, date_added, custom
   categories: jsonb("categories").$type<string[]>().default([]),
