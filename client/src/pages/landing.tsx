@@ -330,7 +330,7 @@ export function LandingPage() {
               </a>
             </div>
             <div className="text-gray-400 text-center md:text-right">
-              <div>© 2025 Booah LLC. All rights reserved.</div>
+              <div>© 2025 GabAi. All rights reserved.</div>
               <div className="text-sm">Revolutionizing personal assistance with AI.</div>
             </div>
           </div>

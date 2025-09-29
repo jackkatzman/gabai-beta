@@ -183,7 +183,7 @@ export default function PrivacyPage() {
         {/* Footer */}
         <div className="text-center py-8">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            © 2025 Booah LLC. All rights reserved.
+            © 2025 GabAi. All rights reserved.
           </p>
         </div>
       </div>
