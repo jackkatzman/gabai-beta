@@ -199,16 +199,15 @@ export function ChatInterface() {
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
       {/* Chat messages - simplified layout */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-3" 
+        className="flex-1 overflow-y-auto p-2 space-y-2" 
         id="chat-messages-container"
-        style={{ paddingBottom: '40px' }}
       >
         {isLoading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-4 text-gray-500">
             <p>Start a conversation with GabAi!</p>
             <p className="text-sm mt-2">Try asking about lists, reminders, or scheduling</p>
           </div>
@@ -227,7 +226,7 @@ export function ChatInterface() {
       </div>
 
       {/* Voice input - proper spacing for mobile bottom nav */}
-      <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pb-20">
+      <div className="flex-shrink-0 p-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pb-2">
         <VoiceInput 
           onSendMessage={handleSendMessage}
           disabled={sendMessageMutation.isPending}

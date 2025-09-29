@@ -36,7 +36,7 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
     
     return (
       <div className="flex items-start space-x-3 justify-end animate-slideUp">
-        <div className="bg-blue-500 rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
+        <div className="bg-blue-500 rounded-2xl rounded-tr-md px-3 py-2 max-w-xs">
           {/* Display image if present */}
           {(message as any).imageUrl && (
             <div className="mb-2">
@@ -53,7 +53,7 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
           {attachments.length > 0 && (
             <div className="mb-2 space-y-1">
               {attachments.map((attachment: any, index: number) => (
-                <div key={index} className="flex items-center gap-2 bg-blue-600 bg-opacity-50 rounded px-2 py-1">
+                <div key={index} className="flex items-center gap-1 bg-blue-600 bg-opacity-50 rounded px-2 py-1">
                   {attachment.mimetype?.startsWith('image/') ? (
                     <Image className="h-4 w-4 text-white" />
                   ) : (
@@ -96,7 +96,7 @@ export function MessageBubble({ message, isUser = false }: MessageBubbleProps) {
   return (
     <div className="flex items-start space-x-3 animate-slideUp">
       <LogoBubble size="sm" />
-      <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-3 py-2 max-w-xs shadow-sm border border-gray-200 dark:border-gray-700">
         <div 
           className="text-gray-900 dark:text-white text-sm leading-relaxed" 
           dir={aiTextDirection}
