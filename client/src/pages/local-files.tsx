@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, Image, Download, Trash2, Search } from "lucide-react";
 import { Link } from "wouter";
 import { BottomNav } from "@/components/navigation/bottom-nav";
-import { useAuth } from "@/contexts/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 

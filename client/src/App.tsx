@@ -10,7 +10,7 @@ import OnboardingPage from "./pages/onboarding";
 import { SharedListPage } from "./pages/shared-list";
 import SimpleLoginPage from "./pages/simple-login";
 import { LocalFilesPage } from "./pages/local-files";
-import SettingsPage from "./pages/settings";
+import SettingsPage from "./pages/settings-simple";
 import { ContactsPage } from "./components/contacts/contacts-page";
 import { SMSRemindersPage } from "./pages/sms-reminders";
 import { SMSCompliancePage } from "./pages/sms-compliance";
