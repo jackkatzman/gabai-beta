@@ -189,21 +189,21 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         </div>
       )}
       
-      {/* Main input row with text field and secondary buttons */}
-      <div className="flex flex-col gap-3 max-w-4xl mx-auto">
+      {/* Main input row with all buttons and text field on same line */}
+      <div className="flex flex-col gap-2 max-w-4xl mx-auto">
         <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
           {/* Attachment Button */}
           <Button
             onClick={() => attachmentInputRef.current?.click()}
             disabled={disabled}
-            className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 touch-manipulation flex-shrink-0"
+            className="h-12 w-12 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 touch-manipulation flex-shrink-0"
             style={{ 
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent'
             }}
             data-testid="attachment-button"
           >
-            <Paperclip className="h-4 w-4" />
+            <Paperclip className="h-5 w-5" />
           </Button>
 
           {/* Camera Button */}
@@ -211,7 +211,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             onClick={capturePhoto}
             disabled={disabled || isCapturing}
             className={`
-              h-10 w-10 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
+              h-12 w-12 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
               ${isCapturing
                 ? "animate-pulse bg-purple-500 hover:bg-purple-600 text-white" 
                 : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
@@ -223,7 +223,31 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             }}
             data-testid="camera-button"
           >
-            <Camera className={`h-4 w-4 ${isCapturing ? 'animate-pulse' : ''}`} />
+            <Camera className={`h-5 w-5 ${isCapturing ? 'animate-pulse' : ''}`} />
+          </Button>
+
+          {/* Voice Button - now on same line */}
+          <Button
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            disabled={disabled || isTranscribing}
+            className={`
+              h-14 w-14 rounded-full transition-all duration-200 touch-manipulation shadow-lg flex-shrink-0
+              ${isRecording
+                ? "animate-pulse shadow-red-500/50 scale-110 bg-red-500 hover:bg-red-600 text-white" 
+                : "bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/30"
+              }
+            `}
+            style={{ 
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+            data-testid="voice-button"
+          >
+            <Mic className={`h-7 w-7 ${isRecording ? 'animate-pulse' : ''}`} />
           </Button>
 
           {/* Text Input */}
@@ -232,7 +256,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
+              placeholder="Type or speak your message..."
               disabled={disabled}
               className="mobile-text-input pr-4"
               style={{ 
@@ -257,43 +281,21 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           <Button
             onClick={handleSend}
             disabled={(!message.trim() && attachments.length === 0) || disabled}
-            className="h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white touch-manipulation flex-shrink-0"
+            className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white touch-manipulation flex-shrink-0"
             style={{ 
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent'
             }}
             data-testid="send-button"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           </Button>
         </div>
-
-        {/* Prominent Voice Button - below the input row */}
-        <div className="flex flex-col items-center gap-1">
-          <Button
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchCancel}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            disabled={disabled || isTranscribing}
-            className={`
-              h-20 w-20 rounded-full transition-all duration-200 touch-manipulation shadow-lg
-              ${isRecording
-                ? "animate-pulse shadow-red-500/50 scale-110 bg-red-500 hover:bg-red-600 text-white" 
-                : "bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/30"
-              }
-            `}
-            style={{ 
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-            data-testid="voice-button"
-          >
-            <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
-          </Button>
+        
+        {/* Helper text for voice button */}
+        <div className="text-center">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {isRecording ? "Release to send" : "Hold to speak"}
+            {isRecording ? "Release mic to send" : "Hold mic to speak"}
           </span>
         </div>
       </div>
