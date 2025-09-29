@@ -26,14 +26,33 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
       
       try {
         // Convert base64 image to File object for consistency
-        const response = await fetch(imageData);
-        const blob = await response.blob();
+        // Extract the MIME type and base64 data
+        const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
+        if (!matches) {
+          throw new Error("Invalid base64 image data");
+        }
         
-        // Ensure we have the right MIME type
-        const mimeType = imageData.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+        const mimeType = matches[1] || 'image/jpeg';
+        const base64Data = matches[2];
+        
+        // Convert base64 to binary
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Create blob from binary data
+        const blob = new Blob([bytes], { type: mimeType });
         const file = new File([blob], "camera-photo.jpg", { type: mimeType });
         
         console.log("📸 Sending photo:", file.size, "bytes, type:", file.type);
+        
+        // Verify we have actual data
+        if (file.size === 0) {
+          throw new Error("Photo conversion resulted in empty file");
+        }
+        
         onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
       } catch (error) {
         console.error("📸 Error converting photo:", error);

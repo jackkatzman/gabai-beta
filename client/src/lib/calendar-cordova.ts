@@ -97,15 +97,33 @@ export async function saveAndOpenICS(options: {
   if (!text) throw new Error('No ICS data provided');
 
   const fileEntry = await writeToCache(filename, text);
-
-  // Since fileOpener2 is not available, download directly
   console.log('📅 ICS saved to:', fileEntry.toURL());
-  
-  // Trigger download
-  const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  console.log('📅 ICS download triggered');
+
+  // Open with default calendar chooser using fileOpener2
+  if ((window as any).cordova?.plugins?.fileOpener2) {
+    (window as any).cordova.plugins.fileOpener2.open(
+      fileEntry.toURL(),
+      'text/calendar',
+      {
+        error: (e: any) => {
+          console.log('📅 ICS open failed, trying fallback', e);
+          // Fallback to download
+          const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+        },
+        success: () => console.log('📅 ICS opened successfully')
+      }
+    );
+  } else {
+    // Fallback if fileOpener2 not available
+    const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    console.log('📅 ICS download triggered (no fileOpener2)');
+  }
 }
