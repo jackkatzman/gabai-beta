@@ -230,51 +230,40 @@ export function SMSRemindersPage() {
   };
 
   const handleContactPicker = async () => {
-    // Check if we're in APK environment
-    if (typeof window !== 'undefined' && (window as any).cordova && navigator.contacts) {
-      try {
-        navigator.contacts.pickContact(
-          (contact: any) => {
-            if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-              const phone = contact.phoneNumbers[0].value.replace(/\D/g, '');
-              setSelectedContact({
-                name: contact.displayName || contact.name?.formatted || 'Contact',
-                phone: phone
-              });
-              setPhoneNumber(phone);
-              toast({
-                title: "Contact Selected",
-                description: `Will send reminder to ${contact.displayName || 'selected contact'}`,
-              });
-            } else {
-              toast({
-                title: "No Phone Number",
-                description: "This contact doesn't have a phone number",
-                variant: "destructive",
-              });
-            }
-          },
-          (error: any) => {
-            console.error('Contact picker error:', error);
-            toast({
-              title: "Contact Selection Failed",
-              description: "Could not access contacts",
-              variant: "destructive",
-            });
-          }
-        );
-      } catch (error) {
-        console.error('Contact picker not available:', error);
-        toast({
-          title: "Contacts Not Available",
-          description: "Contact picker is not available on this device",
-          variant: "destructive",
-        });
-      }
-    } else {
+    // Use CordovaDirect for contact picking
+    const { CordovaDirect } = await import('@/lib/cordova-direct');
+    
+    if (!CordovaDirect.isAvailable()) {
       toast({
         title: "Contacts Not Available",
         description: "Contact picker is only available in the mobile app",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const contact = await CordovaDirect.pickContact();
+      
+      if (contact) {
+        setSelectedContact(contact);
+        setPhoneNumber(contact.phone);
+        toast({
+          title: "Contact Selected",
+          description: `Will send reminder to ${contact.name}`,
+        });
+      } else {
+        toast({
+          title: "No Phone Number",
+          description: "This contact doesn't have a phone number",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Contact picker error:', error);
+      toast({
+        title: "Contact Selection Failed",
+        description: error.message || "Could not access contacts",
         variant: "destructive",
       });
     }

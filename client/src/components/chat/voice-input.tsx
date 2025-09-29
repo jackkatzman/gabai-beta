@@ -20,15 +20,25 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
 
   const { isCapturing, imagePreview, capturePhoto, clearPreview, fileInputRef, handleFileSelect } = useCamera({
-    onCaptureComplete: (imageData) => {
+    onCaptureComplete: async (imageData) => {
       console.log("📸 Photo captured, sending with message");
       setPendingImage(imageData);
-      // Convert base64 image to File object for consistency
-      const blob = fetch(imageData).then(res => res.blob());
-      blob.then(b => {
-        const file = new File([b], "camera-photo.jpg", { type: "image/jpeg" });
+      
+      try {
+        // Convert base64 image to File object for consistency
+        const response = await fetch(imageData);
+        const blob = await response.blob();
+        
+        // Ensure we have the right MIME type
+        const mimeType = imageData.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+        const file = new File([blob], "camera-photo.jpg", { type: mimeType });
+        
+        console.log("📸 Sending photo:", file.size, "bytes, type:", file.type);
         onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
-      });
+      } catch (error) {
+        console.error("📸 Error converting photo:", error);
+      }
+      
       clearPreview();
       setPendingImage(null);
     },
@@ -189,14 +199,15 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         </div>
       )}
       
-      {/* Main input row with all buttons and text field on same line */}
+      {/* Two-row layout: action buttons on top, text input below */}
       <div className="flex flex-col gap-2 max-w-4xl mx-auto">
-        <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+        {/* Row 1: Action buttons (mic, camera, attachments) */}
+        <div className="flex items-center justify-center gap-3">
           {/* Attachment Button */}
           <Button
             onClick={() => attachmentInputRef.current?.click()}
             disabled={disabled}
-            className="h-12 w-12 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 touch-manipulation flex-shrink-0"
+            className="h-12 w-12 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 touch-manipulation"
             style={{ 
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent'
@@ -211,7 +222,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             onClick={capturePhoto}
             disabled={disabled || isCapturing}
             className={`
-              h-12 w-12 rounded-full transition-all duration-200 touch-manipulation flex-shrink-0
+              h-12 w-12 rounded-full transition-all duration-200 touch-manipulation
               ${isCapturing
                 ? "animate-pulse bg-purple-500 hover:bg-purple-600 text-white" 
                 : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
@@ -226,7 +237,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             <Camera className={`h-5 w-5 ${isCapturing ? 'animate-pulse' : ''}`} />
           </Button>
 
-          {/* Voice Button - now on same line */}
+          {/* Voice Button - prominent in center */}
           <Button
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
@@ -235,7 +246,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
             onMouseUp={handleMouseUp}
             disabled={disabled || isTranscribing}
             className={`
-              h-14 w-14 rounded-full transition-all duration-200 touch-manipulation shadow-lg flex-shrink-0
+              h-16 w-16 rounded-full transition-all duration-200 touch-manipulation shadow-lg
               ${isRecording
                 ? "animate-pulse shadow-red-500/50 scale-110 bg-red-500 hover:bg-red-600 text-white" 
                 : "bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/30"
@@ -249,14 +260,24 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           >
             <Mic className={`h-7 w-7 ${isRecording ? 'animate-pulse' : ''}`} />
           </Button>
+        </div>
+        
+        {/* Helper text for voice button */}
+        <div className="text-center -mt-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {isRecording ? "Release to send" : "Hold to speak"}
+          </span>
+        </div>
 
+        {/* Row 2: Text input and send button */}
+        <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
           {/* Text Input */}
           <div className="flex-1 relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type or speak your message..."
+              placeholder="Type your message..."
               disabled={disabled}
               className="mobile-text-input pr-4"
               style={{ 
@@ -281,7 +302,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           <Button
             onClick={handleSend}
             disabled={(!message.trim() && attachments.length === 0) || disabled}
-            className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white touch-manipulation flex-shrink-0"
+            className="h-11 w-11 rounded-full bg-green-500 hover:bg-green-600 text-white touch-manipulation"
             style={{ 
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent'
@@ -290,13 +311,6 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           >
             <Send className="h-5 w-5" />
           </Button>
-        </div>
-        
-        {/* Helper text for voice button */}
-        <div className="text-center">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {isRecording ? "Release mic to send" : "Hold mic to speak"}
-          </span>
         </div>
       </div>
 

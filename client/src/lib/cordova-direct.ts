@@ -395,6 +395,49 @@ export const CordovaDirect = {
     });
   },
   
+  // Pick a contact from device contacts
+  async pickContact(): Promise<{ name: string; phone: string } | null> {
+    console.log('📱 Picking contact...');
+    
+    return new Promise((resolve, reject) => {
+      // Check if contacts plugin is available
+      if (!navigator.contacts?.pickContact) {
+        console.error('📱 Contacts plugin not available');
+        reject(new Error('Contact picker not available'));
+        return;
+      }
+
+      try {
+        navigator.contacts.pickContact(
+          (contact: any) => {
+            console.log('📱 Contact selected:', contact);
+            
+            if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+              const phone = contact.phoneNumbers[0].value.replace(/\D/g, '');
+              const name = contact.displayName || 
+                         contact.name?.formatted || 
+                         contact.name?.givenName || 
+                         'Contact';
+              
+              console.log('✅ Contact parsed:', { name, phone });
+              resolve({ name, phone });
+            } else {
+              console.log('⚠️ Contact has no phone numbers');
+              resolve(null);
+            }
+          },
+          (error: any) => {
+            console.error('❌ Contact picker error:', error);
+            reject(new Error(error.message || 'Failed to pick contact'));
+          }
+        );
+      } catch (error) {
+        console.error('❌ Contact picker exception:', error);
+        reject(error);
+      }
+    });
+  },
+  
   // Helper: Convert image file path to Blob
   async fileToImageBlob(path: string, originalFile?: any): Promise<Blob> {
     return new Promise((resolve, reject) => {
