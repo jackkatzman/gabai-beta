@@ -669,6 +669,8 @@ const getSimpleCategory = (itemName: string): string => {
   const [editingItem, setEditingItem] = useState<{ id: string; name: string; amount: string; category: string } | null>(null);
   const [listToDelete, setListToDelete] = useState<string | null>(null);
   const [calculatedTotal, setCalculatedTotal] = useState<{ listId: string; total: number } | null>(null);
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editListName, setEditListName] = useState<string>("");
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -864,6 +866,28 @@ const getSimpleCategory = (itemName: string): string => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update list name mutation
+  const updateListNameMutation = useMutation({
+    mutationFn: async ({ listId, name }: { listId: string; name: string }) => {
+      return api.updateSmartList(listId, { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      setEditingListId(null);
+      toast({
+        title: "List renamed!",
+        description: "The list name has been updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to rename list",
         variant: "destructive",
       });
     },
@@ -1162,7 +1186,8 @@ const getSimpleCategory = (itemName: string): string => {
   };
 
   const copyShareLink = (code: string) => {
-    const url = `${window.location.origin}/shared/${code}`;
+    // Always use production URL for sharing
+    const url = `https://gabai.ai/shared/${code}`;
     navigator.clipboard.writeText(url);
     toast({
       title: "Link copied!",
@@ -1171,25 +1196,30 @@ const getSimpleCategory = (itemName: string): string => {
   };
 
   const shareViaWhatsApp = (shareCode: string, listName: string) => {
-    const url = `${window.location.origin}/shared/${shareCode}`;
+    // Always use production URL for sharing
+    const url = `https://gabai.ai/shared/${shareCode}`;
     const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here: ${url}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   const shareViaSMS = (shareCode: string, listName: string) => {
-    const url = `${window.location.origin}/shared/${shareCode}`;
+    // Always use production URL for sharing
+    const url = `https://gabai.ai/shared/${shareCode}`;
     const message = `Hey! I'm sharing my "${listName}" list with you via GabAi: ${url}`;
+    // Use location.href for better compatibility on mobile
     const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
-    window.open(smsUrl);
+    window.location.href = smsUrl;
   };
 
   const shareViaEmail = (shareCode: string, listName: string) => {
-    const url = `${window.location.origin}/shared/${shareCode}`;
+    // Always use production URL for sharing
+    const url = `https://gabai.ai/shared/${shareCode}`;
     const subject = encodeURIComponent(`${listName} - Shared List`);
     const body = encodeURIComponent(`Hi there!\n\nI'm sharing my "${listName}" list with you through GabAi. You can view and collaborate on this list by clicking the link below:\n\n${url}\n\nBest regards!`);
     const emailUrl = `mailto:?subject=${subject}&body=${body}`;
-    window.open(emailUrl, '_self');
+    // Use location.href for better compatibility
+    window.location.href = emailUrl;
   };
 
   const sortItemsByCategory = (items: ListItem[], categories: string[]) => {
@@ -1451,7 +1481,53 @@ const getSimpleCategory = (itemName: string): string => {
                       <Icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold">{list.name}</h3>
+                      {editingListId === list.id ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={editListName}
+                            onChange={(e) => setEditListName(e.target.value)}
+                            className="text-lg font-semibold h-8"
+                            autoFocus
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                updateListNameMutation.mutate({ listId: list.id, name: editListName });
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => updateListNameMutation.mutate({ listId: list.id, name: editListName })}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingListId(null);
+                              setEditListName("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold">{list.name}</h3>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              setEditingListId(list.id);
+                              setEditListName(list.name);
+                            }}
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                       {list.description && (
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {list.description}
