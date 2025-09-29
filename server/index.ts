@@ -276,21 +276,39 @@ app.get('/api/health', (req, res) => {
     serveStatic(app);
   }
 
-  // Replit compatibility: Use PORT environment variable
-  // Replit sets PORT environment variable automatically for proper routing
+  // Cloud Run compatibility: Use PORT environment variable
+  // Cloud Run sets PORT environment variable for proper routing
   // Must bind to 0.0.0.0 for external access
-  // Always use 5000 as default for both development and production on Replit
-  const defaultPort = '5000';  // Replit requires port 5000
+  const defaultPort = '5000';
   const port = parseInt(process.env.PORT || defaultPort, 10);
+  
+  // Log startup configuration
+  console.log('🚀 Server startup configuration:', {
+    NODE_ENV: process.env.NODE_ENV || 'production',
+    PORT: port,
+    HOST: '0.0.0.0',
+    DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'missing',
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing',
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? 'configured' : 'missing',
+  });
 
-  // Add startup timeout for Cloud Run
+  // Add startup timeout for Cloud Run with better error reporting
   const startupTimeout = setTimeout(() => {
-    console.error('⏱️ Server startup timeout - exiting to trigger Cloud Run restart');
+    console.error('⏱️ Server startup timeout after 45 seconds');
+    console.error('This usually means the server failed to bind to the correct port');
+    console.error('Port configuration:', { 
+      requestedPort: port, 
+      envPort: process.env.PORT,
+      defaultPort 
+    });
     process.exit(1);
-  }, 30000); // 30 second timeout
+  }, 45000); // 45 second timeout (Cloud Run allows up to 60s)
 
+  // Ensure server binds correctly with explicit error handling
   server.listen(port, "0.0.0.0", () => {
     clearTimeout(startupTimeout); // Clear timeout on successful startup
+    console.log(`✅ Server successfully started`);
+    console.log(`📡 Listening on 0.0.0.0:${port}`);
     log(`serving on port ${port}`);
 
     // Log OAuth configuration status
@@ -304,6 +322,26 @@ app.get('/api/health', (req, res) => {
     if (process.env.K_SERVICE || process.env.CLOUD_RUN_JOB) {
       console.log('☁️ Running on Cloud Run');
     }
+
+    // Ready for traffic
+    console.log('🚀 Server is ready to accept traffic');
+  });
+
+  // Handle server errors
+  server.on('error', (error: any) => {
+    clearTimeout(startupTimeout);
+    console.error('❌ Server failed to start:', error.message);
+    
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use. Please check for other processes.`);
+    } else if (error.code === 'EACCES') {
+      console.error(`Permission denied to bind to port ${port}. Try a port > 1024.`);
+    } else {
+      console.error('Server error details:', error);
+    }
+    
+    // Exit with error code for Cloud Run to detect failure
+    process.exit(1);
   });
 
   // Graceful shutdown handling for Cloud Run
