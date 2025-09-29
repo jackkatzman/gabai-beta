@@ -149,22 +149,17 @@ export function useCamera({ onCaptureComplete, onError }: UseCameraOptions = {})
     });
 
     try {
-      // Convert to base64
-      const base64 = await fileToBase64(file);
-      
-      // Resize if needed
-      const resized = await resizeImage(base64);
-      
-      console.log("📸 Image processed:", {
-        originalSize: base64.length,
-        resizedSize: resized.length,
-      });
-
-      setImagePreview(resized);
-      
+      // Send the file directly as a blob
       if (onCaptureComplete) {
-        onCaptureComplete(resized);
+        console.log("📸 Sending file as blob, size:", file.size);
+        onCaptureComplete(file);
       }
+      
+      // Create preview for display only
+      const base64 = await fileToBase64(file);
+      setImagePreview(base64);
+      console.log("📸 Preview created for display");
+      
     } catch (error: any) {
       console.error("📸 Image processing error:", error);
       toast({

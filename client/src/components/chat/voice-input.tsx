@@ -29,44 +29,39 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
           throw new Error("No image data received");
         }
         
-        let file: File;
+        let blob: Blob;
         
-        // Check if it's already a Blob (from native camera)
+        // Check if it's already a Blob (from native camera or file input)
         if (imageData instanceof Blob) {
           console.log("📸 Received blob directly:", imageData.size, "bytes, type:", imageData.type);
-          file = new File([imageData], "camera-photo.jpg", { type: imageData.type || 'image/jpeg' });
-          console.log("📸 Created file from blob:", file.size, "bytes");
+          blob = imageData;
         } 
-        // Handle base64 string (from web file input)
+        // Handle base64 string (fallback)
         else if (typeof imageData === 'string' && imageData.startsWith('data:')) {
-          console.log("📸 Received base64 string, converting to file");
+          console.log("📸 Received base64 string, converting to blob");
           const response = await fetch(imageData);
-          const blob = await response.blob();
-          file = new File([blob], "camera-photo.jpg", { type: blob.type || 'image/jpeg' });
-          console.log("📸 Created file from base64:", file.size, "bytes");
+          blob = await response.blob();
+          console.log("📸 Converted to blob:", blob.size, "bytes");
         } 
         else {
           throw new Error("Unknown image data format");
         }
         
         // Verify we have actual data
-        if (file.size === 0) {
-          throw new Error("Photo conversion resulted in empty file");
+        if (blob.size === 0) {
+          throw new Error("Photo blob is empty");
         }
         
-        console.log("📸 Sending photo with message, size:", file.size);
-        onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [file]);
+        console.log("📸 Sending photo blob with message, size:", blob.size);
+        // Send blob directly, don't convert to File
+        onSendMessage("📸 [Photo attached] Can you identify what's in this photo?", [blob as any]);
         
-        // Set preview for display (convert blob to data URL if needed)
-        if (imageData instanceof Blob) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPendingImage(reader.result as string);
-          };
-          reader.readAsDataURL(imageData);
-        } else {
-          setPendingImage(imageData);
-        }
+        // Set preview for display
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPendingImage(reader.result as string);
+        };
+        reader.readAsDataURL(blob)
         
       } catch (error: any) {
         console.error("📸 Error processing photo:", error.message || error);
