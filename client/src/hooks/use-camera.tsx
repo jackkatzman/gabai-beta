@@ -84,13 +84,20 @@ export function useCamera({ onCaptureComplete, onError }: UseCameraOptions = {})
           console.log("📸 Native photo captured:", imageBlob.type, imageBlob.size);
           
           // Convert blob to base64 for preview
+          console.log("📸 Converting blob to base64, size:", imageBlob.size);
           const reader = new FileReader();
           reader.onloadend = () => {
             const base64 = reader.result as string;
+            console.log("📸 Base64 conversion complete, length:", base64?.length || 0);
+            console.log("📸 Base64 preview:", base64?.substring(0, 100));
             setImagePreview(base64);
             if (onCaptureComplete) {
+              console.log("📸 Calling onCaptureComplete with base64 data");
               onCaptureComplete(base64);
             }
+          };
+          reader.onerror = (error) => {
+            console.error("📸 FileReader error:", error);
           };
           reader.readAsDataURL(imageBlob);
         } catch (error: any) {
