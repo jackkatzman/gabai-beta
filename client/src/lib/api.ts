@@ -178,27 +178,24 @@ export const api = {
     
     const token = localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token') || '';
     
-    // Convert blob to ArrayBuffer for raw binary transmission
-    const arrayBuffer = await audioBlob.arrayBuffer();
+    // Use FormData as ChatGPT suggests - let browser set Content-Type with boundary
+    const formData = new FormData();
+    formData.append('audio', audioBlob, `audio.${ext}`); // Server expects 'audio' field name
     
-    console.log('📤 Sending raw audio to:', finalUrl, {
+    console.log('📤 Sending audio via FormData to:', finalUrl, {
       hostname: window.location.hostname,
       protocol: window.location.protocol,
       isProduction,
       hasToken: !!token,
       tokenLength: token.length,
-      bufferSize: arrayBuffer.byteLength,
+      blobSize: audioBlob.size,
       mimeType,
       ext
     });
 
     try {
-      // Send raw bytes with explicit headers (simpler preflight, fewer proxy issues)
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/octet-stream',
-        'X-Audio-Mime': mimeType,
-        'X-Audio-Ext': ext
-      };
+      // DO NOT set Content-Type - let browser set multipart/form-data with boundary
+      const headers: Record<string, string> = {};
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -206,7 +203,7 @@ export const api = {
       
       const transcribeResponse = await fetch(finalUrl, {
         method: "POST",
-        body: arrayBuffer,
+        body: formData,
         headers,
         mode: 'cors',
         credentials: isProduction ? 'omit' : 'include'
