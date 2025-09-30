@@ -113,6 +113,7 @@ export function SharedListPage() {
 
   const groupedItems = groupItemsByCategory(sharedList.items);
   const completedCount = sharedList.items.filter(item => item.completed).length;
+  const canEdit = sharedList.shareMode === 'edit';
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">
@@ -120,7 +121,9 @@ export function SharedListPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <LogoBubble size="sm" />
-          <span className="text-sm font-medium text-blue-500">Shared List</span>
+          <span className="text-sm font-medium text-blue-500">
+            Shared List {!canEdit && "(View Only)"}
+          </span>
         </div>
         <h1 className="text-2xl font-bold">{sharedList.name}</h1>
         <p className="text-gray-600 dark:text-gray-400">
@@ -128,9 +131,24 @@ export function SharedListPage() {
         </p>
       </div>
 
-      {/* Add Item */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
+      {/* View Only Notice */}
+      {!canEdit && (
+        <Card className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <ExternalLink className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                This list is in view-only mode. You can see items but cannot make changes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add Item - Only show if can edit */}
+      {canEdit && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
           <div className="flex items-center space-x-2">
             <Input
               value={newItemName}
@@ -161,6 +179,7 @@ export function SharedListPage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Items by Category */}
       <div className="space-y-4">
@@ -177,7 +196,8 @@ export function SharedListPage() {
                 >
                   <Checkbox
                     checked={item.completed || false}
-                    onCheckedChange={() => handleToggleItem(item)}
+                    onCheckedChange={canEdit ? () => handleToggleItem(item) : undefined}
+                    disabled={!canEdit}
                   />
                   <span
                     className={`flex-1 ${
