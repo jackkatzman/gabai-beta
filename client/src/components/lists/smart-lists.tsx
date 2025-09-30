@@ -876,11 +876,12 @@ const getSimpleCategory = (itemName: string): string => {
     },
   });
 
-  // Update list name mutation
+  // Update list name mutation - Fixed for proper persistence
   const updateListNameMutation = useMutation({
     mutationFn: async ({ listId, name }: { listId: string; name: string }) => {
       console.log("📝 Attempting to update list name:", { listId, name });
       try {
+        // Directly use PATCH with just the name field
         const result = await api.updateSmartList(listId, { name });
         console.log("✅ List name updated successfully:", result);
         return result;
@@ -889,19 +890,22 @@ const getSimpleCategory = (itemName: string): string => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (updatedList) => {
+      // Invalidate both specific list and all lists queries
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["smart-lists", user.id] });
       setEditingListId(null);
+      setEditListName("");
       toast({
         title: "List renamed!",
-        description: "The list name has been updated.",
+        description: `List renamed to: ${updatedList.name}`,
       });
     },
     onError: (error: any) => {
       console.error("❌ List name mutation error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to rename list",
+        description: error.message || "Failed to rename list. Please try again.",
         variant: "destructive",
       });
     },
@@ -1043,7 +1047,7 @@ const getSimpleCategory = (itemName: string): string => {
     }
   };
 
-  // Share list mutation
+  // Share list mutation - Fixed with mobile share support
   const shareListMutation = useMutation({
     mutationFn: async (listId: string) => {
       console.log("🔗 Attempting to share list:", listId);
@@ -1056,14 +1060,48 @@ const getSimpleCategory = (itemName: string): string => {
         throw error;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (data, listId) => {
       console.log("🎉 Share mutation success, shareCode:", data.shareCode);
       setShareCode(data.shareCode);
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
-      toast({
-        title: "List shared!",
-        description: "Your list is now shareable. Copy the link to invite collaborators.",
-      });
+      
+      const shareUrl = `https://gabai.ai/shared/${data.shareCode}`;
+      const listName = lists.find(l => l.id === listId)?.name || "list";
+      const message = `Check out my "${listName}" list on GabAi: ${shareUrl}`;
+      
+      // Check for social sharing plugin (mobile)
+      const socialSharing = (window as any).plugins?.socialsharing;
+      const isAPK = typeof (window as any).cordova !== 'undefined' || 
+                    typeof (window as any).Capacitor !== 'undefined';
+      
+      if (isAPK && socialSharing?.shareWithOptions) {
+        // Use native social sharing on mobile
+        console.log("📱 Using native social sharing");
+        socialSharing.shareWithOptions(
+          { 
+            message: message,
+            url: shareUrl,
+            chooserTitle: 'Share your list'
+          },
+          () => console.log("✅ Shared successfully"),
+          (error: any) => {
+            console.error("❌ Share error:", error);
+            // Fall back to clipboard
+            copyShareLink(data.shareCode);
+            toast({
+              title: "List shared!",
+              description: "Link copied to clipboard. Paste anywhere to share.",
+            });
+          }
+        );
+      } else {
+        // Use clipboard on web/fallback
+        copyShareLink(data.shareCode);
+        toast({
+          title: "List shared!",
+          description: "Your list is now shareable. Link copied to clipboard.",
+        });
+      }
     },
     onError: (error: any) => {
       console.error("❌ Share mutation error:", error);
