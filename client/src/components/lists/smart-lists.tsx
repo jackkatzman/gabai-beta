@@ -1550,7 +1550,10 @@ const getSimpleCategory = (itemName: string): string => {
                           <Button
                             size="sm"
                             variant="default"
-                            onClick={() => updateListNameMutation.mutate({ listId: list.id, name: editListName })}
+                            onClick={() => {
+                              console.log("💾 Save button clicked, updating list name:", list.id, editListName);
+                              updateListNameMutation.mutate({ listId: list.id, name: editListName });
+                            }}
                           >
                             Save
                           </Button>
@@ -1573,6 +1576,7 @@ const getSimpleCategory = (itemName: string): string => {
                             variant="ghost"
                             className="h-6 w-6 p-0"
                             onClick={() => {
+                              console.log("✏️ Edit button clicked for list:", list.id, list.name);
                               setEditingListId(list.id);
                               setEditListName(list.name);
                             }}
@@ -1655,7 +1659,10 @@ const getSimpleCategory = (itemName: string): string => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => shareListMutation.mutate(list.id)}
+                          onClick={() => {
+                            console.log("🔗 Share button clicked for list:", list.id, list.name);
+                            shareListMutation.mutate(list.id);
+                          }}
                           disabled={shareListMutation.isPending}
                           className="smart-list-button"
                         >
