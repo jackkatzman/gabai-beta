@@ -149,34 +149,34 @@ export function SharedListPage() {
       {canEdit && (
         <Card className="mb-6">
           <CardContent className="p-4">
-          <div className="flex items-center space-x-2">
-            <Input
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Add item to shared list..."
-              className="smart-list-input"
-              style={{ 
-                fontSize: '16px',
-                minHeight: '44px',
-                direction: 'ltr',
-                unicodeBidi: 'normal',
-                textAlign: 'left'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleAddItem();
-                }
-              }}
-            />
-            <Button
-              onClick={handleAddItem}
-              disabled={!newItemName.trim() || addItemMutation.isPending}
-              size="sm"
-              className="w-10 h-10 p-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+            <div className="flex items-center space-x-2">
+              <Input
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="Add item to shared list..."
+                className="smart-list-input"
+                style={{ 
+                  fontSize: '16px',
+                  minHeight: '44px',
+                  direction: 'ltr',
+                  unicodeBidi: 'normal',
+                  textAlign: 'left'
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleAddItem();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleAddItem}
+                disabled={!newItemName.trim() || addItemMutation.isPending}
+                size="sm"
+                className="w-10 h-10 p-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
         </CardContent>
       </Card>
       )}
