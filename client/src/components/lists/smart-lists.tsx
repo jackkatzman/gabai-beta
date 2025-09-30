@@ -1408,11 +1408,11 @@ const getSimpleCategory = (itemName: string): string => {
                   New List
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create New Smart List</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-6">
+                <div className="space-y-6 pb-4">
                   <div>
                     <Label htmlFor="list-type">List Type</Label>
                     <Select value={newListType} onValueChange={(value: keyof typeof listTypeTemplates) => setNewListType(value)}>

@@ -3885,7 +3885,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.post("/api/smart-lists", async (req, res) => {
+  app.post("/api/smart-lists", jsonParser, async (req, res) => {
     try {
       const listData = insertSmartListSchema.parse(req.body);
       const list = await storage.createSmartList(listData);
@@ -3896,7 +3896,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.patch("/api/smart-lists/:id", async (req, res) => {
+  app.patch("/api/smart-lists/:id", jsonParser, async (req, res) => {
     try {
       const updates = insertSmartListSchema.partial().parse(req.body);
       const list = await storage.updateSmartList(req.params.id, updates);
@@ -3934,7 +3934,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // List items routes  
-  app.post("/api/list-items", async (req, res) => {
+  app.post("/api/list-items", jsonParser, async (req, res) => {
     try {
       const itemData = insertListItemSchema.parse(req.body);
       const userId = req.user?.id || req.body.userId;
@@ -3955,7 +3955,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.patch("/api/list-items/:id", async (req, res) => {
+  app.patch("/api/list-items/:id", jsonParser, async (req, res) => {
     try {
       const updates = insertListItemSchema.partial().parse(req.body);
       const userId = req.user?.id || req.body.userId;
