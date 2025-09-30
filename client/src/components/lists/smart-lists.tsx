@@ -879,7 +879,15 @@ const getSimpleCategory = (itemName: string): string => {
   // Update list name mutation
   const updateListNameMutation = useMutation({
     mutationFn: async ({ listId, name }: { listId: string; name: string }) => {
-      return api.updateSmartList(listId, { name });
+      console.log("📝 Attempting to update list name:", { listId, name });
+      try {
+        const result = await api.updateSmartList(listId, { name });
+        console.log("✅ List name updated successfully:", result);
+        return result;
+      } catch (error) {
+        console.error("❌ Failed to update list name:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
@@ -889,7 +897,8 @@ const getSimpleCategory = (itemName: string): string => {
         description: "The list name has been updated.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("❌ List name mutation error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to rename list",
@@ -1036,13 +1045,32 @@ const getSimpleCategory = (itemName: string): string => {
 
   // Share list mutation
   const shareListMutation = useMutation({
-    mutationFn: (listId: string) => api.shareList(listId),
+    mutationFn: async (listId: string) => {
+      console.log("🔗 Attempting to share list:", listId);
+      try {
+        const result = await api.shareList(listId);
+        console.log("✅ List shared successfully:", result);
+        return result;
+      } catch (error) {
+        console.error("❌ Failed to share list:", error);
+        throw error;
+      }
+    },
     onSuccess: (data) => {
+      console.log("🎉 Share mutation success, shareCode:", data.shareCode);
       setShareCode(data.shareCode);
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       toast({
         title: "List shared!",
         description: "Your list is now shareable. Copy the link to invite collaborators.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("❌ Share mutation error:", error);
+      toast({
+        title: "Error sharing list",
+        description: error.message || "Failed to share list",
+        variant: "destructive",
       });
     },
   });
