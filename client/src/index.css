@@ -529,6 +529,33 @@ body, html, #root, .App {
   transition: transform 0.1s ease !important;
 }
 
+/* Fixed checkbox styling for mobile - Make them square and properly sized */
+button[role="checkbox"] {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+  aspect-ratio: 1 !important;
+}
+
+/* Increase tap target for better mobile usability */
+.checkbox-wrapper,
+.checkbox-container {
+  padding: 8px !important;
+  margin: -8px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+}
+
+/* Ensure checkboxes maintain proper shape */
+button[role="checkbox"] span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 /* Capacitor Native Mobile App Layout - Works in APK */
 body.capacitor-native {
   /* Capacitor-specific styles for APK */

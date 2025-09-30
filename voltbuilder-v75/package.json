@@ -1,0 +1,17 @@
+{
+  "name": "gabai-app",
+  "version": "3.0.75",
+  "displayName": "GabAi",
+  "description": "Your AI personal assistant with voice commands, smart lists, and intelligent reminders",
+  "main": "index.js",
+  "scripts": {},
+  "author": "GabAi",
+  "license": "Apache-2.0",
+  "devDependencies": {},
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {}
+  }
+}
