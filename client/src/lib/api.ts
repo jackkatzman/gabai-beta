@@ -289,7 +289,7 @@ export const api = {
   },
 
   async updateShareMode(listId: string, shareMode: 'view' | 'edit'): Promise<SmartList> {
-    const response = await apiRequest(`/api/lists/${listId}/share-mode`, "POST", { shareMode });
+    const response = await apiRequest(`/api/smart-lists/${listId}/share-mode`, "POST", { shareMode });
     return response.json();
   },
 

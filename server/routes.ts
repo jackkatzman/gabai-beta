@@ -4056,7 +4056,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Update share mode for a list
-  app.post("/api/lists/:listId/share-mode", async (req, res) => {
+  app.post("/api/smart-lists/:listId/share-mode", async (req, res) => {
     try {
       const { listId } = req.params;
       const { shareMode } = req.body;
@@ -4724,6 +4724,29 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       fileStream.pipe(res);
     } catch (error) {
       console.error('Error serving GabAI v77 package:', error);
+      res.status(500).send("Error downloading file");
+    }
+  });
+
+  // GabAI v79 - Critical Permissions & Sharing Fixes
+  app.get("/gabai-v79.zip", (req, res) => {
+    try {
+      const zipPath = path.join(__dirname, "../dist/public/gabai-v79.zip");
+      console.log("📦 Serving GabAI v79 package from:", zipPath);
+      
+      if (!fs.existsSync(zipPath)) {
+        return res.status(404).send("GabAI v79 package not found");
+      }
+      
+      const stat = fs.statSync(zipPath);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="gabai-v79.zip"');
+      res.setHeader('Content-Length', stat.size);
+      
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving GabAI v79 package:', error);
       res.status(500).send("Error downloading file");
     }
   });
