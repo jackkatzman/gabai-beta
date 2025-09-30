@@ -1466,17 +1466,6 @@ const getSimpleCategory = (itemName: string): string => {
                     <Label htmlFor="is-shared">Enable sharing and collaboration</Label>
                   </div>
 
-                  <div className="p-2 bg-gray-50/30 dark:bg-gray-800/30">
-                    <h4 className="font-medium mb-2">Categories for this list type:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {listTypeTemplates[newListType].categories.map((category) => (
-                        <Badge key={category} variant="secondary" className="text-xs">
-                          {category}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
                   <Button 
                     onClick={handleCreateList}
                     disabled={!newListName.trim() || createListMutation.isPending}
