@@ -1,2 +1,0 @@
-<icon src="icon.png" />
-<splash src="splash.png" />
