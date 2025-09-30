@@ -252,8 +252,12 @@ const categoryIcons = {
 };
 
 const getCategoryIcon = (category: string) => {
+  // Handle "Other" or empty category
+  if (!category || category.toLowerCase() === 'other') {
+    return Package; // Use Package as default instead of Apple
+  }
   const Icon = categoryIcons[category.toLowerCase() as keyof typeof categoryIcons];
-  return Icon || Apple;
+  return Icon || Package; // Use Package as fallback instead of Apple
 };
 
 const getCategoryColor = (category: string) => {

@@ -4656,6 +4656,29 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // GabAI v77 - Icon & UI Fixes
+  app.get("/gabai-v77.zip", (req, res) => {
+    try {
+      const zipPath = path.join(__dirname, "../dist/public/gabai-v77.zip");
+      console.log("📦 Serving GabAI v77 package from:", zipPath);
+      
+      if (!fs.existsSync(zipPath)) {
+        return res.status(404).send("GabAI v77 package not found");
+      }
+      
+      const stat = fs.statSync(zipPath);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="gabai-v77.zip"');
+      res.setHeader('Content-Length', stat.size);
+      
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving GabAI v77 package:', error);
+      res.status(500).send("Error downloading file");
+    }
+  });
+
   // GabAI v76 - SDK 35 Configuration Fix
   app.get("/gabai-v76.zip", (req, res) => {
     try {
