@@ -71,9 +71,14 @@ export interface IStorage {
   
   // List item operations
   getListItems(listId: string): Promise<ListItem[]>;
+  getListItem(id: string): Promise<ListItem | undefined>;
   createListItem(item: InsertListItem): Promise<ListItem>;
   updateListItem(id: string, updates: Partial<InsertListItem>): Promise<ListItem>;
   deleteListItem(id: string): Promise<void>;
+  toggleListItem(id: string): Promise<ListItem>;
+  
+  // Permission checking
+  canUserEditList(userId: string, listId: string): Promise<boolean>;
   
   // Reminder operations
   getReminders(userId: string): Promise<Reminder[]>;
@@ -474,6 +479,11 @@ export class DatabaseStorage implements IStorage {
   async getListItems(listId: string): Promise<ListItem[]> {
     return await db.select().from(listItems).where(eq(listItems.listId, listId));
   }
+  
+  async getListItem(id: string): Promise<ListItem | undefined> {
+    const [item] = await db.select().from(listItems).where(eq(listItems.id, id));
+    return item;
+  }
 
   async toggleListItem(id: string): Promise<ListItem> {
     // Get the current item
@@ -497,6 +507,32 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return item;
+  }
+  
+  async canUserEditList(userId: string, listId: string): Promise<boolean> {
+    // Get the list
+    const [list] = await db
+      .select()
+      .from(smartLists)
+      .where(eq(smartLists.id, listId));
+    
+    if (!list) {
+      return false;
+    }
+    
+    // User is the owner
+    if (list.userId === userId) {
+      return true;
+    }
+    
+    // Check if user is a collaborator with edit permissions
+    const collaborators = list.collaborators as string[] || [];
+    if (collaborators.includes(userId)) {
+      // If user is a collaborator, check the shareMode
+      return list.shareMode === 'edit';
+    }
+    
+    return false;
   }
 
   // Reminder operations

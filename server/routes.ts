@@ -3937,6 +3937,16 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   app.post("/api/list-items", async (req, res) => {
     try {
       const itemData = insertListItemSchema.parse(req.body);
+      const userId = req.user?.id || req.body.userId;
+      
+      // Check if user can edit this list
+      if (userId && itemData.listId) {
+        const canEdit = await storage.canUserEditList(userId, itemData.listId);
+        if (!canEdit) {
+          return res.status(403).json({ message: "You don't have permission to add items to this list" });
+        }
+      }
+      
       const item = await storage.createListItem(itemData);
       res.json(item);
     } catch (error: any) {
@@ -3948,6 +3958,19 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   app.patch("/api/list-items/:id", async (req, res) => {
     try {
       const updates = insertListItemSchema.partial().parse(req.body);
+      const userId = req.user?.id || req.body.userId;
+      
+      // Get the item to check permissions
+      if (userId) {
+        const existingItem = await storage.getListItem(req.params.id);
+        if (existingItem) {
+          const canEdit = await storage.canUserEditList(userId, existingItem.listId);
+          if (!canEdit) {
+            return res.status(403).json({ message: "You don't have permission to edit items in this list" });
+          }
+        }
+      }
+      
       const item = await storage.updateListItem(req.params.id, updates);
       res.json(item);
     } catch (error: any) {
@@ -3959,6 +3982,19 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   // Toggle list item completion
   app.patch("/api/list-items/:id/toggle", async (req, res) => {
     try {
+      const userId = req.user?.id || req.body.userId;
+      
+      // Get the item to check permissions
+      if (userId) {
+        const existingItem = await storage.getListItem(req.params.id);
+        if (existingItem) {
+          const canEdit = await storage.canUserEditList(userId, existingItem.listId);
+          if (!canEdit) {
+            return res.status(403).json({ message: "You don't have permission to edit items in this list" });
+          }
+        }
+      }
+      
       const item = await storage.toggleListItem(req.params.id);
       res.json(item);
     } catch (error: any) {
@@ -3969,6 +4005,19 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
 
   app.delete("/api/list-items/:id", async (req, res) => {
     try {
+      const userId = req.user?.id || req.body.userId;
+      
+      // Get the item to check permissions
+      if (userId) {
+        const existingItem = await storage.getListItem(req.params.id);
+        if (existingItem) {
+          const canEdit = await storage.canUserEditList(userId, existingItem.listId);
+          if (!canEdit) {
+            return res.status(403).json({ message: "You don't have permission to delete items from this list" });
+          }
+        }
+      }
+      
       await storage.deleteListItem(req.params.id);
       res.status(204).send();
     } catch (error: any) {
