@@ -4656,6 +4656,52 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // GabAI v76 - SDK 35 Configuration Fix
+  app.get("/gabai-v76.zip", (req, res) => {
+    try {
+      const zipPath = path.join(__dirname, "../dist/public/gabai-v76.zip");
+      console.log("📦 Serving GabAI v76 package from:", zipPath);
+      
+      if (!fs.existsSync(zipPath)) {
+        return res.status(404).send("GabAI v76 package not found");
+      }
+      
+      const stat = fs.statSync(zipPath);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="gabai-v76.zip"');
+      res.setHeader('Content-Length', stat.size);
+      
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving GabAI v76 package:', error);
+      res.status(500).send("Error downloading file");
+    }
+  });
+
+  // GabAI v75 - Editable Shared Lists & Checkbox Fixes
+  app.get("/gabai-v75.zip", (req, res) => {
+    try {
+      const zipPath = path.join(__dirname, "../dist/public/gabai-v75.zip");
+      console.log("📦 Serving GabAI v75 package from:", zipPath);
+      
+      if (!fs.existsSync(zipPath)) {
+        return res.status(404).send("GabAI v75 package not found");
+      }
+      
+      const stat = fs.statSync(zipPath);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="gabai-v75.zip"');
+      res.setHeader('Content-Length', stat.size);
+      
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving GabAI v75 package:', error);
+      res.status(500).send("Error downloading file");
+    }
+  });
+
   // GabAI v30 - Bulletproof Fixes: Blob-based camera + enhanced fetch shim
   app.get("/gabai-v30.zip", (req, res) => {
     try {
