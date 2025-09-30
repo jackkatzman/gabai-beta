@@ -3919,7 +3919,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
 
 
 
-  app.post("/api/smart-lists/join", async (req, res) => {
+  app.post("/api/smart-lists/join", jsonParser, async (req, res) => {
     try {
       const { shareCode, userId } = req.body;
       if (!shareCode || !userId) {
@@ -4027,7 +4027,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Share list endpoint
-  app.post("/api/smart-lists/:id/share", async (req, res) => {
+  app.post("/api/smart-lists/:id/share", jsonParser, async (req, res) => {
     try {
       const { id } = req.params;
       console.log('🔗 Sharing list with ID:', id);
@@ -4056,7 +4056,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Update share mode for a list
-  app.post("/api/smart-lists/:listId/share-mode", async (req, res) => {
+  app.post("/api/smart-lists/:listId/share-mode", jsonParser, async (req, res) => {
     try {
       const { listId } = req.params;
       const { shareMode } = req.body;
