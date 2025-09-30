@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabAi APK Downloads</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .download-list {
+            list-style: none;
+            padding: 0;
+        }
+        .download-item {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .download-item a {
+            background: #007bff;
+            color: white;
+            padding: 8px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .download-item a:hover {
+            background: #0056b3;
+        }
+        .version-info {
+            flex-grow: 1;
+        }
+        .version-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .version-desc {
+            color: #666;
+            font-size: 14px;
+        }
+        .highlight {
+            background: #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 GabAi APK Downloads</h1>
+    
+    <ul class="download-list">
+        <li class="download-item highlight">
+            <div class="version-info">
+                <div class="version-title">Version 80 (Latest)</div>
+                <div class="version-desc">Debug logging for list operations - Ready for testing</div>
+            </div>
+            <a href="/gabai-v80.zip" download>Download v80</a>
+        </li>
+        
+        <li class="download-item">
+            <div class="version-info">
+                <div class="version-title">Version 79</div>
+                <div class="version-desc">Fixed microphone/camera permissions</div>
+            </div>
+            <a href="/gabai-v79.zip" download>Download v79</a>
+        </li>
+        
+        <li class="download-item">
+            <div class="version-info">
+                <div class="version-title">Version 78</div>
+                <div class="version-desc">Previous version (broken permissions)</div>
+            </div>
+            <a href="/gabai-v78.zip" download>Download v78</a>
+        </li>
+    </ul>
+    
+    <div style="margin-top: 40px; padding: 20px; background: white; border-radius: 8px;">
+        <h2>📱 How to Build APK</h2>
+        <ol>
+            <li>Download the ZIP file above</li>
+            <li>Upload to VoltBuilder.com</li>
+            <li>Build for Android</li>
+            <li>Install the resulting APK on your device</li>
+        </ol>
+    </div>
+    
+    <script>
+        // Check if files are accessible
+        fetch('/gabai-v80.zip', { method: 'HEAD' })
+            .then(res => {
+                if (res.ok) {
+                    console.log('✅ v80 is available!');
+                } else {
+                    console.log('❌ v80 not found');
+                }
+            });
+    </script>
+</body>
+</html>

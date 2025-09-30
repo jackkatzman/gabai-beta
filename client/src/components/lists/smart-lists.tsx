@@ -1252,8 +1252,21 @@ const getSimpleCategory = (itemName: string): string => {
     // Always use production URL for sharing
     const url = `https://gabai.ai/shared/${shareCode}`;
     const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here: ${url}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    
+    // Check if we're in an APK (Android app)
+    const isAPK = typeof (window as any).cordova !== 'undefined' || 
+                  typeof (window as any).Capacitor !== 'undefined' ||
+                  (navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android'));
+    
+    if (isAPK) {
+      // Use intent URL for Android to open installed WhatsApp
+      const intentUrl = `intent://send?text=${encodeURIComponent(message)}#Intent;scheme=whatsapp;package=com.whatsapp;end`;
+      window.location.href = intentUrl;
+    } else {
+      // Use web URL for desktop/web
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   const shareViaSMS = (shareCode: string, listName: string) => {
@@ -1573,15 +1586,15 @@ const getSimpleCategory = (itemName: string): string => {
                           <h3 className="text-lg font-semibold">{list.name}</h3>
                           <Button
                             size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 touch-action-manipulation"
+                            variant="outline"
+                            className="min-h-[44px] min-w-[44px] p-2 touch-action-manipulation"
                             onClick={() => {
                               console.log("✏️ Edit button clicked for list:", list.id, list.name);
                               setEditingListId(list.id);
                               setEditListName(list.name);
                             }}
                           >
-                            <Edit3 className="h-3 w-3" />
+                            <Edit3 className="h-4 w-4" />
                           </Button>
                         </div>
                       )}
@@ -1600,7 +1613,7 @@ const getSimpleCategory = (itemName: string): string => {
                       {list.isShared ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="smart-list-button">
+                            <Button variant="outline" size="sm" className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation" style={{ touchAction: 'manipulation' }}>
                               <Share2 className="h-4 w-4 mr-1" />
                               Share
                             </Button>
@@ -1664,7 +1677,8 @@ const getSimpleCategory = (itemName: string): string => {
                             shareListMutation.mutate(list.id);
                           }}
                           disabled={shareListMutation.isPending}
-                          className="smart-list-button touch-action-manipulation"
+                          className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation"
+                          style={{ touchAction: 'manipulation' }}
                         >
                           <Share2 className="h-4 w-4 mr-1" />
                           {shareListMutation.isPending ? "..." : "Share"}
@@ -1676,7 +1690,8 @@ const getSimpleCategory = (itemName: string): string => {
                         variant="outline"
                         size="sm"
                         onClick={() => setListToDelete(list.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 smart-list-button"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 min-h-[44px] min-w-[44px] p-2 touch-action-manipulation"
+                        style={{ touchAction: 'manipulation' }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -1706,7 +1721,8 @@ const getSimpleCategory = (itemName: string): string => {
                         size="sm"
                         onClick={() => relabelListMutation.mutate(list.id)}
                         disabled={relabelListMutation.isPending}
-                        className="text-xs smart-list-button"
+                        className="text-xs min-h-[44px] min-w-[80px] px-3 py-2 touch-action-manipulation"
+                        style={{ touchAction: 'manipulation' }}
                       >
                         {relabelListMutation.isPending ? "..." : "Smart Name"}
                       </Button>
@@ -1717,7 +1733,8 @@ const getSimpleCategory = (itemName: string): string => {
                           variant="outline"
                           size="sm"
                           onClick={() => calculateListTotal(list)}
-                          className="text-xs text-blue-600 dark:text-blue-400 smart-list-button"
+                          className="text-xs text-blue-600 dark:text-blue-400 min-h-[44px] min-w-[100px] px-3 py-2 touch-action-manipulation"
+                          style={{ touchAction: 'manipulation' }}
                         >
                           Calculate Total
                         </Button>
