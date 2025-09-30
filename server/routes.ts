@@ -4751,6 +4751,29 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // GabAI v80 - Debug Logging for List Operations
+  app.get("/gabai-v80.zip", (req, res) => {
+    try {
+      const zipPath = path.join(__dirname, "../dist/public/gabai-v80.zip");
+      console.log("📦 Serving GabAI v80 package from:", zipPath);
+      
+      if (!fs.existsSync(zipPath)) {
+        return res.status(404).send("GabAI v80 package not found");
+      }
+      
+      const stat = fs.statSync(zipPath);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="gabai-v80.zip"');
+      res.setHeader('Content-Length', stat.size);
+      
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving GabAI v80 package:', error);
+      res.status(500).send("Error downloading file");
+    }
+  });
+
   // GabAI v78 - Share Mode Permissions & Icon Fixes
   app.get("/gabai-v78.zip", (req, res) => {
     try {
