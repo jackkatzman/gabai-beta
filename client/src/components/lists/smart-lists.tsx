@@ -1574,7 +1574,7 @@ const getSimpleCategory = (itemName: string): string => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 touch-action-manipulation"
                             onClick={() => {
                               console.log("✏️ Edit button clicked for list:", list.id, list.name);
                               setEditingListId(list.id);
@@ -1664,7 +1664,7 @@ const getSimpleCategory = (itemName: string): string => {
                             shareListMutation.mutate(list.id);
                           }}
                           disabled={shareListMutation.isPending}
-                          className="smart-list-button"
+                          className="smart-list-button touch-action-manipulation"
                         >
                           <Share2 className="h-4 w-4 mr-1" />
                           {shareListMutation.isPending ? "..." : "Share"}
