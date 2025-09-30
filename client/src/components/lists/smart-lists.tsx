@@ -252,12 +252,12 @@ const categoryIcons = {
 };
 
 const getCategoryIcon = (category: string) => {
-  // Handle "Other" or empty category
+  // Don't show icon for "Other" or empty category
   if (!category || category.toLowerCase() === 'other') {
-    return Package; // Use Package as default instead of Apple
+    return null;
   }
   const Icon = categoryIcons[category.toLowerCase() as keyof typeof categoryIcons];
-  return Icon || Package; // Use Package as fallback instead of Apple
+  return Icon || null; // Return null if no matching icon found
 };
 
 const getCategoryColor = (category: string) => {
@@ -523,10 +523,10 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
           </div>
         ) : (
           <div className="flex items-center w-full max-w-none min-w-0">
-            {/* Category Icon */}
+            {/* Category Icon - only show if icon exists */}
             {item.category && (() => {
               const Icon = getCategoryIcon(item.category);
-              return <Icon className={`h-5 w-5 flex-shrink-0 mr-3 ${getCategoryColor(item.category)}`} />;
+              return Icon ? <Icon className={`h-5 w-5 flex-shrink-0 mr-3 ${getCategoryColor(item.category)}`} /> : null;
             })()}
             
             {/* Quantity badge - before text */}
@@ -1883,10 +1883,10 @@ const getSimpleCategory = (itemName: string): string => {
                             <div key={category}>
                               <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between smart-list-category-header">
                                 <div className="flex items-center">
-                                  {/* Category Icon in Header */}
+                                  {/* Category Icon in Header - only show if icon exists */}
                                   {(() => {
                                     const Icon = getCategoryIcon(category);
-                                    return <Icon className={`h-4 w-4 mr-2 ${getCategoryColor(category)}`} />;
+                                    return Icon ? <Icon className={`h-4 w-4 mr-2 ${getCategoryColor(category)}`} /> : null;
                                   })()}
                                   <span className="mr-2">{category}</span>
                                   <Badge variant="secondary" className="text-xs">
