@@ -2449,7 +2449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", async (req, res) => {
+  app.post("/api/messages", jsonParser, async (req, res) => {
     try {
       const messageData = insertMessageSchema.parse(req.body);
       const message = await storage.createMessage(messageData);
@@ -2821,6 +2821,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(`🗑️ Removing item: "${item.name}" from "${item.listName}"`);
                   await storage.deleteListItem(item.id);
                 }
+              }
+            } else if (action.type === "create_list" && action.data?.listName) {
+              // Handle create_list action from AI
+              console.log('🆕 Creating list from AI:', action.data.listName, action.data.listType);
+              
+              try {
+                const newList = await storage.createSmartList({
+                  userId,
+                  name: action.data.listName,
+                  type: action.data.listType || "shopping",
+                  isShared: false,
+                  shareCode: null,
+                  shareMode: "view"
+                });
+                console.log('✅ Created new list:', newList.name, newList.type);
+              } catch (error) {
+                console.error('❌ Failed to create list:', error);
               }
             } else if (action.type === "add_to_list" && action.data?.items) {
               const lists = await storage.getSmartLists(userId);

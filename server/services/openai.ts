@@ -13,7 +13,7 @@ export interface AIResponse {
   content: string;
   suggestions?: string[];
   actions?: Array<{
-    type: "add_to_list" | "create_appointment" | "create_reminder" | "schedule_event" | "create_contact";
+    type: "add_to_list" | "create_list" | "create_appointment" | "create_reminder" | "schedule_event" | "create_contact";
     data: any;
   }>;
 }
@@ -265,6 +265,8 @@ Guidelines:
     - Be helpful, not pushy - only suggest when the user is actively seeking purchasing assistance
     - Links are automatically converted to affiliate URLs and shortened for clean appearance
 10. When choosing actions, consider the context:
+    - **CREATE NEW LIST**: "create a list", "make a new list", "start a list called" → "create_list" action
+      When user asks to create a new list, use the create_list action with the list name and type
     - Food items (chocolate, milk, bread, etc.) → "add_to_list" with "shopping" type
     - Shopping/buying items (buy chocolate, get milk, etc.) → "add_to_list" with "shopping" type
     - Home repairs/contractor work → "add_to_list" with "punch_list" type  
@@ -324,6 +326,20 @@ For disambiguation (when unclear if calendar event or reminder):
 {
   "content": "Would you like me to create a reminder? Or put it in your calendar?",
   "actions": []
+}
+
+For creating a new list:
+{
+  "content": "I'll create that list for you!",
+  "actions": [
+    {
+      "type": "create_list",
+      "data": {
+        "listName": "List name from user",
+        "listType": "shopping|punch_list|waiting_list|todo|closing_list|patient_list|case_list|lesson_list|menu_list|books|movies|travel|gifts"
+      }
+    }
+  ]
 }
 
 For list items:
