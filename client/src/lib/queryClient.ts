@@ -27,12 +27,12 @@ export async function apiRequest(
   console.log('📍 API request normalized:', url);
   
   // Detect if running as APK (Cordova/Capacitor or WebView)
-  // Note: APK loads from https://gabai.ai, NOT file://
+  const isFileProtocol = window.location.protocol === 'file:';
   const isCordova = typeof (window as any).cordova !== 'undefined';
   const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
   const isWebView = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
   const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
-  const isAPK = isCordova || isCapacitor || isWebView || isVoltBuilder;
+  const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
   
   if (isAPK) {
     console.log('📱 APK detected:', { isCordova, isCapacitor, isWebView, isVoltBuilder });
@@ -98,6 +98,13 @@ export async function apiRequest(
     clearTimeout(timeoutId);
   } catch (error: any) {
     clearTimeout(timeoutId);
+    console.error(`❌ API request failed to ${url}:`, error);
+    
+    // Show user-friendly error message
+    if (typeof (window as any).showToast === 'function') {
+      (window as any).showToast(`Connection error: ${error.message || 'Please check your internet'}`);
+    }
+    
     if (error.name === 'AbortError') {
       throw new Error(`Request timeout after ${timeoutMs/1000} seconds`);
     }
@@ -147,12 +154,12 @@ export const getQueryFn: <T>(options: {
     console.log('📍 Query normalized URL:', url);
     
     // Detect if running as APK (Cordova/Capacitor or WebView)
-    // Note: APK loads from https://gabai.ai, NOT file://
+    const isFileProtocol = window.location.protocol === 'file:';
     const isCordova = typeof (window as any).cordova !== 'undefined';
     const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
     const isWebView = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
     const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
-    const isAPK = isCordova || isCapacitor || isWebView || isVoltBuilder;
+    const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
     
     if (isAPK) {
       console.log('📱 APK detected in query:', { isCordova, isCapacitor, isWebView, isVoltBuilder });
