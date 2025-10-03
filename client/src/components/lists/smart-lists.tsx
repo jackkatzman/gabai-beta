@@ -1861,6 +1861,9 @@ const getSimpleCategory = (itemName: string): string => {
                 <div className="space-y-4 px-4">
                   {/* Add Item Section */}
                   <div className="p-4 bg-gray-50/30 dark:bg-gray-800/30 smart-list-input-container w-full">
+                    {/* Check if user can add items */}
+                    {list.userId === user.id || list.shareMode === 'edit' ? (
+                    <>
                     {/* Main input row */}
                     <div className="flex items-center space-x-3 mb-4 w-full">
                       <Input
@@ -2022,6 +2025,13 @@ const getSimpleCategory = (itemName: string): string => {
                             textAlign: 'left'
                           }}
                         />
+                      </div>
+                    )}
+                    </>
+                    ) : (
+                      <div className="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">
+                        <Circle className="h-5 w-5 mr-2" />
+                        <span>View Only - You cannot add items to this list</span>
                       </div>
                     )}
                   </div>
