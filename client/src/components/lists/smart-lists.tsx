@@ -1731,34 +1731,56 @@ const getSimpleCategory = (itemName: string): string => {
                             
                             <DropdownMenuSeparator />
                             
-                            <DropdownMenuLabel className="text-xs text-gray-500">Share Mode</DropdownMenuLabel>
-                            <DropdownMenuItem 
-                              onClick={(e) => {
-                                e.preventDefault();
-                                updateShareModeMutation.mutate({ 
-                                  listId: list.id, 
-                                  shareMode: list.shareMode === 'edit' ? 'view' : 'edit' 
-                                });
-                              }}
-                              className="flex items-center justify-between"
-                            >
-                              <span className="flex items-center">
-                                {list.shareMode === 'edit' ? (
-                                  <>
-                                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                                    Can Edit
-                                  </>
-                                ) : (
-                                  <>
-                                    <Circle className="h-4 w-4 mr-2" />
-                                    View Only
-                                  </>
-                                )}
-                              </span>
-                              <span className="text-xs text-gray-400 ml-2">
-                                {list.shareMode === 'edit' ? 'Click for View Only' : 'Click for Can Edit'}
-                              </span>
-                            </DropdownMenuItem>
+                            {/* Only show permission toggle for list owner */}
+                            {list.userId === user.id ? (
+                              <>
+                                <DropdownMenuLabel className="text-xs text-gray-500">Share Mode</DropdownMenuLabel>
+                                <DropdownMenuItem 
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    updateShareModeMutation.mutate({ 
+                                      listId: list.id, 
+                                      shareMode: list.shareMode === 'edit' ? 'view' : 'edit' 
+                                    });
+                                  }}
+                                  className="flex items-center justify-between"
+                                >
+                                  <span className="flex items-center">
+                                    {list.shareMode === 'edit' ? (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                        Can Edit
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Circle className="h-4 w-4 mr-2" />
+                                        View Only
+                                      </>
+                                    )}
+                                  </span>
+                                  <span className="text-xs text-gray-400 ml-2">
+                                    {list.shareMode === 'edit' ? 'Click for View Only' : 'Click for Can Edit'}
+                                  </span>
+                                </DropdownMenuItem>
+                              </>
+                            ) : (
+                              <>
+                                <DropdownMenuLabel className="text-xs text-gray-500">Permissions</DropdownMenuLabel>
+                                <DropdownMenuItem disabled className="flex items-center opacity-60">
+                                  {list.shareMode === 'edit' ? (
+                                    <>
+                                      <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                      <span>You can edit this list</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Circle className="h-4 w-4 mr-2" />
+                                      <span>View only (ask owner for edit access)</span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
@@ -2050,13 +2072,21 @@ const getSimpleCategory = (itemName: string): string => {
                                 strategy={verticalListSortingStrategy}
                               >
                                 <div className="space-y-3">
-                                  {sortedItems.map((item) => (
+                                  {sortedItems.map((item) => {
+                                    // Check if user can edit this list
+                                    const canEdit = list.userId === user.id || list.shareMode === 'edit';
+                                    
+                                    return (
                                     <SortableItem
                                       key={item.id}
                                       item={item}
-                                      onToggle={() => toggleItemMutation.mutate(item.id)}
-                                      onDelete={() => deleteItemMutation.mutate(item.id)}
+                                      onToggle={() => canEdit ? toggleItemMutation.mutate(item.id) : toast({ title: "View Only", description: "You don't have permission to edit this list" })}
+                                      onDelete={() => canEdit ? deleteItemMutation.mutate(item.id) : toast({ title: "View Only", description: "You don't have permission to edit this list" })}
                                       onEdit={(id, name, category, amount, quantity, unit) => {
+                                        if (!canEdit) {
+                                          toast({ title: "View Only", description: "You don't have permission to edit this list" });
+                                          return;
+                                        }
                                         if (editingItem?.id === id) {
                                           // Save or cancel editing
                                           if (name !== item.name || category !== (item.category || "Other") || amount !== (item.amount ? formatCurrency(item.amount, item.currency || "USD") : "") ||
@@ -2075,7 +2105,8 @@ const getSimpleCategory = (itemName: string): string => {
                                       categories={list.categories || ["Other"]}
                                       isEditing={editingItem?.id === item.id}
                                     />
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               </SortableContext>
                             </div>
