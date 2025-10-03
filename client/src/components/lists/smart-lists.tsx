@@ -1295,101 +1295,96 @@ const getSimpleCategory = (itemName: string): string => {
     });
   };
 
-  const shareViaWhatsApp = (shareCode: string, listName: string) => {
+  const shareViaWhatsApp = async (shareCode: string, listName: string) => {
     // Always use production URL for sharing
     const url = `https://gabai.ai/shared/${shareCode}`;
-    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here: ${url}`;
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi. You can view and collaborate here:`;
     
     // Use native share on mobile if available
     if (CordovaDirect.isAvailable()) {
-      console.log("📱 Using native WhatsApp share");
-      CordovaDirect.shareViaWhatsApp(
-        message,
-        null,
-        url,
-        () => {
-          console.log("✅ WhatsApp share success");
-          toast({
-            title: "Shared!",
-            description: "List shared via WhatsApp",
-          });
-        },
-        (err) => {
-          console.error("WhatsApp share failed:", err);
-          // Fallback to web method
-          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-          window.open(whatsappUrl, '_blank');
-        }
-      );
+      console.log("📱 Using native share menu");
+      const shared = await CordovaDirect.shareNative({
+        message: message,
+        subject: `${listName} - GabAi List`,
+        url: url,
+        chooserTitle: "Share via WhatsApp"
+      });
+      
+      if (shared) {
+        toast({
+          title: "Shared!",
+          description: "List shared successfully",
+        });
+      } else {
+        // Fallback to web method
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + " " + url)}`;
+        window.open(whatsappUrl, '_blank');
+      }
     } else {
       // Use web URL for desktop/web
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + " " + url)}`;
       window.open(whatsappUrl, '_blank');
     }
   };
 
-  const shareViaSMS = (shareCode: string, listName: string) => {
+  const shareViaSMS = async (shareCode: string, listName: string) => {
     // Always use production URL for sharing
     const url = `https://gabai.ai/shared/${shareCode}`;
-    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi: ${url}`;
+    const message = `Hey! I'm sharing my "${listName}" list with you via GabAi:`;
     
     // Use native share on mobile if available
     if (CordovaDirect.isAvailable()) {
-      console.log("📱 Using native SMS share");
-      CordovaDirect.shareViaSMS(
-        message,
-        null,
-        () => {
-          console.log("✅ SMS share success");
-          toast({
-            title: "Shared!",
-            description: "List shared via SMS",
-          });
-        },
-        (err) => {
-          console.error("SMS share failed:", err);
-          // Fallback to web method
-          const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
-          window.location.href = smsUrl;
-        }
-      );
+      console.log("📱 Using native share menu for SMS");
+      const shared = await CordovaDirect.shareNative({
+        message: message,
+        subject: `${listName} - GabAi List`,
+        url: url,
+        chooserTitle: "Share via SMS"
+      });
+      
+      if (shared) {
+        toast({
+          title: "Shared!",
+          description: "List shared successfully",
+        });
+      } else {
+        // Fallback to web method
+        const smsUrl = `sms:?body=${encodeURIComponent(message + " " + url)}`;
+        window.location.href = smsUrl;
+      }
     } else {
       // Use location.href for better compatibility on mobile
-      const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+      const smsUrl = `sms:?body=${encodeURIComponent(message + " " + url)}`;
       window.location.href = smsUrl;
     }
   };
 
-  const shareViaEmail = (shareCode: string, listName: string) => {
+  const shareViaEmail = async (shareCode: string, listName: string) => {
     // Always use production URL for sharing
     const url = `https://gabai.ai/shared/${shareCode}`;
     const subject = `${listName} - Shared List`;
-    const body = `Hi there!\n\nI'm sharing my "${listName}" list with you through GabAi. You can view and collaborate on this list by clicking the link below:\n\n${url}\n\nBest regards!`;
+    const body = `Hi there!\n\nI'm sharing my "${listName}" list with you through GabAi.\n\nYou can view and collaborate on this list by clicking the link below:\n${url}\n\nBest regards!`;
     
     // Use native share on mobile if available
     if (CordovaDirect.isAvailable()) {
-      console.log("📱 Using native Email share");
-      CordovaDirect.shareViaEmail(
-        body,
-        subject,
-        null,
-        null,
-        null,
-        null,
-        () => {
-          console.log("✅ Email share success");
-          toast({
-            title: "Shared!",
-            description: "List shared via Email",
-          });
-        },
-        (err) => {
-          console.error("Email share failed:", err);
-          // Fallback to web method
-          const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.location.href = emailUrl;
-        }
-      );
+      console.log("📱 Using native share menu for Email");
+      const shared = await CordovaDirect.shareNative({
+        message: body,
+        subject: subject,
+        url: "",  // URL already included in body
+        chooserTitle: "Share via Email"
+      });
+      
+      if (shared) {
+        toast({
+          title: "Shared!",
+          description: "List shared successfully",
+        });
+      } else {
+        // Fallback to web method
+        const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = emailUrl;
+      }
     } else {
       // Use location.href for better compatibility
       const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
