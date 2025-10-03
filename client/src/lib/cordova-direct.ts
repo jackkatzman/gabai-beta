@@ -438,6 +438,47 @@ export const CordovaDirect = {
     });
   },
   
+  // Share using native social sharing plugin
+  async shareNative(options: {
+    message?: string;
+    subject?: string;
+    url?: string;
+    chooserTitle?: string;
+  }): Promise<boolean> {
+    console.log('📱 Attempting native share with options:', options);
+    
+    const win = window as any;
+    const socialSharing = win.plugins?.socialsharing;
+    
+    if (!socialSharing) {
+      console.log('❌ Social sharing plugin not available');
+      return false;
+    }
+    
+    return new Promise((resolve) => {
+      try {
+        // Use share method for broader compatibility
+        socialSharing.share(
+          options.message || '',
+          options.subject || 'GabAi List',
+          null, // files
+          options.url || '',
+          () => {
+            console.log('✅ Native share completed');
+            resolve(true);
+          },
+          (error: any) => {
+            console.error('❌ Native share failed:', error);
+            resolve(false);
+          }
+        );
+      } catch (error) {
+        console.error('❌ Exception during native share:', error);
+        resolve(false);
+      }
+    });
+  },
+  
   // Helper: Convert image file path to Blob
   async fileToImageBlob(path: string, originalFile?: any): Promise<Blob> {
     return new Promise((resolve, reject) => {

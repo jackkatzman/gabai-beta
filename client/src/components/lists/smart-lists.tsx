@@ -1047,55 +1047,63 @@ const getSimpleCategory = (itemName: string): string => {
     }
   };
 
-  // Share list mutation - Fixed with mobile share support
+  // Share list mutation - Enhanced native sharing for APK
   const shareListMutation = useMutation({
     mutationFn: async (listId: string) => {
       console.log("🔗 Attempting to share list:", listId);
       try {
         const result = await api.shareList(listId);
         console.log("✅ List shared successfully:", result);
-        return result;
+        return { ...result, listId };
       } catch (error) {
         console.error("❌ Failed to share list:", error);
         throw error;
       }
     },
-    onSuccess: (data, listId) => {
+    onSuccess: async (data) => {
       console.log("🎉 Share mutation success, shareCode:", data.shareCode);
       setShareCode(data.shareCode);
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       
       const shareUrl = `https://gabai.ai/shared/${data.shareCode}`;
-      const listName = lists.find(l => l.id === listId)?.name || "list";
-      const message = `Check out my "${listName}" list on GabAi: ${shareUrl}`;
+      const listName = lists.find(l => l.id === data.listId)?.name || "list";
+      const message = `Check out my "${listName}" list on GabAi!`;
       
-      // Check for social sharing plugin (mobile)
-      const socialSharing = (window as any).plugins?.socialsharing;
-      const isAPK = typeof (window as any).cordova !== 'undefined' || 
-                    typeof (window as any).Capacitor !== 'undefined';
+      // Try native sharing first for mobile
+      const isAPK = window.location.protocol === 'file:' || 
+                    typeof (window as any).cordova !== 'undefined' || 
+                    typeof (window as any).Capacitor !== 'undefined' ||
+                    (window as any).IS_VOLTBUILDER_APK;
       
-      if (isAPK && socialSharing?.shareWithOptions) {
-        // Use native social sharing on mobile
-        console.log("📱 Using native social sharing");
-        socialSharing.shareWithOptions(
-          { 
-            message: message,
-            url: shareUrl,
-            chooserTitle: 'Share your list'
-          },
-          () => console.log("✅ Shared successfully"),
-          (error: any) => {
-            console.error("❌ Share error:", error);
-            // Fall back to clipboard
-            copyShareLink(data.shareCode);
-            toast({
-              title: "List shared!",
-              description: "Link copied to clipboard. Paste anywhere to share.",
-            });
-          }
-        );
+      if (isAPK) {
+        console.log("📱 Detected APK environment, attempting native share");
+        
+        // Import CordovaDirect dynamically
+        const { CordovaDirect } = await import('@/lib/cordova-direct');
+        const shared = await CordovaDirect.shareNative({
+          message: message,
+          subject: `GabAi List: ${listName}`,
+          url: shareUrl,
+          chooserTitle: 'Share your GabAi list'
+        });
+        
+        if (shared) {
+          toast({
+            title: "List shared!",
+            description: "Your list has been shared successfully.",
+          });
+        } else {
+          // Fallback to clipboard if native share fails
+          console.log("📋 Native share unavailable, using clipboard");
+          copyShareLink(data.shareCode);
+          toast({
+            title: "List shared!",
+            description: "Link copied to clipboard. Paste anywhere to share.",
+          });
+        }
       } else {
-        // Use clipboard on web/fallback
+        // Use clipboard on web
+        console.log("🌐 Web environment, using clipboard");
         copyShareLink(data.shareCode);
         toast({
           title: "List shared!",
