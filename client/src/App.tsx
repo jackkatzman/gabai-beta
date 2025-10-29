@@ -122,6 +122,7 @@ function AppContent() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/landing" component={LandingPage} />
       <Route path="/sms-compliance" component={SMSCompliancePage} />
+      <Route path="/shared/:shareCode" component={SharedListPage} />
       
       {/* AuthReady Gate: Show loading while authentication is settling */}
       {!authReady && (
@@ -145,7 +146,6 @@ function AppContent() {
           <Route path="/dev-test" component={DevTestPage} />
           <Route path="/cordova-test" component={CordovaTestPage} />
           <Route path="/simple-login" component={SimpleAuthPage} />
-          <Route path="/shared/:listId" component={SharedListPage} />
           <Route path="/files" component={LocalFilesPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/contacts" component={ContactsPage} />
