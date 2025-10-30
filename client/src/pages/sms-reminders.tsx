@@ -335,10 +335,57 @@ export function SMSRemindersPage() {
               </div>
             )}
 
+            {/* Phone Number Input - Now visible if no contact selected */}
+            {!selectedContact && (
+              <Input
+                type="tel"
+                placeholder="Phone number (e.g., +1234567890)"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="h-14 text-base border-gray-200 focus:border-blue-500"
+                data-testid="input-phone-number"
+              />
+            )}
+
+            {/* Voice/SMS Toggle */}
+            <div className="flex gap-2">
+              <Button
+                variant={reminderType === 'voice' ? 'default' : 'outline'}
+                onClick={() => setReminderType('voice')}
+                className="flex-1 h-12"
+              >
+                📞 Voice Call
+              </Button>
+              <Button
+                variant={reminderType === 'sms' ? 'default' : 'outline'}
+                onClick={() => setReminderType('sms')}
+                className="flex-1 h-12"
+              >
+                💬 Text Message
+              </Button>
+            </div>
+
+            {/* Consent Checkbox - Now visible in main form */}
+            <div className="flex items-start space-x-2 mb-4">
+              <Checkbox 
+                id="consent-main" 
+                checked={smsConsent}
+                onCheckedChange={(checked) => setSmsConsent(checked as boolean)}
+                data-testid="checkbox-consent-main"
+                className="mt-1"
+              />
+              <Label 
+                htmlFor="consent-main" 
+                className="text-xs font-normal cursor-pointer text-gray-600 dark:text-gray-400"
+              >
+                I consent to receive automated {reminderType === 'voice' ? 'voice calls' : 'SMS messages'} at the number provided. Message & data rates may apply.
+              </Label>
+            </div>
+
             <Button 
               onClick={handleScheduleReminder}
-              disabled={createReminderMutation.isPending || updateReminderMutation.isPending}
-              className="w-full h-14 text-base bg-blue-600 hover:bg-blue-700"
+              disabled={createReminderMutation.isPending || updateReminderMutation.isPending || !smsConsent}
+              className="w-full h-14 text-base bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               data-testid="button-schedule-reminder"
             >
               {createReminderMutation.isPending || updateReminderMutation.isPending ? (
@@ -347,7 +394,7 @@ export function SMSRemindersPage() {
                   {editingReminder ? 'Updating...' : 'Scheduling...'}
                 </span>
               ) : (
-                editingReminder ? 'Update Reminder' : 'Set Reminder'
+                !smsConsent ? 'Please accept consent to continue' : (editingReminder ? 'Update Reminder' : 'Set Reminder')
               )}
             </Button>
 
