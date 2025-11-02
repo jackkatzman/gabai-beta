@@ -718,19 +718,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Decode the Base64 token (same format as SMS verification creates)
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          const { userId, timestamp } = decoded;
+          const { userId, timestamp, phone, authMethod } = decoded;
           
           if (!userId) {
             console.log('❌ Invalid Bearer token: missing userId');
             return res.status(401).json({ message: "Invalid token" });
           }
           
-          // Check token age (optional - tokens don't expire for now)
+          // CRITICAL: Enforce strict token expiry for SMS auth (24 hours max)
           const tokenAge = Date.now() - timestamp;
-          const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+          const maxAge = 24 * 60 * 60 * 1000; // 24 hours - force re-authentication daily
           if (tokenAge > maxAge) {
-            console.log('❌ Bearer token expired');
-            return res.status(401).json({ message: "Token expired" });
+            console.log('❌ Bearer token expired - must re-authenticate via SMS');
+            // Clear the expired token from cookies
+            res.clearCookie('gabai_token');
+            return res.status(401).json({ message: "Session expired. Please sign in again with SMS." });
           }
           
           // Get user from database
@@ -738,6 +740,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!user) {
             console.log('❌ Bearer token user not found:', userId);
             return res.status(401).json({ message: "User not found" });
+          }
+          
+          // Validate that this is a phone-verified user (not a demo/test user)
+          // Must have either phone in token OR authMethod = 'sms' for new tokens
+          if (authMethod !== 'sms' && !(user as any).phone && !phone) {
+            console.log('❌ Token does not have valid SMS authentication');
+            return res.status(401).json({ message: "SMS authentication required. Please sign in with your phone number." });
           }
           
           console.log('✅ User authenticated via Bearer token:', (user as any).email || (user as any).phone);
@@ -2101,10 +2110,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log('✅ Existing SMS user found:', user.id);
             }
             
-            // Create mobile token for authentication
+            // Create mobile token for authentication with phone verification
             const tokenData = {
               userId: user.id,
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              phone: phone, // Include phone to validate SMS authentication
+              authMethod: 'sms' // Mark this as SMS-authenticated
             };
             const token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
             
