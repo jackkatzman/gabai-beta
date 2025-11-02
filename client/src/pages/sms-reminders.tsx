@@ -201,18 +201,30 @@ export function SMSRemindersPage() {
       }
     }
 
+    // TIMEZONE FIX: The datetime-local input gives us local time without timezone
+    // We need to ensure it's properly converted to UTC for storage
     const localDate = new Date(reminderDateTime);
+    
+    // Debug logging to track timezone conversion
+    console.log('📅 Creating reminder with timezone handling:', {
+      inputValue: reminderDateTime,
+      localDate: localDate.toString(),
+      localTimeString: localDate.toLocaleTimeString(),
+      utcISOString: localDate.toISOString(),
+      userTimezone: userTimezone,
+      currentTime: new Date().toString(),
+    });
     
     const reminderData = {
       userId: effectiveUserId,
       title: reminderText,
       description: selectedContact ? `Reminder for: ${selectedContact.name}` : '',
-      dueDate: localDate.toISOString(),
+      dueDate: localDate.toISOString(), // Stores in UTC
       smsEnabled: true,
       smsPhone: targetPhone,
-      reminderMinutes: 0, // Default to exact time
+      reminderMinutes: 0, // Default to exact time (send at the specified time)
       smsStatus: 'pending',
-      timezone: userTimezone,
+      timezone: userTimezone, // Store user's timezone for display purposes
       reminderType: reminderType,
     };
     

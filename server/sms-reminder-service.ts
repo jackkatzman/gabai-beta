@@ -124,9 +124,17 @@ export async function checkAndSendPendingReminders() {
     for (const reminder of pendingReminders) {
       // Calculate when to send the reminder
       const reminderTime = new Date(reminder.dueDate);
-      reminderTime.setMinutes(reminderTime.getMinutes() - (reminder.reminderMinutes || 15));
+      // TIMEZONE FIX: Use the exact reminderMinutes value (0 means send at exact time, not 15 minutes early)
+      const minutesBefore = reminder.reminderMinutes ?? 0; // Default to 0 (exact time) not 15
+      reminderTime.setMinutes(reminderTime.getMinutes() - minutesBefore);
 
-      console.log(`📱 Checking reminder "${reminder.title}": Due at ${reminder.dueDate}, Send at ${reminderTime.toISOString()}, Now: ${now.toISOString()}`);
+      console.log(`📱 Checking reminder "${reminder.title}":`, {
+        dueDate: reminder.dueDate,
+        sendTime: reminderTime.toISOString(),
+        currentTime: now.toISOString(),
+        minutesBefore: minutesBefore,
+        shouldSend: reminderTime <= now
+      });
 
       // If it's time to send the reminder
       if (reminderTime <= now) {
