@@ -23,7 +23,23 @@ export function useAuth() {
         throw new Error('No authentication token');
       }
       
-      return await api('/api/auth/user');
+      try {
+        const userData = await api('/api/auth/user');
+        return userData;
+      } catch (authError: any) {
+        // If token is invalid or expired, clear it and force re-authentication
+        if (authError.status === 401) {
+          console.log('🔓 Token invalid/expired, clearing and requiring SMS auth');
+          setToken(null);
+          // Clear all possible token storage locations
+          localStorage.removeItem('gabai_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('authToken');
+          sessionStorage.removeItem('gabai_token');
+          sessionStorage.removeItem('token');
+        }
+        throw authError;
+      }
     }
   });
 
