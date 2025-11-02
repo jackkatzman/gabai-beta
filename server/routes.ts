@@ -3313,6 +3313,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reminders", jsonParser, async (req, res) => {
     try {
       console.log('📝 Received reminder creation request:', req.body);
+      console.log('📝 User authenticated:', req.isAuthenticated() ? 'Yes' : 'No');
+      console.log('📝 User ID from request:', req.body.userId);
+      console.log('📝 User ID from session:', req.user?.id);
+      
+      // Validate user ID
+      if (!req.body.userId) {
+        console.error('❌ No userId provided in request');
+        return res.status(400).json({ 
+          message: "User ID is required",
+          error: "Missing userId field"
+        });
+      }
       
       // Convert dueDate string to Date object and ensure all required fields
       const bodyWithDate = {
@@ -3334,6 +3346,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log('📅 Prepared reminder data:', bodyWithDate);
+      console.log('📅 Reminder type:', bodyWithDate.reminderType);
+      console.log('📅 SMS enabled:', bodyWithDate.smsEnabled);
+      console.log('📅 Phone number:', bodyWithDate.smsPhone);
       
       try {
         const reminderData = insertReminderSchema.parse(bodyWithDate);

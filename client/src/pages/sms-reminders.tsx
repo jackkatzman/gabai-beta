@@ -32,13 +32,16 @@ export function SMSRemindersPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  // Create a demo user ID if not logged in
-  const effectiveUserId = user?.id || 'demo-user-' + (typeof window !== 'undefined' ? localStorage.getItem('demo-user-id') || Date.now() : Date.now());
+  // Use the actual user ID - require authentication
+  const effectiveUserId = user?.id;
   
-  // Store demo user ID for consistency
-  if (!user?.id && typeof window !== 'undefined' && !localStorage.getItem('demo-user-id')) {
-    localStorage.setItem('demo-user-id', effectiveUserId);
-  }
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user?.id) {
+      console.log('🔒 User not authenticated, redirecting to login');
+      window.location.href = '/api/auth/google';
+    }
+  }, [user]);
   
   const [reminderText, setReminderText] = useState("");
   const [reminderDateTime, setReminderDateTime] = useState("");
