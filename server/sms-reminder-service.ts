@@ -1,7 +1,9 @@
 import { db } from './db';
 import { reminders, users } from '@shared/schema';
 import { eq, and, lte, gte, or } from 'drizzle-orm';
-import { sendReminderSMS, makeReminderCall } from './services/sms';
+import { sendReminderSMS, makeReminderCall, twilioClient } from './services/sms';
+
+const TWILIO_FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
 // Convert UTC date to user's timezone for display
 function formatDateInTimezone(date: Date, timezone: string): string {
@@ -52,7 +54,7 @@ export async function sendSMSReminder(reminderId: string) {
       ? await makeReminderCall(
           reminder.smsPhone,
           reminder.title,
-          reminder.description
+          reminder.description || undefined
         )
       : await sendReminderSMS(
           reminder.smsPhone,

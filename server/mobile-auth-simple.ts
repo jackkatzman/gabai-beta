@@ -5,12 +5,12 @@ import { storage } from "./storage";
 export function setupSimpleMobileAuth(app: Express) {
   console.log('🚀 Setting up simplified mobile authentication');
 
-  // Mobile-specific login route that creates a demo user for VoltBuilder apps
+  // Mobile-specific login route that requires actual authentication
   app.post('/api/mobile/login', async (req, res) => {
     try {
       console.log('📱 Mobile login request received');
       console.log('📱 User agent:', req.get('User-Agent'));
-      console.log('📱 Device info:', req.body);
+      console.log('📱 Request body:', req.body);
       
       // Detect if this is from a VoltBuilder/Capacitor app
       const userAgent = req.get('User-Agent') || '';
@@ -23,37 +23,43 @@ export function setupSimpleMobileAuth(app: Express) {
         });
       }
 
-      // Create or get a demo user for mobile testing
-      let user;
-      try {
-        // Try to get existing demo user
-        user = await storage.getUserByEmail('demo@gabai.app');
-      } catch (error) {
-        // User doesn't exist, create one
-        console.log('📱 Creating user for mobile app');
-      }
+      // Require email from the mobile app (passed from Google OAuth or stored credentials)
+      const { email, idToken } = req.body;
       
-      if (!user) {
-        user = await storage.createUser({
-          name: 'GabAi Mobile User',
-          email: 'demo@gabai.app',
-          preferences: {
-            communicationStyle: 'friendly',
-            interests: ['technology', 'productivity']
-          },
-          onboardingCompleted: true // Skip onboarding for mobile demo
+      if (!email) {
+        return res.status(400).json({ 
+          error: 'Email is required for mobile login',
+          needsAuth: true
         });
-        console.log('✅ Demo user created:', user.id);
       }
 
-      // Set up the session manually
+      // Get the actual user by email
+      let user;
+      try {
+        user = await storage.getUserByEmail(email);
+        if (!user) {
+          // User doesn't exist, they need to authenticate first
+          return res.status(401).json({ 
+            error: 'User not found. Please sign in with Google first.',
+            needsAuth: true
+          });
+        }
+      } catch (error) {
+        console.error('📱 Error finding user:', error);
+        return res.status(401).json({ 
+          error: 'Authentication required',
+          needsAuth: true
+        });
+      }
+
+      // Set up the session for the actual user
       req.login(user, (err) => {
         if (err) {
           console.error('❌ Mobile session setup failed:', err);
           return res.status(500).json({ error: 'Session setup failed' });
         }
 
-        console.log('✅ Mobile user authenticated:', user.id);
+        console.log('✅ Mobile user authenticated:', user.id, user.email);
         
         // Force session save
         req.session.save((saveErr) => {
