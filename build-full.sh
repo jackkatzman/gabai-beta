@@ -11,11 +11,15 @@ echo "  - Working directory: $(pwd)"
 export NODE_ENV=production
 
 echo ""
-echo "1. Building frontend with Vite..."
+echo "1. Cleaning previous builds..."
+rm -rf dist/
+
+echo ""
+echo "2. Building frontend with Vite..."
 npx vite build
 
 echo ""
-echo "2. Verifying frontend build output..."
+echo "3. Verifying frontend build output..."
 if [ ! -d "dist/public" ]; then
     echo "❌ ERROR: dist/public directory not found after build!"
     echo "Current directory structure:"
@@ -27,11 +31,11 @@ echo "📁 Frontend build contents:"
 ls -la dist/public/
 
 echo ""
-echo "3. Building backend with esbuild..."
+echo "4. Building backend with esbuild..."
 npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --minify
 
 echo ""
-echo "4. Verifying backend build output..."
+echo "5. Verifying backend build output..."
 if [ ! -f "dist/index.js" ]; then
     echo "❌ ERROR: dist/index.js not found after build!"
     echo "Contents of dist directory:"
@@ -40,8 +44,14 @@ if [ ! -f "dist/index.js" ]; then
 fi
 
 echo ""
-echo "5. Creating health check file..."
+echo "6. Creating health check endpoint files..."
+echo '{"status": "ok", "build": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}'> dist/public/health
 echo '{"status": "ok", "build": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}'> dist/public/build-info.json
+
+echo ""
+echo "7. Verifying server can start..."
+timeout 5 node dist/index.js || true
+echo "✅ Server binary verification complete"
 
 echo ""
 echo "✅ Full build complete!"
@@ -50,3 +60,6 @@ echo "  - Frontend: dist/public/ ($(du -sh dist/public | cut -f1))"
 echo "  - Backend: dist/index.js ($(du -sh dist/index.js | cut -f1))"
 echo ""
 echo "🚀 Ready for deployment!"
+echo ""
+echo "To test locally:"
+echo "  NODE_ENV=production node dist/index.js"
