@@ -16,12 +16,18 @@ export function setupAuth(app: Express) {
   const isOnReplit = process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
   const shouldUseSecureCookies = isOnReplit; // Always secure on Replit since it's HTTPS
 
+  // Auto-detect production based on domain (more reliable than NODE_ENV)
+  const replitDomains = process.env.REPLIT_DOMAINS || '';
+  const isProduction = replitDomains.includes('gabai.ai') || 
+                       replitDomains === 'gabai.ai' ||
+                       process.env.NODE_ENV === 'production';
+  
   console.log('🍪 Cookie secure setting:', shouldUseSecureCookies);
   console.log('🌐 Environment:', process.env.NODE_ENV);
   console.log('🔗 Domains:', process.env.REPLIT_DOMAINS);
+  console.log('🎯 Auto-detected production:', isProduction);
 
   // Determine cookie domain based on environment
-  const isProduction = process.env.NODE_ENV === 'production';
   const cookieDomain = isProduction ? '.gabai.ai' : undefined; // Use .gabai.ai for production to work across subdomains
   
   console.log('🍪 Cookie domain setting:', cookieDomain || 'default (current domain)');
