@@ -51,7 +51,9 @@ export async function api(path: string, init: RequestInit = {}) {
     const res = await fetch(url, { 
       ...init, 
       headers: h,
-      credentials: 'include', // CRUCIAL for cookie-based sessions
+      // APK: Use 'omit' to match fetch() patch expectations (Bearer token in header, no cookies)
+      // Web: Use 'include' for cookie-based sessions
+      credentials: isAPK ? 'omit' : 'include',
       signal: controller.signal
     });
     

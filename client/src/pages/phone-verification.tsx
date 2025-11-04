@@ -120,14 +120,19 @@ export default function PhoneVerificationPage() {
         
         // Step 2: Persist token (uses platform-aware storage)
         console.log('📱 Saving token to secure storage...');
-        await setToken(token);  // Now async - saves to Capacitor Preferences on APK, localStorage on web
+        await setToken(token);  // Saves to localStorage (both web and APK)
         console.log('📱 Token saved successfully');
         
-        // Step 2.5: Trigger useAuth to re-check token (CRITICAL for APK persistence)
+        // Step 2.5: Ensure localStorage is flushed (critical for APK fetch() patch)
+        // The fetch() patch in index.html needs to read this token from localStorage
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+        console.log('📱 Token now available in localStorage for fetch() patch');
+        
+        // Step 2.6: Trigger useAuth to re-check token
         console.log('📱 Triggering auth state refresh...');
-        recheckToken();  // This updates hasToken state in useAuth
+        recheckToken();
 
-        // Step 3: Confirm token works with credentials: 'include' (api() handles this)
+        // Step 3: Confirm token works (api() will add Bearer header from localStorage)
         console.log('📱 Confirming authentication...');
         try {
           const me = await api('/api/auth/user');        
