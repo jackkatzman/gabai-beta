@@ -41,22 +41,51 @@ export async function api(path: string, init: RequestInit = {}) {
     console.log('🌐 Production/APK API request:', url);
   }
   
-  const res = await fetch(url, { 
-    ...init, 
-    headers: h,
-    credentials: 'include' // CRUCIAL for cookie-based sessions
-  });
-  if (res.status === 401) { 
-    // Use centralized unauthorized handler if available
-    const handleUnauthorized = getGlobalUnauthorizedHandler();
-    if (handleUnauthorized) {
-      await handleUnauthorized();
-    } else {
-      // Fallback if context not yet initialized
-      await setToken(null);
+  // Add timeout handling for APK requests
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 30000); // 30 second timeout for APK requests
+
+  try {
+    const res = await fetch(url, { 
+      ...init, 
+      headers: h,
+      credentials: 'include', // CRUCIAL for cookie-based sessions
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
+    
+    if (res.status === 401) { 
+      // Use centralized unauthorized handler if available
+      const handleUnauthorized = getGlobalUnauthorizedHandler();
+      if (handleUnauthorized) {
+        await handleUnauthorized();
+      } else {
+        // Fallback if context not yet initialized
+        await setToken(null);
+      }
+      location.hash = '#/login'; 
+      throw new Error('401'); 
     }
-    location.hash = '#/login'; 
-    throw new Error('401'); 
+    
+    if (!res.ok && res.status !== 401) {
+      const errorText = await res.text();
+      console.error('❌ API error response:', res.status, errorText);
+      throw new Error(`API error: ${res.status} - ${errorText || res.statusText}`);
+    }
+    
+    return res.headers.get('content-type')?.includes('json') ? res.json() : res.text();
+  } catch (error: any) {
+    clearTimeout(timeout);
+    
+    if (error.name === 'AbortError') {
+      console.error('❌ Request timeout after 30s:', url);
+      throw new Error('Request timed out. Please check your internet connection and try again.');
+    }
+    
+    console.error('❌ Fetch error:', error);
+    throw error;
   }
-  return res.headers.get('content-type')?.includes('json') ? res.json() : res.text();
 }
