@@ -84,14 +84,28 @@ export function SMSRemindersPage() {
   // Create reminder mutation
   const createReminderMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('🔵 Creating reminder with data:', data);
       const requestData = {
         ...data,
         userId: user?.id || data.userId
       };
+      console.log('🔵 Request data:', requestData);
+      
       const response = await apiRequest('/api/reminders', 'POST', requestData);
-      return await response.json();
+      console.log('🔵 Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        throw new Error(`Failed to create reminder: ${response.status} ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Reminder created successfully:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Mutation success callback, reminder:', data);
       queryClient.invalidateQueries({ queryKey: [`/api/reminders?userId=${effectiveUserId}`] });
       
       toast({
@@ -108,6 +122,7 @@ export function SMSRemindersPage() {
       setSelectedContact(null);
     },
     onError: (error) => {
+      console.error('❌ Mutation error:', error);
       toast({
         title: "Failed to Schedule",
         description: error.message,
