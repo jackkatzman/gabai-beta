@@ -49,18 +49,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.log("📱 Mobile environment detected - using standard Google authentication");
       }
       
-      // Get token from localStorage and send as Authorization header
-      const token = getToken();
-      const headers: HeadersInit = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log("🔑 Sending token with auth request");
-      }
-      
       // Regular authentication check for web environments
       const response = await fetch('/api/auth/user', {
-        credentials: 'include',
-        headers
+        credentials: 'include'
       });
       
       if (response.ok) {
@@ -82,7 +73,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("🔐 Initializing authentication...");
     
-    // Always try to fetch user - works for both OAuth (session cookies) and SMS (token-based)
+    // ChatGPT fix: Only fetch user if we have a token (prevent early 401s)
+    const token = getToken();
+    if (!token) {
+      console.log("❌ No token found - skipping user fetch");
+      setIsLoading(false);
+      return;
+    }
+    
     fetchUser();
   }, [authTrigger]); // Re-fetch when authTrigger changes
   

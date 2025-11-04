@@ -1,13 +1,14 @@
-// Platform-aware auth system - uses native storage for APK, localStorage for web
-import { setToken as secureSetToken, getToken as secureGetToken } from './secure-storage';
-import { getGlobalUnauthorizedHandler } from '@/contexts/AuthContext';
+// ChatGPT's simplified auth system - surgical fix for race conditions
+const TOKEN_KEY = 'gabai_token';
 
-export const setToken = secureSetToken;
-export const getToken = secureGetToken;
+export const setToken = (t: string | null) =>
+  t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY);
+
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
 
 export async function api(path: string, init: RequestInit = {}) {
   const h = new Headers(init.headers || {});
-  const t = await getToken();
+  const t = getToken();
   if (t) h.set('Authorization', `Bearer ${t}`);
   
   // CRITICAL FIX: Set Content-Type for JSON body
@@ -41,53 +42,15 @@ export async function api(path: string, init: RequestInit = {}) {
     console.log('🌐 Production/APK API request:', url);
   }
   
-  // Add timeout handling for APK requests
-  const controller = new AbortController();
-  const timeout = setTimeout(() => {
-    controller.abort();
-  }, 30000); // 30 second timeout for APK requests
-
-  try {
-    const res = await fetch(url, { 
-      ...init, 
-      headers: h,
-      // APK: Use 'omit' to match fetch() patch expectations (Bearer token in header, no cookies)
-      // Web: Use 'include' for cookie-based sessions
-      credentials: isAPK ? 'omit' : 'include',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeout);
-    
-    if (res.status === 401) { 
-      // Use centralized unauthorized handler if available
-      const handleUnauthorized = getGlobalUnauthorizedHandler();
-      if (handleUnauthorized) {
-        await handleUnauthorized();
-      } else {
-        // Fallback if context not yet initialized
-        await setToken(null);
-      }
-      location.hash = '#/login'; 
-      throw new Error('401'); 
-    }
-    
-    if (!res.ok && res.status !== 401) {
-      const errorText = await res.text();
-      console.error('❌ API error response:', res.status, errorText);
-      throw new Error(`API error: ${res.status} - ${errorText || res.statusText}`);
-    }
-    
-    return res.headers.get('content-type')?.includes('json') ? res.json() : res.text();
-  } catch (error: any) {
-    clearTimeout(timeout);
-    
-    if (error.name === 'AbortError') {
-      console.error('❌ Request timeout after 30s:', url);
-      throw new Error('Request timed out. Please check your internet connection and try again.');
-    }
-    
-    console.error('❌ Fetch error:', error);
-    throw error;
+  const res = await fetch(url, { 
+    ...init, 
+    headers: h,
+    credentials: 'include' // CRUCIAL for cookie-based sessions
+  });
+  if (res.status === 401) { 
+    setToken(null); 
+    location.hash = '#/login'; 
+    throw new Error('401'); 
   }
+  return res.headers.get('content-type')?.includes('json') ? res.json() : res.text();
 }

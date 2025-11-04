@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import SimpleAuthPage from "./pages/simple-auth";
 import React, { Component, type ReactNode } from "react";
 import { Switch, Route, useLocation, Router } from "wouter";
-import { useAuth, AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 import { UserProvider } from "./context/user-context";
 import HomePage from "./pages/home";
 import OnboardingPage from "./pages/onboarding";
@@ -285,15 +285,13 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Router hook={routerHook}>
-            <UserProvider>
-              <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100">
-                <AppContent />
-              </div>
-            </UserProvider>
-          </Router>
-        </AuthProvider>
+        <Router hook={routerHook}>
+          <UserProvider>
+            <div className="h-full font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100">
+              <AppContent />
+            </div>
+          </UserProvider>
+        </Router>
       </QueryClientProvider>
     </ErrorBoundary>
   );
