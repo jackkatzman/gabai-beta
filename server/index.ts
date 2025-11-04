@@ -183,11 +183,9 @@ app.get('/api/health', (req, res) => {
     // Only start the actual server if not in serverless environment
     if (process.env.NETLIFY !== 'true' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
 
-    // Start SMS reminder checking (every 1 minute) - disabled in Cloud Run
-    // Cloud Run doesn't support background intervals, use Cloud Scheduler instead
-    const isCloudRun = process.env.K_SERVICE || process.env.CLOUD_RUN_JOB;
-
-    if (!isCloudRun && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    // Start SMS reminder checking (every 1 minute)
+    // This runs in all environments including production
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
       const { checkAndSendPendingReminders } = await import('./sms-reminder-service');
 
       // Check immediately on startup
@@ -202,8 +200,6 @@ app.get('/api/health', (req, res) => {
 
       // Store interval for cleanup
       (global as any).smsInterval = smsInterval;
-    } else if (isCloudRun) {
-      console.log('☁️ Running on Cloud Run - SMS reminder interval disabled (use Cloud Scheduler instead)');
     } else {
       console.log('⚠️ SMS reminder service not started - Twilio credentials missing');
     }
