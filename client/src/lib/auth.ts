@@ -1,14 +1,13 @@
-// ChatGPT's simplified auth system - surgical fix for race conditions
-const TOKEN_KEY = 'gabai_token';
+// Platform-aware auth system - uses native storage for APK, localStorage for web
+import { setToken as secureSetToken, getToken as secureGetToken } from './secure-storage';
+import { getGlobalUnauthorizedHandler } from '@/contexts/AuthContext';
 
-export const setToken = (t: string | null) =>
-  t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY);
-
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const setToken = secureSetToken;
+export const getToken = secureGetToken;
 
 export async function api(path: string, init: RequestInit = {}) {
   const h = new Headers(init.headers || {});
-  const t = getToken();
+  const t = await getToken();
   if (t) h.set('Authorization', `Bearer ${t}`);
   
   // CRITICAL FIX: Set Content-Type for JSON body
@@ -48,7 +47,14 @@ export async function api(path: string, init: RequestInit = {}) {
     credentials: 'include' // CRUCIAL for cookie-based sessions
   });
   if (res.status === 401) { 
-    setToken(null); 
+    // Use centralized unauthorized handler if available
+    const handleUnauthorized = getGlobalUnauthorizedHandler();
+    if (handleUnauthorized) {
+      await handleUnauthorized();
+    } else {
+      // Fallback if context not yet initialized
+      await setToken(null);
+    }
     location.hash = '#/login'; 
     throw new Error('401'); 
   }

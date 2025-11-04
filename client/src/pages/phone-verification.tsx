@@ -11,6 +11,7 @@ import VerificationInput from '@/components/sms/verification-input';
 import { useLocation } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, setToken } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Module-level flag to prevent duplicate verification attempts (ChatGPT fix)
 let verifying = false;
@@ -23,6 +24,7 @@ export default function PhoneVerificationPage() {
   const [smsOptIn, setSmsOptIn] = useState(false);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { recheckToken } = useAuth();  // Get recheckToken to trigger auth state update after login
 
   // Send verification code mutation
   const sendCodeMutation = useMutation({
@@ -116,11 +118,14 @@ export default function PhoneVerificationPage() {
           throw new Error('No token received from server');
         }
         
-        // Step 2: Persist token
-        console.log('📱 Saving token...');
-        setToken(token);                                   
-        localStorage.setItem('gabai_token', token); // Double-ensure it's saved
-        await Promise.resolve();                         // flush microtask
+        // Step 2: Persist token (uses platform-aware storage)
+        console.log('📱 Saving token to secure storage...');
+        await setToken(token);  // Now async - saves to Capacitor Preferences on APK, localStorage on web
+        console.log('📱 Token saved successfully');
+        
+        // Step 2.5: Trigger useAuth to re-check token (CRITICAL for APK persistence)
+        console.log('📱 Triggering auth state refresh...');
+        recheckToken();  // This updates hasToken state in useAuth
 
         // Step 3: Confirm token works with credentials: 'include' (api() handles this)
         console.log('📱 Confirming authentication...');
