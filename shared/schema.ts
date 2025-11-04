@@ -100,7 +100,7 @@ export const reminders = pgTable("reminders", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  dueDate: timestamp("due_date").notNull(),
+  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
   completed: boolean("completed").default(false),
   recurring: text("recurring"), // daily, weekly, monthly
   category: text("category"),
@@ -108,13 +108,13 @@ export const reminders = pgTable("reminders", {
   smsEnabled: boolean("sms_enabled").default(false),
   smsPhone: text("sms_phone"), // Phone number to send SMS to
   smsSent: boolean("sms_sent").default(false),
-  smsSentAt: timestamp("sms_sent_at"),
+  smsSentAt: timestamp("sms_sent_at", { withTimezone: true }),
   smsStatus: text("sms_status"), // pending, sent, failed, delivered
   reminderMinutes: integer("reminder_minutes").default(15), // Minutes before due date to send SMS
   timezone: varchar("timezone").default("America/New_York"), // User's timezone for this reminder
   reminderType: text("reminder_type").default("sms"), // 'sms' or 'voice' - how to deliver the reminder
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const shortLinks = pgTable("short_links", {
