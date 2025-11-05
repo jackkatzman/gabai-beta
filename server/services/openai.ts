@@ -155,7 +155,7 @@ Format your response as JSON with content, suggestions, and actions fields`;
               type: "image_url",
               image_url: {
                 url: normalizeImageData(imageData),
-                detail: "low"
+                detail: "high"
               }
             }
           ]

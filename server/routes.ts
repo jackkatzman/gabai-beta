@@ -2485,12 +2485,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let imageData: string | undefined;
       const attachmentInfo: any[] = [];
       
+      console.log(`📎 Processing ${files?.length || 0} uploaded files`);
+      
       if (files && files.length > 0) {
         for (const file of files) {
+          console.log(`📄 File: ${file.originalname}, type: ${file.mimetype}, size: ${file.size} bytes`);
+          
           if (file.mimetype.startsWith('image/')) {
             // Convert first image to base64 for AI processing
             if (!imageData) {
               imageData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+              console.log(`📸 Image converted to base64 for AI vision (first ${imageData.substring(0, 50)}...)`);
             }
           }
           
@@ -2502,6 +2507,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+      
+      console.log(`🤖 Sending to AI with imageData: ${!!imageData}, attachments: ${attachmentInfo.length}`);
 
       const user = await storage.getUser(userId);
       if (!user) {

@@ -127,6 +127,34 @@ export function ChatInterface() {
   const handleSendMessage = (message: string, attachments?: File[]) => {
     if (sendMessageMutation.isPending || (!message.trim() && !attachments?.length)) return;
 
+    // Save attached files to localStorage for Files page
+    if (attachments && attachments.length > 0 && user) {
+      // Convert File objects to saved file format with data URLs
+      attachments.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // Re-read localStorage on each callback to avoid race condition
+          const savedFiles = localStorage.getItem(`gabai_files_${user.id}`);
+          const existingFiles = savedFiles ? JSON.parse(savedFiles) : [];
+          
+          const newFile = {
+            id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            filename: file.name,
+            type: file.type,
+            size: file.size,
+            url: reader.result as string,
+            createdAt: new Date().toISOString(),
+            source: 'chat'
+          };
+          
+          const updatedFiles = [...existingFiles, newFile];
+          localStorage.setItem(`gabai_files_${user.id}`, JSON.stringify(updatedFiles));
+          console.log('📁 File saved to Files page:', file.name);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     // Always add temporary user message to show immediately
     const tempMessage: any = {
       id: `temp-${Date.now()}`,
