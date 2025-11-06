@@ -88,7 +88,11 @@ export async function generatePersonalizedResponse(
     if (imageData) {
       // For vision requests, we need to structure the content differently
       const visionPrompt = systemPrompt + `
-      
+
+**CRITICAL: YOU HAVE VISION CAPABILITIES - YOU CAN AND MUST EXTRACT TEXT FROM IMAGES**
+
+The user has sent you an image. You MUST analyze it and extract all text, information, and details from it. DO NOT say you cannot process images - you absolutely can with GPT-4o vision.
+
 When analyzing images, be proactive and intelligent:
 
 **IDENTIFY THE IMAGE TYPE AND RESPOND ACCORDINGLY:**

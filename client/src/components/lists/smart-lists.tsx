@@ -1572,15 +1572,15 @@ const getSimpleCategory = (itemName: string): string => {
               {/* All Lists Tab */}
               <button
                 onClick={() => setActiveTab("all")}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all flex-shrink-0 ${
                   activeTab === "all"
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-medium"
                     : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
-                <ListOrdered className="h-4 w-4" />
-                <span className="text-sm">All Lists</span>
-                <Badge variant="secondary" className="text-xs ml-1">
+                <ListOrdered className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm whitespace-nowrap">All Lists</span>
+                <Badge variant="secondary" className="text-xs ml-1 flex-shrink-0">
                   {lists.length}
                 </Badge>
               </button>
@@ -1595,15 +1595,15 @@ const getSimpleCategory = (itemName: string): string => {
                   <button
                     key={list.id}
                     onClick={() => setActiveTab(list.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all flex-shrink-0 ${
                       isActive
                         ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-medium border-2 border-blue-300 dark:border-blue-600"
                         : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 flex-shrink-0" />
                     <span className="text-sm max-w-[200px] truncate">{list.name}</span>
-                    <Badge variant="secondary" className="text-xs ml-1">
+                    <Badge variant="secondary" className="text-xs ml-1 flex-shrink-0">
                       {list.items.filter(item => !item.completed).length}
                     </Badge>
                   </button>
