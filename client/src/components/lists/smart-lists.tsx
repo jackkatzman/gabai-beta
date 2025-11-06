@@ -1552,16 +1552,16 @@ const getSimpleCategory = (itemName: string): string => {
           <div className="px-4 py-2">
             <div className="relative">
               {/* Left Scroll Indicator */}
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 flex items-center">
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 flex items-center pointer-events-none">
                 <ChevronLeft className="h-4 w-4 text-gray-400" />
               </div>
               
               {/* Right Scroll Indicator */}
-              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 flex items-center justify-end">
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 flex items-center justify-end pointer-events-none">
                 <ChevronRight className="h-4 w-4 text-gray-400" />
               </div>
               
-              <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide scroll-smooth pb-2 px-8" 
+              <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide scroll-smooth pb-2 pl-10 pr-10" 
                    style={{ 
                      scrollbarWidth: 'none', 
                      msOverflowStyle: 'none',
