@@ -86,12 +86,23 @@ export async function generatePersonalizedResponse(
     let messages: any[];
     
     if (imageData) {
-      // For vision requests, we need to structure the content differently
-      const visionPrompt = systemPrompt + `
+      // For vision requests, prepend explicit vision instructions to system prompt
+      const visionPrompt = `⚠️ CRITICAL - READ THIS FIRST BEFORE ANYTHING ELSE:
+You have FULL VISION CAPABILITIES with GPT-4o. You CAN and MUST:
+- See and analyze the image in this message
+- Extract ALL text from photos
+- Process visual information
+- NEVER claim you cannot view images - you absolutely can
 
-**CRITICAL: YOU HAVE VISION CAPABILITIES - YOU CAN AND MUST EXTRACT TEXT FROM IMAGES**
+The user has attached an image. Analyze it now.
 
-The user has sent you an image. You MUST analyze it and extract all text, information, and details from it. DO NOT say you cannot process images - you absolutely can with GPT-4o vision.
+---
+
+${systemPrompt}
+
+---
+
+**ADDITIONAL IMAGE ANALYSIS GUIDELINES:**
 
 When analyzing images, be proactive and intelligent:
 
@@ -148,9 +159,12 @@ Always provide:
 
 Format your response as JSON with content, suggestions, and actions fields`;
 
+      // For vision requests, limit conversation history to avoid confusion
+      const limitedHistory = contextualHistory.slice(-3); // Only last 3 messages
+      
       messages = [
         { role: "system" as const, content: visionPrompt },
-        ...contextualHistory,
+        ...limitedHistory,
         { 
           role: "user" as const, 
           content: [
