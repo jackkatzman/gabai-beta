@@ -150,6 +150,10 @@ export function ChatInterface() {
           const updatedFiles = [...existingFiles, newFile];
           localStorage.setItem(`gabai_files_${user.id}`, JSON.stringify(updatedFiles));
           console.log('📁 File saved to Files page:', file.name);
+          
+          // Invalidate Files page cache so it shows new uploads
+          queryClient.invalidateQueries({ queryKey: ["/local-files", user.id] });
+          console.log('🔄 Files page cache invalidated');
         };
         reader.readAsDataURL(file);
       });
