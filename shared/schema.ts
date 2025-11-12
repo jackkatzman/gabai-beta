@@ -29,6 +29,11 @@ export const users = pgTable("users", {
   }>().default({}),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   timezone: varchar("timezone").default("America/New_York"), // User's timezone preference
+  // Subscription fields
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }), // When free trial expires
+  subscriptionStatus: varchar("subscription_status").default("trial"), // trial, active, cancelled, expired
+  subscriptionId: varchar("subscription_id"), // Stripe subscription ID
+  isPremium: boolean("is_premium").default(false), // Quick check for premium features
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -95,9 +100,30 @@ export const listItems = pgTable("list_items", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Groups for group reminders (premium feature)
+export const groups = pgTable("groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(), // Creator of the group
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Group members - who receives group reminders
+export const groupMembers = pgTable("group_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(), // Member's name
+  phone: text("phone").notNull(), // Phone number to send SMS to
+  invitedBy: varchar("invited_by").references(() => users.id), // Who added this member
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const reminders = pgTable("reminders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "set null" }), // If set, this is a group reminder sent to all group members
   title: text("title").notNull(),
   description: text("description"),
   dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
@@ -131,6 +157,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversations),
   smartLists: many(smartLists),
   reminders: many(reminders),
+  groups: many(groups),
 }));
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
@@ -168,9 +195,32 @@ export const remindersRelations = relations(reminders, ({ one }) => ({
     fields: [reminders.userId],
     references: [users.id],
   }),
+  group: one(groups, {
+    fields: [reminders.groupId],
+    references: [groups.id],
+  }),
 }));
 
 export const shortLinksRelations = relations(shortLinks, ({ one }) => ({
+}));
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  user: one(users, {
+    fields: [groups.userId],
+    references: [users.id],
+  }),
+  members: many(groupMembers),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupMembers.groupId],
+    references: [groups.id],
+  }),
+  inviter: one(users, {
+    fields: [groupMembers.invitedBy],
+    references: [users.id],
+  }),
 }));
 
 // Insert schemas
@@ -214,6 +264,17 @@ export const insertShortLinkSchema = createInsertSchema(shortLinks).omit({
   createdAt: true,
 });
 
+export const insertGroupSchema = createInsertSchema(groups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -235,6 +296,10 @@ export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
 export type ShortLink = typeof shortLinks.$inferSelect;
 export type InsertShortLink = z.infer<typeof insertShortLinkSchema>;
+export type Group = typeof groups.$inferSelect;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
+export type GroupMember = typeof groupMembers.$inferSelect;
+export type InsertGroupMember = z.infer<typeof insertGroupMemberSchema>;
 
 // Contacts table for business card storage
 export const contacts = pgTable("contacts", {
