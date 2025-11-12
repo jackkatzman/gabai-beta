@@ -59,7 +59,9 @@ import {
   insertMessageSchema,
   insertSmartListSchema,
   insertListItemSchema,
-  insertReminderSchema
+  insertReminderSchema,
+  insertGroupSchema,
+  insertGroupMemberSchema
 } from "@shared/schema";
 import multer from "multer";
 import ical from "ical-generator";
@@ -3461,6 +3463,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Support both GET and POST for Cloud Scheduler compatibility
   app.get("/api/reminders/check-and-send", handleCloudSchedulerRequest);
   app.post("/api/reminders/check-and-send", jsonParser, handleCloudSchedulerRequest);
+
+  // Group management routes
+  app.get("/api/groups", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      const groups = await storage.getGroups(userId);
+      res.json(groups);
+    } catch (error: any) {
+      console.error("Get groups error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/groups/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      const group = await storage.getGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      // Verify ownership
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      res.json(group);
+    } catch (error: any) {
+      console.error("Get group error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/groups", isAuthenticated, jsonParser, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      
+      // Check subscription status
+      const subscription = await storage.checkSubscriptionStatus(userId);
+      if (!subscription.isPremium) {
+        return res.status(403).json({ 
+          message: "Premium subscription required for group reminders",
+          trialEnded: subscription.trialEnded,
+          subscriptionStatus: subscription.subscriptionStatus
+        });
+      }
+      
+      const groupData = insertGroupSchema.parse({ ...req.body, userId });
+      const group = await storage.createGroup(groupData);
+      res.status(201).json(group);
+    } catch (error: any) {
+      console.error("Create group error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/groups/:id", isAuthenticated, jsonParser, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      // Verify ownership
+      const group = await storage.getGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updates = insertGroupSchema.partial().parse(req.body);
+      const updatedGroup = await storage.updateGroup(req.params.id, updates);
+      res.json(updatedGroup);
+    } catch (error: any) {
+      console.error("Update group error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/groups/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      // Verify ownership
+      const group = await storage.getGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteGroup(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Delete group error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Group member routes
+  app.get("/api/groups/:groupId/members", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      // Verify group ownership
+      const group = await storage.getGroup(req.params.groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const members = await storage.getGroupMembers(req.params.groupId);
+      res.json(members);
+    } catch (error: any) {
+      console.error("Get group members error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/groups/:groupId/members", isAuthenticated, jsonParser, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      // Verify group ownership
+      const group = await storage.getGroup(req.params.groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const memberData = insertGroupMemberSchema.parse({
+        ...req.body,
+        groupId: req.params.groupId,
+        invitedBy: userId
+      });
+      const member = await storage.addGroupMember(memberData);
+      res.status(201).json(member);
+    } catch (error: any) {
+      console.error("Add group member error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/groups/:groupId/members/:memberId", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      // Verify group ownership
+      const group = await storage.getGroup(req.params.groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      if (group.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.removeGroupMember(req.params.memberId);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Remove group member error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Subscription management routes
+  app.post("/api/subscription/start-trial", isAuthenticated, jsonParser, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      const { durationDays = 30 } = req.body;
+      const user = await storage.startTrial(userId, durationDays);
+      res.json({
+        success: true,
+        trialEndsAt: user.trialEndsAt,
+        subscriptionStatus: user.subscriptionStatus
+      });
+    } catch (error: any) {
+      console.error("Start trial error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/subscription/status", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      const status = await storage.checkSubscriptionStatus(userId);
+      res.json(status);
+    } catch (error: any) {
+      console.error("Check subscription status error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
 
   app.post("/api/sms/test", jsonParser, async (req, res) => {
     try {
