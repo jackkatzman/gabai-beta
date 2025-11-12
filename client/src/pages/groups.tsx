@@ -105,6 +105,27 @@ export default function GroupsPage() {
     },
   });
 
+  // Start trial mutation
+  const startTrialMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/subscription/start-trial", "POST", { durationDays: 30 });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/status"] });
+      toast({
+        title: "Success",
+        description: "Your 30-day free trial has started!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start trial",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Add member mutation
   const addMemberMutation = useMutation({
     mutationFn: async ({ groupId, data }: { groupId: string; data: { name: string; phone: string } }) => {
@@ -216,6 +237,11 @@ export default function GroupsPage() {
 
   const isPremium = (subscriptionStatus as any)?.isPremium || false;
   const trialEnded = (subscriptionStatus as any)?.trialEnded || false;
+  const trialEndsAt = (subscriptionStatus as any)?.trialEndsAt;
+  const subscriptionStatusValue = (subscriptionStatus as any)?.subscriptionStatus;
+  
+  // Calculate days remaining in trial
+  const daysRemaining = trialEndsAt ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
@@ -284,15 +310,67 @@ export default function GroupsPage() {
           </Dialog>
         </div>
 
+        {/* Subscription Status Card */}
+        {isPremium && subscriptionStatusValue === 'trial' && trialEndsAt && (
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Crown className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <h3 className="font-semibold text-green-900 dark:text-green-100">Free Trial Active</h3>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining • Expires {new Date(trialEndsAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
+                  $9/month after trial
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isPremium && subscriptionStatusValue === 'active' && (
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <Crown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">Premium Active</h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    You have full access to group reminders
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Premium Status Alert */}
         {!isPremium && (
           <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
             <Crown className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-900 dark:text-blue-100">
-              {trialEnded ? (
-                <>Your trial has ended. Subscribe to continue using group reminders at $9/month.</>
-              ) : (
-                <>Group reminders are a premium feature. Start your free trial to get started!</>
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-blue-900 dark:text-blue-100">
+                {trialEnded ? (
+                  <>Your trial has ended. Subscribe to continue using group reminders at $9/month.</>
+                ) : (
+                  <>Group reminders are a premium feature. Start your 30-day free trial to get started!</>
+                )}
+              </span>
+              {!trialEnded && (
+                <Button
+                  onClick={() => startTrialMutation.mutate()}
+                  disabled={startTrialMutation.isPending}
+                  size="sm"
+                  className="ml-4"
+                  data-testid="button-start-trial"
+                >
+                  {startTrialMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Start Free Trial
+                </Button>
               )}
             </AlertDescription>
           </Alert>
