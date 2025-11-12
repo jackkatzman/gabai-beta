@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronDown, MoreVertical, Edit2, Trash2, Users } from "lucide-react";
+import { ArrowLeft, MoreVertical, Edit2, Trash2, Users } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/navigation/bottom-nav";
@@ -16,16 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function SMSRemindersPage() {
   const { toast } = useToast();
@@ -50,6 +43,7 @@ export function SMSRemindersPage() {
   const [smsConsent, setSmsConsent] = useState(false);
   const [editingReminder, setEditingReminder] = useState<any>(null);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   
   // Get user's timezone
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -80,6 +74,12 @@ export function SMSRemindersPage() {
 
   // Filter to show only SMS-enabled reminders
   const smsReminders = (reminders as any[]).filter((r: any) => r.smsEnabled);
+
+  // Fetch groups for group reminders
+  const { data: groups = [] } = useQuery({
+    queryKey: ['/api/groups'],
+    enabled: !!effectiveUserId,
+  });
 
   // Create reminder mutation
   const createReminderMutation = useMutation({
@@ -120,6 +120,7 @@ export function SMSRemindersPage() {
       setReminderDateTime(now.toISOString().slice(0, 16));
       setEditingReminder(null);
       setSelectedContact(null);
+      setSelectedGroupId("");
     },
     onError: (error) => {
       console.error('❌ Mutation error:', error);
@@ -181,10 +182,11 @@ export function SMSRemindersPage() {
     }
 
     const targetPhone = selectedContact?.phone || phoneNumber;
-    if (!targetPhone) {
+    // Skip phone validation if group is selected
+    if (!targetPhone && !selectedGroupId) {
       toast({
-        title: "Phone Number Required",
-        description: "Please enter a phone number or select a contact",
+        title: "Recipient Required",
+        description: "Please enter a phone number, select a contact, or choose a group",
         variant: "destructive",
       });
       return;
@@ -233,14 +235,15 @@ export function SMSRemindersPage() {
     const reminderData = {
       userId: effectiveUserId,
       title: reminderText,
-      description: selectedContact ? `Reminder for: ${selectedContact.name}` : '',
+      description: selectedContact ? `Reminder for: ${selectedContact.name}` : (selectedGroupId ? 'Group reminder' : ''),
       dueDate: localDate.toISOString(), // Stores in UTC
       smsEnabled: true,
-      smsPhone: targetPhone,
+      smsPhone: targetPhone || null, // null for group reminders
       reminderMinutes: 0, // Default to exact time (send at the specified time)
       smsStatus: 'pending',
       timezone: userTimezone, // Store user's timezone for display purposes
       reminderType: reminderType,
+      groupId: selectedGroupId || null, // Add group ID if selected
     };
     
     if (editingReminder) {
@@ -255,8 +258,14 @@ export function SMSRemindersPage() {
     setReminderText(reminder.title);
     const localDate = new Date(reminder.dueDate);
     setReminderDateTime(localDate.toISOString().slice(0, 16));
-    setPhoneNumber(reminder.smsPhone);
+    setPhoneNumber(reminder.smsPhone || '');
     setReminderType(reminder.reminderType || 'voice');
+    // Restore group selection if editing a group reminder
+    setSelectedGroupId(reminder.groupId || '');
+    // Clear contact if editing a group reminder
+    if (reminder.groupId) {
+      setSelectedContact(null);
+    }
   };
 
   const handleContactPicker = async () => {
@@ -278,6 +287,8 @@ export function SMSRemindersPage() {
       if (contact) {
         setSelectedContact(contact);
         setPhoneNumber(contact.phone);
+        // Clear group selection when contact is picked
+        setSelectedGroupId('');
         toast({
           title: "Contact Selected",
           description: `Will send reminder to ${contact.name}`,
@@ -365,8 +376,8 @@ export function SMSRemindersPage() {
               </div>
             )}
 
-            {/* Phone Number Input - Now visible if no contact selected */}
-            {!selectedContact && (
+            {/* Phone Number Input - Now visible if no contact selected and no group selected */}
+            {!selectedContact && !selectedGroupId && (
               <Input
                 type="tel"
                 placeholder="Phone number (e.g., +1234567890)"
@@ -376,6 +387,38 @@ export function SMSRemindersPage() {
                 data-testid="input-phone-number"
               />
             )}
+
+            {/* Group Selection */}
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600 dark:text-gray-400">
+                Or send to a group (Premium)
+              </Label>
+              <Select 
+                value={selectedGroupId} 
+                onValueChange={(value) => {
+                  setSelectedGroupId(value);
+                  if (value) {
+                    setSelectedContact(null);
+                    setPhoneNumber("");
+                  }
+                }}
+              >
+                <SelectTrigger 
+                  className="h-14 text-base border-gray-200 focus:border-blue-500"
+                  data-testid="select-group"
+                >
+                  <SelectValue placeholder="Select a group (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No group</SelectItem>
+                  {(groups as any[]).map((group: any) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name} ({group.members?.length || 0} members)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Voice/SMS Toggle */}
             <div className="flex gap-2">
@@ -427,79 +470,6 @@ export function SMSRemindersPage() {
                 !smsConsent ? 'Please accept consent to continue' : (editingReminder ? 'Update Reminder' : 'Set Reminder')
               )}
             </Button>
-
-            {/* More Options Sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <button className="w-full text-center text-sm text-gray-500 hover:text-gray-700 py-2">
-                  More options
-                  <ChevronDown className="inline-block ml-1 h-4 w-4" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto">
-                <SheetHeader>
-                  <SheetTitle>Reminder Options</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-4 py-4">
-                  {/* Phone Number Input */}
-                  {!selectedContact && (
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+1234567890"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="mt-1"
-                        data-testid="input-phone-number"
-                      />
-                    </div>
-                  )}
-
-                  {/* Voice/SMS Toggle */}
-                  <div>
-                    <Label>Reminder Type</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        variant={reminderType === 'voice' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setReminderType('voice')}
-                        className="flex-1"
-                        data-testid="button-type-voice"
-                      >
-                        📞 Voice Call
-                      </Button>
-                      <Button
-                        variant={reminderType === 'sms' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setReminderType('sms')}
-                        className="flex-1"
-                        data-testid="button-type-sms"
-                      >
-                        💬 Text Message
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Consent Checkbox */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="consent" 
-                      checked={smsConsent}
-                      onCheckedChange={(checked) => setSmsConsent(checked as boolean)}
-                      data-testid="checkbox-consent"
-                    />
-                    <Label 
-                      htmlFor="consent" 
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      I consent to receive automated {reminderType === 'voice' ? 'voice call' : 'SMS text message'} reminders at this number from Booah LLC (GabAi Reminder App). Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe.
-                    </Label>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
           </div>
 
           {/* Clean Reminders List */}
