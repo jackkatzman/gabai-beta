@@ -1,5 +1,5 @@
 import { db } from './db';
-import { reminders, users } from '@shared/schema';
+import { reminders, users, groups, groupMembers } from '@shared/schema';
 import { eq, and, lte, gte, or } from 'drizzle-orm';
 import { sendReminderSMS, makeReminderCall, twilioClient } from './services/sms';
 
@@ -34,15 +34,113 @@ export async function sendSMSReminder(reminderId: string) {
       throw new Error('Reminder not found');
     }
 
-    if (!reminder.smsEnabled || !reminder.smsPhone) {
-      throw new Error('SMS not enabled or phone number not set');
-    }
-
     // Get the user's timezone (from reminder or user profile)
     const userTimezone = reminder.timezone || 'America/New_York';
     
     // Format the message with proper timezone display
     const formattedDate = formatDateInTimezone(new Date(reminder.dueDate), userTimezone);
+    
+    // Check if this is a group reminder
+    if (reminder.groupId) {
+      console.log(`📱 Sending group reminder for group: ${reminder.groupId}`);
+      
+      // Get group and user info
+      const [group] = await db.select().from(groups).where(eq(groups.id, reminder.groupId));
+      if (!group) {
+        throw new Error('Group not found');
+      }
+
+      const [user] = await db.select().from(users).where(eq(users.id, reminder.userId));
+      const senderName = user?.name || 'Someone';
+
+      // Get all group members
+      const members = await db.select().from(groupMembers).where(eq(groupMembers.groupId, reminder.groupId));
+      
+      if (members.length === 0) {
+        console.log(`⚠️ Group ${reminder.groupId} has no members`);
+        // Mark as sent with skipped status to prevent endless retries
+        await db
+          .update(reminders)
+          .set({
+            smsSent: true,
+            smsSentAt: new Date(),
+            smsStatus: 'skipped:no-members',
+          })
+          .where(eq(reminders.id, reminderId));
+        return { sid: 'no-members', messageId: 'no-members', success: true };
+      }
+
+      // Send SMS to each member with viral messaging
+      const results = [];
+      for (const member of members) {
+        try {
+          // Viral message format: "From [sender]: [reminder]. Get GabAI at gabai.ai"
+          const viralMessage = `From ${senderName}: ${reminder.title} - Due: ${formattedDate}. Get GabAI at gabai.ai`;
+          
+          const result = await sendReminderSMS(
+            member.phone,
+            viralMessage,
+            reminder.description || ''
+          );
+          
+          if (result.success) {
+            console.log(`✅ Sent group reminder to ${member.name} (${member.phone})`);
+            results.push({ member: member.name, phone: member.phone, status: 'sent', sid: result.messageId });
+          } else {
+            console.error(`❌ Failed to send to ${member.name} (${member.phone}): ${result.error}`);
+            results.push({ member: member.name, phone: member.phone, status: 'failed', error: result.error });
+          }
+        } catch (error) {
+          console.error(`❌ Error sending to ${member.name} (${member.phone}):`, error);
+          results.push({ member: member.name, phone: member.phone, status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      }
+
+      // Update reminder status
+      // CRITICAL: Retry logic to prevent spam while allowing recovery from total failures:
+      // - All sent: smsSent=true, allows no retry
+      // - All failed: smsSent=false, allows automatic retry (transient Twilio errors)
+      // - Partial: smsSent=true, prevents retry to avoid spamming successful recipients
+      const sentCount = results.filter(r => r.status === 'sent').length;
+      const failedCount = results.filter(r => r.status !== 'sent').length;
+      const allSent = sentCount === members.length;
+      const noneSent = sentCount === 0;
+      
+      await db
+        .update(reminders)
+        .set({
+          smsSent: noneSent ? false : true, // False only if ALL failed (allows retry)
+          smsSentAt: sentCount > 0 ? new Date() : undefined, // Only set if at least one sent
+          smsStatus: allSent ? 'sent' : noneSent ? 'failed' : `partial:${sentCount}/${members.length}`,
+        })
+        .where(eq(reminders.id, reminderId));
+
+      console.log(`📱 Group reminder sent to ${sentCount}/${members.length} members`);
+      
+      // For partial failures, throw error to surface in scheduler logs for manual follow-up
+      // This prevents silent failures while avoiding automatic retry spam
+      if (!allSent && !noneSent) {
+        const failedMembers = results
+          .filter(r => r.status !== 'sent')
+          .map(r => `${r.member} (${r.phone})`)
+          .join(', ');
+        
+        const error = new Error(
+          `Partial group reminder failure: ${sentCount}/${members.length} sent successfully. ` +
+          `Failed members: ${failedMembers}. Manual follow-up required.`
+        );
+        console.error('⚠️ Partial failure:', error.message);
+        throw error;
+      }
+      
+      return { sid: 'group-reminder', messageId: 'group-reminder', success: allSent, groupResults: results };
+    }
+
+    // Regular single-recipient reminder
+    if (!reminder.smsEnabled || !reminder.smsPhone) {
+      throw new Error('SMS not enabled or phone number not set');
+    }
+
     const reminderTitle = `${reminder.title} - Due: ${formattedDate}`;
     const reminderDescription = reminder.description || '';
 
