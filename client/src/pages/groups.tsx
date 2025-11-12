@@ -575,8 +575,8 @@ export default function GroupsPage() {
                     const { CordovaDirect } = await import('@/lib/cordova-direct');
                     const contact = await CordovaDirect.pickContact();
                     if (contact) {
-                      setMemberName(contact.displayName || contact.name || '');
-                      setMemberPhone(contact.phoneNumbers?.[0] || '');
+                      setMemberName(contact.name || '');
+                      setMemberPhone(contact.phone || '');
                     }
                   } catch (error) {
                     console.error('Contact picker error:', error);
