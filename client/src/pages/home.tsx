@@ -7,7 +7,6 @@ import { ContactsPage } from "@/components/contacts/contacts-page";
 import { NotificationService } from "@/components/notifications/notification-service";
 import { OCRPage } from "@/pages/ocr";
 import SettingsPage from "@/pages/settings";
-import { LocalFilesPage } from "@/pages/local-files";
 import { NativeScheduler } from "@/components/scheduling/native-scheduler";
 import { ScheduledAlarms } from "@/components/scheduling/scheduled-alarms";
 
@@ -120,8 +119,6 @@ export default function HomePage() {
       case "/ocr":
       case "/text-extractor":
         return <OCRPage />;
-      case "/files":
-        return <LocalFilesPage />;
 
       default:
         return <ChatInterface user={user} />;
@@ -145,8 +142,6 @@ export default function HomePage() {
       case "/ocr":
       case "/text-extractor":
         return "Text Extractor";
-      case "/files":
-        return "Files";
 
       default:
         return "GabAi";
