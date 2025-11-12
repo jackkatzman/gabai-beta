@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Phone } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { GabaiCheckIcon } from '@/components/ui/gabai-check-icon';
+import gabaiIcon from "@assets/gabai-icon-optimized.png";
 import { toast } from '@/hooks/use-toast';
 import VerificationInput from '@/components/sms/verification-input';
 import { useLocation } from 'wouter';
@@ -354,8 +355,8 @@ export default function PhoneVerificationPage() {
       <div className="w-full max-w-md">
         {/* GabAi Logo and Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-blue-600 rounded-full">
-            <Phone className="w-10 h-10 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 mb-4 bg-blue-600 rounded-full p-3">
+            <img src={gabaiIcon} alt="GabAi" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             GabAi

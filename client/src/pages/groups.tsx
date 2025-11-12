@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Plus, Users, Trash2, Edit, UserPlus, Phone, Crown, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import gabaiIcon from "@assets/gabai-icon-optimized.png";
 import { useToast } from "@/hooks/use-toast";
 import type { Group, GroupMember } from "@shared/schema";
 
@@ -261,7 +262,7 @@ export default function GroupsPage() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Users className="h-8 w-8" />
+                <img src={gabaiIcon} alt="GabAi" className="h-8 w-8" />
                 Groups
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
