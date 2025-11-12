@@ -1,11 +1,18 @@
 {
   "appId": "ai.gabai.app",
   "appName": "GabAi",
-  "webDir": "dist/public",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
     "url": "https://gabai.ai",
-    "cleartext": false
+    "cleartext": false,
+    "allowNavigation": [
+      "gabai.ai",
+      "*.gabai.ai",
+      "accounts.google.com",
+      "*.googleusercontent.com",
+      "*.gstatic.com"
+    ]
   },
   "plugins": {
     "SplashScreen": {
@@ -26,5 +33,5 @@
     "Keyboard": {}
   },
   "ios": { "contentInset": "automatic" },
-  "android": { "buildOptions": { "releaseType": "APK" } }
+  "android": {}
 }
