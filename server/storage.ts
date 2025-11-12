@@ -10,6 +10,8 @@ import {
   smsVerificationCodes,
   userPatterns,
   activityLog,
+  groups,
+  groupMembers,
   type User,
   type InsertUser,
   type Conversation,
@@ -32,6 +34,10 @@ import {
   type InsertUserPattern,
   type ActivityLog,
   type InsertActivityLog,
+  type Group,
+  type InsertGroup,
+  type GroupMember,
+  type InsertGroupMember,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -93,6 +99,20 @@ export interface IStorage {
   getContact(id: string): Promise<Contact | undefined>;
   updateContact(id: string, updates: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: string): Promise<void>;
+
+  // Group management operations
+  getGroups(userId: string): Promise<(Group & { members: GroupMember[] })[]>;
+  getGroup(id: string): Promise<(Group & { members: GroupMember[] }) | undefined>;
+  createGroup(group: InsertGroup): Promise<Group>;
+  updateGroup(id: string, updates: Partial<InsertGroup>): Promise<Group>;
+  deleteGroup(id: string): Promise<void>;
+  getGroupMembers(groupId: string): Promise<GroupMember[]>;
+  addGroupMember(member: InsertGroupMember): Promise<GroupMember>;
+  removeGroupMember(id: string): Promise<void>;
+  
+  // Subscription operations
+  startTrial(userId: string, durationDays: number): Promise<User>;
+  checkSubscriptionStatus(userId: string): Promise<{ isPremium: boolean; trialEnded: boolean; subscriptionStatus: string }>;
 
   // Magic link token operations
   createMagicLinkToken(token: InsertMagicLinkToken): Promise<MagicLinkToken>;
@@ -649,6 +669,91 @@ export class DatabaseStorage implements IStorage {
 
   async deleteContact(id: string): Promise<void> {
     await db.delete(contacts).where(eq(contacts.id, id));
+  }
+
+  // Group management operations
+  async getGroups(userId: string): Promise<(Group & { members: GroupMember[] })[]> {
+    const userGroups = await db.select().from(groups).where(eq(groups.userId, userId));
+    const groupsWithMembers = await Promise.all(
+      userGroups.map(async (group) => {
+        const members = await db.select().from(groupMembers).where(eq(groupMembers.groupId, group.id));
+        return { ...group, members };
+      })
+    );
+    return groupsWithMembers;
+  }
+
+  async getGroup(id: string): Promise<(Group & { members: GroupMember[] }) | undefined> {
+    const [group] = await db.select().from(groups).where(eq(groups.id, id));
+    if (!group) return undefined;
+    const members = await db.select().from(groupMembers).where(eq(groupMembers.groupId, id));
+    return { ...group, members };
+  }
+
+  async createGroup(group: InsertGroup): Promise<Group> {
+    const [newGroup] = await db.insert(groups).values(group).returning();
+    return newGroup;
+  }
+
+  async updateGroup(id: string, updates: Partial<InsertGroup>): Promise<Group> {
+    const [updatedGroup] = await db
+      .update(groups)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(groups.id, id))
+      .returning();
+    return updatedGroup;
+  }
+
+  async deleteGroup(id: string): Promise<void> {
+    // Members will be deleted automatically by CASCADE
+    await db.delete(groups).where(eq(groups.id, id));
+  }
+
+  async getGroupMembers(groupId: string): Promise<GroupMember[]> {
+    return await db.select().from(groupMembers).where(eq(groupMembers.groupId, groupId));
+  }
+
+  async addGroupMember(member: InsertGroupMember): Promise<GroupMember> {
+    const [newMember] = await db.insert(groupMembers).values(member).returning();
+    return newMember;
+  }
+
+  async removeGroupMember(id: string): Promise<void> {
+    await db.delete(groupMembers).where(eq(groupMembers.id, id));
+  }
+
+  // Subscription operations
+  async startTrial(userId: string, durationDays: number): Promise<User> {
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + durationDays);
+    
+    const [user] = await db
+      .update(users)
+      .set({
+        trialEndsAt,
+        subscriptionStatus: 'trial',
+        isPremium: true,
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async checkSubscriptionStatus(userId: string): Promise<{ isPremium: boolean; trialEnded: boolean; subscriptionStatus: string }> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      return { isPremium: false, trialEnded: false, subscriptionStatus: 'none' };
+    }
+
+    const now = new Date();
+    const trialEnded = user.trialEndsAt ? now > user.trialEndsAt : false;
+    const isPremium = user.isPremium && !trialEnded;
+
+    return {
+      isPremium,
+      trialEnded,
+      subscriptionStatus: user.subscriptionStatus || 'none',
+    };
   }
 
   // Magic link token operations
