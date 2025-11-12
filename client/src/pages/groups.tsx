@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Plus, Users, Trash2, Edit, UserPlus, Phone, Crown } from "lucide-react";
+import { Loader2, Plus, Users, Trash2, Edit, UserPlus, Phone, Crown, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import type { Group, GroupMember } from "@shared/schema";
 
@@ -16,6 +17,7 @@ type GroupWithMembers = Group & { members: GroupMember[] };
 export default function GroupsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
@@ -248,14 +250,24 @@ export default function GroupsPage() {
       <div className="max-w-4xl mx-auto p-4 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Users className="h-8 w-8" />
-              Groups
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Create groups to send reminders to multiple people
-            </p>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLocation("/")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Users className="h-8 w-8" />
+                Groups
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Create groups to send reminders to multiple people
+              </p>
+            </div>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
