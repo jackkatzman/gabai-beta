@@ -565,6 +565,34 @@ export default function GroupsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Contact Picker Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={async () => {
+                  try {
+                    const { CordovaDirect } = await import('@/lib/cordova-direct');
+                    const contact = await CordovaDirect.pickContact();
+                    if (contact) {
+                      setMemberName(contact.displayName || contact.name || '');
+                      setMemberPhone(contact.phoneNumbers?.[0] || '');
+                    }
+                  } catch (error) {
+                    console.error('Contact picker error:', error);
+                    toast({
+                      title: "Contact picker unavailable",
+                      description: "Please enter member details manually",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                data-testid="button-pick-contact"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Pick from Contacts
+              </Button>
+
               <div>
                 <Label htmlFor="member-name">Name</Label>
                 <Input
