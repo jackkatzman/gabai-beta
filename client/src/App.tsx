@@ -22,6 +22,7 @@ import AboutPage from "./pages/about";
 import PrivacyPage from "./pages/privacy";
 import NotFound from "./pages/not-found";
 import PhoneVerificationPage from "./pages/phone-verification";
+import GroupsPage from "./pages/groups";
 import { isNativeMobileApp } from "./utils/capacitor";
 import { setupDeepLinkHandler } from "./lib/deep-link-handler";
 import { CordovaDirect } from "./lib/cordova-direct";
@@ -147,6 +148,7 @@ function AppContent() {
           <Route path="/simple-login" component={SimpleAuthPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/contacts" component={ContactsPage} />
+          <Route path="/groups" component={GroupsPage} />
           <Route path="/sms-reminders" component={SMSRemindersPage} />
           <Route path="/reminders" component={SMSRemindersPage} />
           
