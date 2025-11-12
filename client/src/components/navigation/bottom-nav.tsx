@@ -7,7 +7,7 @@ const navItems = [
   { path: "/lists", icon: ShoppingCart, label: "Lists" },
   { path: "/calendar", icon: Calendar, label: "Calendar" },
   { path: "/reminders", icon: Bell, label: "Reminders" },
-  { path: "/contacts", icon: Users, label: "Contacts" },
+  { path: "/groups", icon: Users, label: "Groups" },
 ];
 
 export function BottomNav() {
