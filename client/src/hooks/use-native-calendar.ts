@@ -46,28 +46,40 @@ export function useNativeCalendar() {
         'END:VCALENDAR'
       ].filter(line => line !== '').join('\r\n');
 
-      console.log('📅 ICS content generated:', icsContent);
+      console.log('📅 ICS content generated');
 
       const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const fileName = `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}.ics`;
       
       // Check if we're in Cordova/APK environment
       const isAPK = (window as any).IS_APK || 
                     (window as any).IS_VOLTBUILDER_APK ||
                     CordovaNative.isAvailable();
       
-      if (isAPK && window.cordova?.plugins?.fileOpener2) {
-        // Use Cordova File and File-Opener plugins for APK
-        console.log('📱 Using Cordova File-Opener for ICS file');
+      if (isAPK && window.cordova) {
+        console.log('📱 Android app detected - using intent-based download');
         
         try {
-          await CordovaNative.openIcsFile(blob, `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}.ics`);
+          // Create data URL for the ICS content
+          const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+          
+          // Try to open with Android intent
+          const win = window as any;
+          if (win.cordova?.plugins?.intent) {
+            console.log('📱 Using intent plugin to open calendar');
+            win.cordova.plugins.intent.ACTION_VIEW(dataUrl, 'text/calendar');
+          } else if (win.open) {
+            // Fallback: Open in new window which Android might handle
+            console.log('📱 Opening calendar file in new window');
+            win.open(dataUrl, '_blank');
+          }
           
           toast({
             title: "Opening Calendar",
             description: "Choose your calendar app to add this event",
           });
         } catch (error) {
-          console.error('📅 Cordova file opener error:', error);
+          console.error('📅 Intent error:', error);
           // Fall back to web download
           downloadWebICS();
         }
@@ -77,27 +89,43 @@ export function useNativeCalendar() {
       }
       
       function downloadWebICS() {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        try {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          
+          // Trigger download
+          link.click();
+          
+          // Cleanup
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
 
-        console.log('📅 ICS file download triggered');
+          console.log('📅 ICS file download triggered:', fileName);
 
-        toast({
-          title: "Calendar File Downloaded",
-          description: "Open the downloaded .ics file to add to your calendar",
-        });
+          toast({
+            title: "Calendar File Ready",
+            description: "Check your downloads folder and open the .ics file",
+          });
+        } catch (downloadError) {
+          console.error('📅 Download error:', downloadError);
+          toast({
+            title: "Download Failed",
+            description: "Unable to download calendar file",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('📅 Error processing ICS file:', error);
       toast({
-        title: "Download Error",
-        description: "Failed to process calendar file",
+        title: "Calendar Error",
+        description: "Failed to create calendar file",
         variant: "destructive",
       });
     }

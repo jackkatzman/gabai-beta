@@ -11,6 +11,7 @@ import { Loader2, Plus, Users, Trash2, Edit, UserPlus, Phone, Crown, ArrowLeft }
 import { useLocation } from "wouter";
 import gabaiIcon from "@assets/gabai-icon-optimized.png";
 import { useToast } from "@/hooks/use-toast";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 import type { Group, GroupMember } from "@shared/schema";
 
 type GroupWithMembers = Group & { members: GroupMember[] };
@@ -247,10 +248,10 @@ export default function GroupsPage() {
   const daysRemaining = trialEndsAt ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24 overflow-y-auto">
       <div className="max-w-4xl mx-auto p-4 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -275,6 +276,7 @@ export default function GroupsPage() {
               <Button 
                 disabled={!isPremium}
                 data-testid="button-create-group"
+                className="whitespace-nowrap"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 New Group
@@ -627,6 +629,7 @@ export default function GroupsPage() {
           </DialogContent>
         </Dialog>
       </div>
+      <BottomNav />
     </div>
   );
 }

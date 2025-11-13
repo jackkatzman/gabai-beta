@@ -399,18 +399,113 @@ export const CordovaDirect = {
   async pickContact(): Promise<{ name: string; phone: string } | null> {
     console.log('📱 Picking contact...');
     
-    return new Promise((resolve, reject) => {
-      // Check if contacts plugin is available
+    return new Promise(async (resolve, reject) => {
+      const win = window as any;
+      
+      // Try ContactsX plugin first (cordova-plugin-contacts-x)
+      const contactsX = win.ContactsX || (win.navigator as any)?.contactsX || (win as any).contactsX;
+      
+      if (contactsX?.pickContact) {
+        console.log('📱 Using ContactsX plugin...');
+        
+        try {
+          contactsX.pickContact((contact: any) => {
+            console.log('📱 ContactsX contact selected:', contact);
+            
+            // ContactsX returns different structure than legacy plugin
+            if (contact) {
+              // Extract phone number
+              let phone = '';
+              if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                phone = contact.phoneNumbers[0].value?.replace(/\D/g, '') || '';
+              }
+              
+              // Extract name
+              const name = contact.displayName || 
+                         contact.name?.formatted || 
+                         contact.name?.givenName || 
+                         'Contact';
+              
+              if (phone) {
+                console.log('✅ Contact parsed from ContactsX:', { name, phone });
+                resolve({ name, phone });
+              } else {
+                console.log('⚠️ ContactsX contact has no phone numbers');
+                resolve(null);
+              }
+            } else {
+              console.log('⚠️ ContactsX returned null');
+              resolve(null);
+            }
+          }, (error: any) => {
+            console.error('❌ ContactsX error:', error);
+            reject(new Error(error.message || 'Failed to pick contact'));
+          });
+          
+          return; // Exit early - ContactsX is handling it
+        } catch (error) {
+          console.error('❌ ContactsX exception:', error);
+          // Fall through to try legacy plugin
+        }
+      }
+      
+      // Fallback: Try legacy navigator.contacts plugin
+      const permissions = win.cordova?.plugins?.permissions;
+      
+      if (permissions) {
+        console.log('🔐 Requesting READ_CONTACTS permission...');
+        
+        try {
+          // Check current permission status
+          const checkResult = await new Promise((resolveCheck) => {
+            permissions.checkPermission(
+              permissions.READ_CONTACTS,
+              (status: any) => resolveCheck(status.hasPermission),
+              () => resolveCheck(false)
+            );
+          });
+          
+          if (!checkResult) {
+            // Request permission
+            const granted = await new Promise((resolveReq) => {
+              permissions.requestPermission(
+                permissions.READ_CONTACTS,
+                (status: any) => resolveReq(status.hasPermission),
+                () => resolveReq(false)
+              );
+            });
+            
+            if (!granted) {
+              console.error('❌ READ_CONTACTS permission denied');
+              reject(new Error('Permission denied. Please enable Contacts permission in app settings.'));
+              return;
+            }
+          }
+          
+          console.log('✅ READ_CONTACTS permission granted');
+        } catch (permError) {
+          console.error('⚠️ Permission check failed:', permError);
+          // Continue anyway - might work on older Android versions
+        }
+      }
+      
+      // Check if legacy contacts plugin is available
       if (!navigator.contacts?.pickContact) {
-        console.error('📱 Contacts plugin not available');
-        reject(new Error('Contact picker not available'));
+        console.error('📱 No contact picker available');
+        console.log('📱 Available:', {
+          cordova: !!win.cordova,
+          ContactsX: !!contactsX,
+          navigatorContacts: !!navigator.contacts
+        });
+        reject(new Error('Contact picker not available on this device. Please add contact details manually.'));
         return;
       }
 
       try {
+        console.log('📱 Using legacy navigator.contacts plugin...');
         navigator.contacts.pickContact(
           (contact: any) => {
-            console.log('📱 Contact selected:', contact);
+            console.log('📱 Legacy contact selected:', contact);
             
             if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
               const phone = contact.phoneNumbers[0].value.replace(/\D/g, '');
@@ -427,7 +522,7 @@ export const CordovaDirect = {
             }
           },
           (error: any) => {
-            console.error('❌ Contact picker error:', error);
+            console.error('❌ Legacy contact picker error:', error);
             reject(new Error(error.message || 'Failed to pick contact'));
           }
         );
