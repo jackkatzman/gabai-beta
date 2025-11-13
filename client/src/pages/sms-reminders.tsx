@@ -410,7 +410,6 @@ export function SMSRemindersPage() {
                   <SelectValue placeholder="Select a group (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No group</SelectItem>
                   {(groups as any[]).map((group: any) => (
                     <SelectItem key={group.id} value={group.id}>
                       {group.name} ({group.members?.length || 0} members)
@@ -418,6 +417,15 @@ export function SMSRemindersPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedGroupId && (
+                <button
+                  onClick={() => setSelectedGroupId("")}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                  data-testid="button-clear-group"
+                >
+                  Clear group selection
+                </button>
+              )}
             </div>
 
             {/* Voice/SMS Toggle */}
