@@ -108,6 +108,10 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       }
     </style>
+    
+    <!-- CRITICAL: Cordova.js MUST load before app.js for plugins to work -->
+    <script src="cordova.js"></script>
+    
     <script type="module" crossorigin src="/assets/index-CbSvGTM5.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CEnRnWfA.css">
   </head>
