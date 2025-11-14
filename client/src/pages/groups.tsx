@@ -248,8 +248,9 @@ export default function GroupsPage() {
   const daysRemaining = trialEndsAt ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24 overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3">
@@ -628,6 +629,7 @@ export default function GroupsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
       <BottomNav />
     </div>

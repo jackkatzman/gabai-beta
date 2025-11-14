@@ -74,6 +74,9 @@
     <preference name="BackupWebStorage" value="cloud" />
     <preference name="MixedContentMode" value="0" />
     
+    <!-- App Icon -->
+    <icon src="icon.png" />
+    
     <!-- CRITICAL: All Cordova Plugins for Native Features -->
     <plugin name="cordova-plugin-device" source="npm" />
     <plugin name="cordova-plugin-inappbrowser" source="npm" />
