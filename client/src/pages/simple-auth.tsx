@@ -7,8 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 import { api } from '@/lib/api-bulletproof';
 import { useLocation } from "wouter";
-
-const gabaiLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI4IiB5PSI4Ij4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMSA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDMgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4KPC9zdmc+Cjwvc3ZnPgo=";
+import gabaiIcon from "@assets/gabai-icon-optimized.png";
 
 export default function SimpleAuthPage() {
   const { loginWithGoogle } = useAuth();
@@ -94,9 +93,9 @@ export default function SimpleAuthPage() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <img 
-            src={gabaiLogo} 
+            src={gabaiIcon} 
             alt="GabAi" 
-            className="w-16 h-16 mx-auto mb-4"
+            className="w-16 h-16 mx-auto mb-4 rounded-full"
           />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">GabAi</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Your AI Personal Assistant</p>
