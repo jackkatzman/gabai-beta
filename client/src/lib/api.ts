@@ -288,6 +288,11 @@ export const api = {
     return response.json();
   },
 
+  async shareListWithGroup(listId: string, groupId: string, message: string): Promise<{ success: boolean; sentCount: number; totalMembers: number }> {
+    const response = await apiRequest(`/api/smart-lists/${listId}/share-with-group`, "POST", { groupId, message });
+    return response.json();
+  },
+
   async updateShareMode(listId: string, shareMode: 'view' | 'edit'): Promise<SmartList> {
     const response = await apiRequest(`/api/smart-lists/${listId}/share-mode`, "POST", { shareMode });
     return response.json();
@@ -335,6 +340,30 @@ export const api = {
   async toggleListItem(id: string): Promise<ListItem> {
     const response = await apiRequest(`/api/list-items/${id}/toggle`, "PATCH");
     return response.json();
+  },
+
+  async getListItems(listId: string): Promise<ListItem[]> {
+    const response = await apiRequest(`/api/lists/${listId}/items`, "GET");
+    return response.json();
+  },
+
+  async addListItem(listId: string, itemData: Partial<ListItem>): Promise<ListItem> {
+    return this.createListItem({
+      listId,
+      text: itemData.text || itemData.name || "",
+      completed: itemData.completed || false,
+      priority: itemData.priority || "medium",
+      category: itemData.category,
+      quantity: itemData.quantity || 1,
+    } as InsertListItem);
+  },
+
+  async toggleListItemCompletion(itemId: string): Promise<ListItem> {
+    return this.toggleListItem(itemId);
+  },
+
+  async reorderListItems(listId: string, itemIds: string[]): Promise<void> {
+    await apiRequest(`/api/lists/${listId}/reorder`, "POST", { itemIds });
   },
 
   // Backward compatibility aliases

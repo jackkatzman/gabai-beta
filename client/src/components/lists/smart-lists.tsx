@@ -677,6 +677,9 @@ const getSimpleCategory = (itemName: string): string => {
   const [calculatedTotal, setCalculatedTotal] = useState<{ listId: string; total: number } | null>(null);
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editListName, setEditListName] = useState<string>("");
+  const [groupShareDialogOpen, setGroupShareDialogOpen] = useState(false);
+  const [selectedListForGroupShare, setSelectedListForGroupShare] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -1152,6 +1155,40 @@ const getSimpleCategory = (itemName: string): string => {
         title: "Joined list!",
         description: "You've successfully joined the shared list.",
       });
+    },
+  });
+
+  // Share list with group mutation
+  const shareListWithGroupMutation = useMutation({
+    mutationFn: async ({ listId, groupId, message }: { listId: string; groupId: string; message: string }) => {
+      console.log(`📋 Sharing list ${listId} with group ${groupId}`);
+      return await api.shareListWithGroup(listId, groupId, message);
+    },
+    onSuccess: (data) => {
+      console.log(`✅ Successfully shared with ${data.sentCount}/${data.totalMembers} members`);
+      toast({
+        title: "List Shared with Group!",
+        description: `Successfully sent to ${data.sentCount} of ${data.totalMembers} group members.`,
+      });
+      setGroupShareDialogOpen(false);
+      setSelectedGroupId("");
+    },
+    onError: (error: any) => {
+      console.error("❌ Share with group error:", error);
+      toast({
+        title: "Failed to Share",
+        description: error.message || "Could not share list with group.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fetch user's groups
+  const { data: userGroups = [] } = useQuery({
+    queryKey: ['/api/groups'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/groups', 'GET');
+      return response.json();
     },
   });
 
@@ -1784,20 +1821,39 @@ const getSimpleCategory = (itemName: string): string => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            console.log("🔗 Share button clicked for list:", list.id, list.name);
-                            shareListMutation.mutate(list.id);
-                          }}
-                          disabled={shareListMutation.isPending}
-                          className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation"
-                          style={{ touchAction: 'manipulation' }}
-                        >
-                          <Share2 className="h-4 w-4 mr-1" />
-                          {shareListMutation.isPending ? "..." : "Share"}
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation"
+                              style={{ touchAction: 'manipulation' }}
+                            >
+                              <Share2 className="h-4 w-4 mr-1" />
+                              Share
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                console.log("🔗 Share link clicked for list:", list.id);
+                                shareListMutation.mutate(list.id);
+                              }}
+                            >
+                              <Link className="h-4 w-4 mr-2" />
+                              Share Link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedListForGroupShare(list.id);
+                                setGroupShareDialogOpen(true);
+                              }}
+                            >
+                              <Users className="h-4 w-4 mr-2" />
+                              Share with Group
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                       
                       {/* Delete List Button */}
@@ -2163,6 +2219,78 @@ const getSimpleCategory = (itemName: string): string => {
                 disabled={deleteListMutation.isPending}
               >
                 {deleteListMutation.isPending ? "Deleting..." : "Delete List"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Share Dialog */}
+      <Dialog open={groupShareDialogOpen} onOpenChange={setGroupShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share List with Group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="group-select">Select Group</Label>
+              <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                <SelectTrigger id="group-select">
+                  <SelectValue placeholder="Choose a group..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(userGroups as any[]).map((group: any) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name} ({group.members?.length || 0} members)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="share-message">Message (will appear in SMS)</Label>
+              <Textarea
+                id="share-message"
+                placeholder="Check out my shopping list!"
+                defaultValue={`Check out "${lists.find(l => l.id === selectedListForGroupShare)?.name}" list!`}
+                className="min-h-[80px]"
+                onChange={(e) => {
+                  // Store message in a ref or state if needed
+                  e.currentTarget.dataset.message = e.currentTarget.value;
+                }}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Format: "From [your name]: [your message] [link]. Get GabAI at gabai.ai"
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setGroupShareDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!selectedListForGroupShare || !selectedGroupId) {
+                    toast({
+                      title: "Missing Information",
+                      description: "Please select a group",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  const messageInput = document.getElementById('share-message') as HTMLTextAreaElement;
+                  const message = messageInput?.value || `Check out "${lists.find(l => l.id === selectedListForGroupShare)?.name}" list!`;
+                  
+                  shareListWithGroupMutation.mutate({
+                    listId: selectedListForGroupShare,
+                    groupId: selectedGroupId,
+                    message
+                  });
+                }}
+                disabled={!selectedGroupId || shareListWithGroupMutation.isPending}
+              >
+                {shareListWithGroupMutation.isPending ? "Sending..." : "Share with Group"}
               </Button>
             </div>
           </div>

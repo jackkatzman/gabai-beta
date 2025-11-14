@@ -4280,6 +4280,79 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // Share list with group endpoint (sends SMS to all group members)
+  app.post("/api/smart-lists/:id/share-with-group", jsonParser, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { groupId, message } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!groupId) {
+        return res.status(400).json({ message: "Group ID is required" });
+      }
+
+      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      console.log(`📋 Sharing list ${id} with group ${groupId}`);
+
+      // Get or generate share code
+      const shareCode = await storage.shareSmartList(id);
+      const shareUrl = `https://gabai.ai/shared/${shareCode}`;
+
+      // Get list details
+      const list = await storage.getSmartList(id);
+      if (!list) {
+        return res.status(404).json({ message: "List not found" });
+      }
+
+      // Get group members
+      const group = await storage.getGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+
+      const members = await storage.getGroupMembers(groupId);
+      const user = await storage.getUser(userId);
+      const senderName = user?.name || "Someone";
+
+      let sentCount = 0;
+      const errors = [];
+
+      // Format: "From [sender]: [message]. Get GabAI at gabai.ai"
+      const smsMessage = `From ${senderName}: ${message.trim()} ${shareUrl}. Get GabAI at gabai.ai`;
+
+      // Send SMS to each member
+      for (const member of members) {
+        try {
+          await twilioService.sendSMS(member.phone, smsMessage);
+          sentCount++;
+        } catch (error: any) {
+          console.error(`Failed to send SMS to ${member.phone}:`, error);
+          errors.push({ phone: member.phone, error: error.message });
+        }
+      }
+
+      console.log(`✅ Sent ${sentCount}/${members.length} SMS messages`);
+
+      res.json({ 
+        success: true, 
+        sentCount, 
+        totalMembers: members.length,
+        shareCode,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } catch (error: any) {
+      console.error("Share list with group error:", error);
+      res.status(500).json({ message: error.message || "Failed to share list with group" });
+    }
+  });
+
   // Get shared list endpoint
   app.get("/api/shared/:shareCode", async (req, res) => {
     try {
