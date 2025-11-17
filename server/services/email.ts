@@ -70,7 +70,7 @@ export async function sendMagicLink(email: string, token: string, deviceInfo?: s
   `;
 
   const emailMessage = {
-    From: 'no-reply@symcousa.com',
+    From: 'no-reply@gabaiapp.com',
     To: email,
     Subject: 'Sign in to GabAi',
     TextBody: `
