@@ -1925,22 +1925,13 @@ const getSimpleCategory = (itemName: string): string => {
                         value={newItemName}
                         onChange={(e) => setNewItemName(e.target.value)}
                         placeholder="Add new item..."
-                        className="flex-1 text-base font-normal border-0 bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-0"
+                        autoComplete="off"
+                        inputMode="text"
+                        className="flex-1 text-base font-normal bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600"
                         style={{ 
-                          fontSize: '16px !important',
-                          minHeight: '56px !important',
-                          height: '56px !important',
-                          lineHeight: '1.5',
-                          padding: '16px 20px !important',
-                          width: '100% !important',
-                          display: 'block',
-                          visibility: 'visible',
-                          opacity: '1',
-                          position: 'relative',
-                          zIndex: '1',
-                          backgroundColor: 'white !important',
-                          color: '#1f2937 !important',
-                          border: '1px solid #d1d5db !important'
+                          fontSize: '16px',
+                          minHeight: '48px',
+                          padding: '12px 16px'
                         }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && newItemName.trim()) {
@@ -1948,6 +1939,7 @@ const getSimpleCategory = (itemName: string): string => {
                             handleAddItem(list.id);
                           }
                         }}
+                        data-testid={`input-add-item-${list.id}`}
                       />
                       <Button
                         size="sm"

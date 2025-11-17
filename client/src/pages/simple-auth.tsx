@@ -142,7 +142,11 @@ export default function SimpleAuthPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
+                  autoComplete="email"
+                  inputMode="email"
                   className="w-full"
+                  style={{ fontSize: '16px', minHeight: '48px' }}
+                  data-testid="input-email"
                 />
               </div>
 
@@ -157,7 +161,10 @@ export default function SimpleAuthPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    autoComplete="current-password"
                     className="w-full pr-10"
+                    style={{ fontSize: '16px', minHeight: '48px' }}
+                    data-testid="input-password"
                   />
                   <button
                     type="button"
@@ -229,7 +236,7 @@ export default function SimpleAuthPage() {
               </Button>
             </div>
 
-            <div className="mt-6 text-center space-y-2">
+            <div className="mt-6 text-center">
               <button
                 type="button"
                 onClick={() => setIsRegistering(!isRegistering)}
@@ -239,15 +246,6 @@ export default function SimpleAuthPage() {
                   ? 'Already have an account? Sign in'
                   : "Don't have an account? Sign up"
                 }
-              </button>
-              
-              {/* Direct link to SMS reminders for quick access */}
-              <button
-                type="button"
-                onClick={() => setLocation('/sms-reminders')}
-                className="text-green-600 dark:text-green-400 hover:underline block w-full font-medium"
-              >
-                📞 Skip to Voice Reminders (Works Now!)
               </button>
             </div>
           </CardContent>
