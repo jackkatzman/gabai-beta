@@ -6337,6 +6337,42 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     `);
   });
 
+  // Test email endpoint
+  app.get('/api/test-email', async (req, res) => {
+    const testEmail = req.query.email as string || 'test@example.com';
+    
+    try {
+      console.log('📧 Testing email send to:', testEmail);
+      
+      const result = await sendMagicLink(testEmail, 'test-token-' + Date.now(), 'Test Device', req.get('host'));
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: '✅ Email sent successfully! Your Postmark account is APPROVED.',
+          messageId: result.messageId,
+          testEmail
+        });
+      } else {
+        res.json({
+          success: false,
+          message: result.isPendingApproval 
+            ? '⏳ Postmark account is pending approval. Can only send to @gabaiapp.com addresses.'
+            : '❌ Email failed to send.',
+          error: result.error,
+          testEmail,
+          isPendingApproval: result.isPendingApproval
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: '❌ Error testing email',
+        error: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
