@@ -1232,10 +1232,7 @@ const getSimpleCategory = (itemName: string): string => {
     createListMutation.mutate();
   };
 
-  const handleAddItem = async (listId: string, itemNameOverride?: string) => {
-    // Use override if provided (for voice input), otherwise use state
-    const itemName = itemNameOverride || newItemName;
-    
+  const handleAddItem = async (listId: string, itemName: string) => {
     if (!itemName.trim()) return;
     if (createItemMutation.isPending) return; // Prevent duplicate submissions
     
@@ -1940,7 +1937,7 @@ const getSimpleCategory = (itemName: string): string => {
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && newItemName.trim()) {
                             e.preventDefault();
-                            handleAddItem(list.id);
+                            handleAddItem(list.id, newItemName);
                           }
                         }}
                         data-testid={`input-add-item-${list.id}`}
@@ -1966,7 +1963,7 @@ const getSimpleCategory = (itemName: string): string => {
                       </Button>
                       <Button
                         size="sm"
-                        onClick={() => handleAddItem(list.id)}
+                        onClick={() => handleAddItem(list.id, newItemName)}
                         disabled={!newItemName.trim()}
                         className="smart-list-button min-w-[48px] bg-blue-600 hover:bg-blue-700 text-white"
                         title="Add item"
