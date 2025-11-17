@@ -689,7 +689,8 @@ const getSimpleCategory = (itemName: string): string => {
     onTranscriptionComplete: (text) => {
       if (selectedListId && text.trim()) {
         setNewItemName(text);
-        handleAddItem(selectedListId);
+        // Pass text directly to avoid race condition with state update
+        handleAddItem(selectedListId, text);
       }
       setIsVoiceAddingItem(false);
     },
@@ -1231,8 +1232,11 @@ const getSimpleCategory = (itemName: string): string => {
     createListMutation.mutate();
   };
 
-  const handleAddItem = async (listId: string) => {
-    if (!newItemName.trim()) return;
+  const handleAddItem = async (listId: string, itemNameOverride?: string) => {
+    // Use override if provided (for voice input), otherwise use state
+    const itemName = itemNameOverride || newItemName;
+    
+    if (!itemName.trim()) return;
     if (createItemMutation.isPending) return; // Prevent duplicate submissions
     
     const selectedList = lists.find(list => list.id === listId);
@@ -1248,7 +1252,7 @@ const getSimpleCategory = (itemName: string): string => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            itemName: newItemName,
+            itemName: itemName,
             listType: 'shopping'
           })
         });
@@ -1258,11 +1262,11 @@ const getSimpleCategory = (itemName: string): string => {
           category = result.category || "Other";
         } else {
           // Fallback to simple categorization if AI fails
-          category = getSimpleCategory(newItemName.toLowerCase());
+          category = getSimpleCategory(itemName.toLowerCase());
         }
       } catch (error) {
         console.error('AI categorization failed, using fallback:', error);
-        category = getSimpleCategory(newItemName.toLowerCase());
+        category = getSimpleCategory(itemName.toLowerCase());
       }
     } else if (selectedList.type === "punch_list") {
       const punchCategories = {
@@ -1273,7 +1277,7 @@ const getSimpleCategory = (itemName: string): string => {
       };
       
       for (const [cat, items] of Object.entries(punchCategories)) {
-        if (items.some(work => newItemName.toLowerCase().includes(work))) {
+        if (items.some(work => itemName.toLowerCase().includes(work))) {
           category = cat;
           break;
         }
@@ -1287,7 +1291,7 @@ const getSimpleCategory = (itemName: string): string => {
     
     createItemMutation.mutate({
       listId,
-      name: newItemName,
+      name: itemName,
       category,
       assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined,
       amount: amount,
