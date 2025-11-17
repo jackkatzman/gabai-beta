@@ -27,9 +27,11 @@ GabAi supports multiple deployment strategies:
 - **PWA Capabilities**: Progressive Web App features including service workers for offline functionality.
 
 ## Authentication System
-The system implements dual authentication strategies:
+The system implements multiple authentication strategies:
 - **Web Authentication**: Full OAuth2 flow with Google authentication and session management.
 - **Mobile Authentication**: Simplified token-based authentication for VoltBuilder/Capacitor apps, including demo user creation.
+- **Email/Password Authentication**: Secure registration and login with bcrypt password hashing (10 salt rounds).
+- **Password Reset**: Email-based password recovery via Postmark (15-minute token expiry, single-use tokens) for Google Play compliance.
 
 ## AI Integration
 OpenAI GPT powers the conversational AI, utilizing specialized prompts for item categorization, personalized responses, and proactive suggestions. It integrates speech-to-text and text-to-speech for voice-first interactions.
@@ -40,6 +42,7 @@ OpenAI GPT powers the conversational AI, utilizing specialized prompts for item 
 - **Neon Database**: PostgreSQL hosting.
 - **OpenAI API**: GPT-4 for conversational AI.
 - **Google OAuth2**: User authentication.
+- **Postmark**: Transactional email service for password reset and notifications.
 
 ## Development and Build Tools
 - **Vite**: Frontend build tool.
@@ -59,6 +62,7 @@ OpenAI GPT powers the conversational AI, utilizing specialized prompts for item 
 ## Authentication and Security
 - **Passport.js**: Authentication middleware.
 - **Express Session**: Session management.
+- **bcryptjs**: Password hashing and verification for secure credential storage.
 
 ## Utility Libraries
 - **Zod**: Schema validation.
