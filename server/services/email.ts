@@ -7,26 +7,8 @@ if (process.env.POSTMARK_API_KEY) {
 }
 
 export async function sendMagicLink(email: string, token: string, deviceInfo?: string, requestHost?: string) {
-  // Smart domain detection - works for both gabai.ai and replit domains
-  let baseUrl;
-  
-  // Priority: use gabai.ai if in production, otherwise use request host, fallback to replit
-  if (process.env.NODE_ENV === 'production') {
-    baseUrl = 'https://gabai.ai';
-  } else if (requestHost) {
-    // Use the host from the request (works for any domain)
-    baseUrl = `https://${requestHost}`;
-  } else {
-    // Fallback to current environment
-    const isOnReplit = process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
-    if (isOnReplit) {
-      const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 
-                    `${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.replit.dev`;
-      baseUrl = `https://${domain}`;
-    } else {
-      baseUrl = `http://localhost:${process.env.PORT || 5000}`;
-    }
-  }
+  // Always use gabai.ai for email links - they need to work from anywhere
+  const baseUrl = 'https://gabai.ai';
     
   // Create mobile-friendly magic link that works within the app
   const magicLink = `${baseUrl}/api/auth/magic-link?token=${token}&mobile=true`;
