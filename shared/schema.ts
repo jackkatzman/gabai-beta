@@ -34,6 +34,9 @@ export const users = pgTable("users", {
   subscriptionStatus: varchar("subscription_status").default("trial"), // trial, active, cancelled, expired
   subscriptionId: varchar("subscription_id"), // Stripe subscription ID
   isPremium: boolean("is_premium").default(false), // Quick check for premium features
+  // Password reset fields
+  resetToken: varchar("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry", { withTimezone: true }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
