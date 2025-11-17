@@ -178,6 +178,18 @@ export default function SimpleAuthPage() {
                     )}
                   </button>
                 </div>
+                {!isRegistering && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setLocation('/password-reset')}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                      data-testid="link-forgot-password"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
               </div>
 
               <Button

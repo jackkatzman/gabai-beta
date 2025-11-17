@@ -22,6 +22,7 @@ import AboutPage from "./pages/about";
 import PrivacyPage from "./pages/privacy";
 import NotFound from "./pages/not-found";
 import PhoneVerificationPage from "./pages/phone-verification";
+import PasswordResetPage from "./pages/password-reset";
 import GroupsPage from "./pages/groups";
 import { isNativeMobileApp } from "./utils/capacitor";
 import { setupDeepLinkHandler } from "./lib/deep-link-handler";
@@ -123,6 +124,8 @@ function AppContent() {
       <Route path="/landing" component={LandingPage} />
       <Route path="/sms-compliance" component={SMSCompliancePage} />
       <Route path="/shared/:shareCode" component={SharedListPage} />
+      <Route path="/password-reset" component={PasswordResetPage} />
+      <Route path="/auth" component={SimpleAuthPage} />
       
       {/* AuthReady Gate: Show loading while authentication is settling */}
       {!authReady && (
