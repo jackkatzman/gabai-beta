@@ -1,5 +1,8 @@
 // ChatGPT's bulletproof API client - single source of truth
-const API = 'https://gabai.ai';
+// Use production URL for APK/Cordova, local server for web development
+const isAPK = window.location.protocol === 'file:' || 
+              (navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android'));
+const API = isAPK ? 'https://gabai.ai' : '';
 
 let _token: string | null = null;
 
