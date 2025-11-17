@@ -93,7 +93,7 @@ export default function PrivacyPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-32">
         {/* Last Updated */}
         <div className="mb-8 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -159,7 +159,7 @@ export default function PrivacyPage() {
               </div>
               <div className="flex items-center">
                 <Phone className="h-4 w-4 mr-2 text-blue-600" />
-                <span className="text-gray-700 dark:text-gray-300">1-800-GABAI-AI</span>
+                <span className="text-gray-700 dark:text-gray-300">(972)399-9997</span>
               </div>
             </div>
           </CardContent>
