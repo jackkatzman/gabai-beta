@@ -146,3 +146,101 @@ If you didn't request this, please ignore this email.
     };
   }
 }
+
+export async function sendPasswordResetEmail(email: string, resetToken: string) {
+  // Always use gabai.ai for email links
+  const baseUrl = 'https://gabai.ai';
+  
+  // Create password reset link
+  const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+  const codeOnly = resetToken.slice(-6).toUpperCase(); // Last 6 characters as backup code
+  
+  const emailContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #4285f4;">Reset Your Password</h1>
+        <p style="color: #666; font-size: 16px;">We received a request to reset your GabAi password</p>
+      </div>
+      
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 15px 0; font-size: 16px;">Click the button below to reset your password:</p>
+        <div style="text-align: center;">
+          <a href="${resetLink}" 
+             style="display: inline-block; background: #4285f4; color: white; padding: 12px 24px; 
+                    text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Reset Password
+          </a>
+        </div>
+      </div>
+      
+      <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0; color: #856404;"><strong>Backup Code:</strong> ${codeOnly}</p>
+        <p style="margin: 5px 0 0 0; font-size: 14px; color: #856404;">
+          If the link doesn't work, you can enter this code on the password reset page.
+        </p>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+        <p style="color: #999; font-size: 14px;">
+          This link will expire in 15 minutes for security.
+        </p>
+        <p style="color: #999; font-size: 14px;">
+          If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+        </p>
+      </div>
+    </div>
+  `;
+
+  const emailMessage = {
+    From: 'no-reply@gabaiapp.com',
+    To: email,
+    Subject: 'Reset Your GabAi Password',
+    TextBody: `
+Reset Your GabAi Password
+
+Click this link to reset your password: ${resetLink}
+
+Backup code: ${codeOnly}
+
+This link expires in 15 minutes.
+If you didn't request this, please ignore this email.
+    `.trim(),
+    HtmlBody: emailContent,
+  };
+
+  try {
+    if (!postmarkClient) {
+      console.log('🔧 Development mode - Password reset link:');
+      console.log('🔗 Reset Link:', resetLink);
+      console.log('🔑 Backup Code:', codeOnly);
+      
+      return { 
+        success: true, 
+        messageId: 'dev-mode-' + Date.now(),
+        devMode: true,
+        resetLink,
+        backupCode: codeOnly
+      };
+    }
+    
+    const response = await postmarkClient!.sendEmail(emailMessage);
+    console.log('✅ Password reset email sent via Postmark:', { 
+      email, 
+      messageId: response.MessageID
+    });
+    
+    return { success: true, messageId: response.MessageID };
+  } catch (error: any) {
+    console.error('❌ Failed to send password reset email:', error);
+    console.log('🔗 Reset Link:', resetLink);
+    console.log('🔑 Backup Code:', codeOnly);
+    
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send email',
+      devMode: true,
+      resetLink,
+      backupCode: codeOnly
+    };
+  }
+}
