@@ -34,7 +34,7 @@ export default function PasswordResetPage() {
     setMessage('');
 
     try {
-      const result = await api('/api/auth/password-reset/request', {
+      const result = await api('/api/auth/request-password-reset', {
         method: 'POST',
         body: JSON.stringify({ email })
       });
@@ -58,7 +58,7 @@ export default function PasswordResetPage() {
     setMessage('');
 
     try {
-      const result = await api('/api/auth/password-reset/verify', {
+      const result = await api('/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ token, newPassword })
       });

@@ -13,8 +13,9 @@ import OpenAI from "openai";
 import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
 import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
-import { sendMagicLink } from "./services/email";
+import { sendMagicLink, sendPasswordResetEmail } from "./services/email";
 import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, generateVerificationCode, verifyCodeSMS, normalizePhoneNumber } from "./services/sms";
+import bcrypt from "bcryptjs";
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
@@ -1641,10 +1642,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'User already exists with this email' });
       }
       
+      // Hash password before storing
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
       // Create new user
       const userData = {
         email,
-        password, // In production, you'd hash this password
+        password: hashedPassword,
         name: name || email.split('@')[0],
         preferences: {},
         onboardingCompleted: false
@@ -1692,8 +1696,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
       
-      // Check password (in production, you'd compare hashed passwords)
-      if (user.password !== password) {
+      // Verify password using bcrypt
+      const isValidPassword = await bcrypt.compare(password, user.password || '');
+      if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
       
@@ -1809,9 +1814,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Reset token has expired. Please request a new one.' });
       }
       
+      // Hash new password before storing
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
       // Update password and clear reset token
       await storage.updateUser(user.id, {
-        password: newPassword,
+        password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null
       });

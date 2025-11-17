@@ -152,7 +152,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
   const baseUrl = 'https://gabai.ai';
   
   // Create password reset link
-  const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+  const resetLink = `${baseUrl}/password-reset?token=${resetToken}`;
   const codeOnly = resetToken.slice(-6).toUpperCase(); // Last 6 characters as backup code
   
   const emailContent = `
