@@ -786,9 +786,8 @@ const getSimpleCategory = (itemName: string): string => {
       });
     },
     onSuccess: () => {
-      if (!isNativeApp()) {
-        queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
-      }
+      // Always invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       setNewItemName("");
       setNewItemCategory("");
       setNewItemAssignedTo("");
