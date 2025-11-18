@@ -9,27 +9,22 @@ export function useAuth() {
   // Check if token exists in localStorage (reactive to changes)
   const hasToken = Boolean(getToken());
 
-  // ChatGPT fix: Only call /api/auth/user if we have a token
+  // Always try to fetch user - could be logged in via session cookie OR token
   const { data: user, isLoading, refetch, error } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
     staleTime: 0,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    enabled: hasToken,
+    enabled: true, // Always enabled - check for both token AND session cookie
     queryFn: async () => {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No authentication token');
-      }
-      
       try {
         const userData = await api('/api/auth/user');
         return userData;
       } catch (authError: any) {
         // If token is invalid or expired, clear it and force re-authentication
         if (authError.status === 401) {
-          console.log('🔓 Token invalid/expired, clearing and requiring SMS auth');
+          console.log('🔓 Auth failed, clearing token');
           setToken(null);
           // Clear all possible token storage locations
           localStorage.removeItem('gabai_token');
