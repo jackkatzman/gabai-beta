@@ -57,15 +57,18 @@ export default function OnboardingPage() {
         throw error;
       }
     },
-    onSuccess: (updatedUser) => {
-      // Invalidate and refresh the user query with correct key
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async (updatedUser) => {
+      // Invalidate and refetch the user query
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      
       toast({
         title: "Welcome to GabAi!",
         description: "Your profile has been updated successfully.",
       });
-      // Small delay to ensure query updates
-      setTimeout(() => setLocation("/"), 500);
+      
+      // Navigate after user data is refreshed
+      setLocation("/");
     },
     onError: (error: any) => {
       console.error("Onboarding error:", error);
