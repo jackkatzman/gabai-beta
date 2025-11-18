@@ -81,6 +81,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { api } from "@/lib/api";
+import { apiRequest } from "@/lib/queryClient";
 import { useVoice } from "@/hooks/use-voice";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
