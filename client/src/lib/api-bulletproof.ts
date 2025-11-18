@@ -34,10 +34,14 @@ export async function api(path: string, init: RequestInit = {}) {
   
   console.log('🌐 API call:', `${API}${path}`);
   
+  // Use session cookies for web, omit for APK/Cordova
+  const isAPK = window.location.protocol === 'file:';
+  const credentials = isAPK ? 'omit' : 'include';
+  
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers,
-    credentials: 'omit', // do NOT rely on cookies in Cordova
+    credentials,
   });
   
   if (res.status === 401) {
