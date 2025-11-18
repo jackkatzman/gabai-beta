@@ -1657,7 +1657,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       console.log('✅ User registered:', user.email);
       
-      // Log user in
+      // Create mobile token for APK authentication
+      const tokenData = {
+        userId: user.id,
+        timestamp: Date.now(),
+        email: user.email,
+        authMethod: 'email'
+      };
+      const token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+      
+      // Log user in (creates session cookie for web)
       req.logIn(user, (err) => {
         if (err) {
           console.error('❌ Login after registration failed:', err);
@@ -1666,6 +1675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json({ 
           success: true,
+          token: token, // Include token for APK
           user: {
             id: user.id,
             name: user.name,
@@ -1704,7 +1714,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('✅ User logged in:', user.email);
       
-      // Log user in
+      // Create mobile token for APK authentication
+      const tokenData = {
+        userId: user.id,
+        timestamp: Date.now(),
+        email: user.email,
+        authMethod: 'email'
+      };
+      const token = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+      
+      // Log user in (creates session cookie for web)
       req.logIn(user, (err) => {
         if (err) {
           console.error('❌ Login session error:', err);
@@ -1713,6 +1732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json({ 
           success: true,
+          token: token, // Include token for APK
           user: {
             id: user.id,
             name: user.name,

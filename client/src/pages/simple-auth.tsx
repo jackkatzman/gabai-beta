@@ -50,6 +50,13 @@ export default function SimpleAuthPage() {
         
         if (result.success) {
           console.log('✅ Registration successful');
+          
+          // For APK: Save token to localStorage (like SMS auth)
+          if (result.token && isAPK) {
+            console.log('📱 APK mode: Saving authentication token');
+            localStorage.setItem('gabai_token', result.token);
+          }
+          
           // Navigate to home for APK environments
           if (window.location.protocol === 'file:') {
             window.location.hash = '/';
@@ -70,6 +77,13 @@ export default function SimpleAuthPage() {
         
         if (result.success) {
           console.log('✅ Login successful');
+          
+          // For APK: Save token to localStorage (like SMS auth)
+          if (result.token && isAPK) {
+            console.log('📱 APK mode: Saving authentication token');
+            localStorage.setItem('gabai_token', result.token);
+          }
+          
           // Navigate to home for APK environments
           if (window.location.protocol === 'file:') {
             window.location.hash = '/';
