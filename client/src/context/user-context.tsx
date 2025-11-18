@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@shared/schema";
 import { getToken } from '@/lib/auth';
+import { api } from '@/lib/api-bulletproof';
 
 interface UserContextType {
   user: User | null;
@@ -44,18 +45,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("🔐 Fetching user authentication...");
       
+      // Check for mobile token first
+      const token = getToken();
+      if (token) {
+        console.log("🔑 Found mobile token, will use for authentication");
+      }
+      
       // Mobile environments use the same authentication as web
       if (isMobileEnvironment()) {
         console.log("📱 Mobile environment detected - using standard Google authentication");
       }
       
-      // Regular authentication check for web environments
-      const response = await fetch('/api/auth/user', {
-        credentials: 'include'
-      });
+      // Use bulletproof API to handle both web (session) and APK (token) auth
+      const userData = await api('/api/auth/user');
       
-      if (response.ok) {
-        const userData = await response.json();
+      if (userData) {
         console.log("✅ User authenticated:", userData);
         setUserState(userData);
       } else {
