@@ -73,21 +73,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("🔐 Initializing authentication...");
     
-    // Check if this is APK/mobile environment
-    const isAPK = window.location.protocol === 'file:' || 
-                  typeof (window as any).cordova !== 'undefined' ||
-                  typeof (window as any).Capacitor !== 'undefined';
-    
-    // For APK: only fetch user if we have a token (SMS auth)
-    // For Web: always fetch user (could have session cookie)
-    const token = getToken();
-    if (isAPK && !token) {
-      console.log("📱 APK with no token - skipping user fetch (use SMS login)");
-      setIsLoading(false);
-      return;
-    }
-    
-    // Web or APK with token - fetch user
+    // Always try to fetch user - could be logged in via session cookie OR token
     fetchUser();
   }, [authTrigger]); // Re-fetch when authTrigger changes
   
