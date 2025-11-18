@@ -73,14 +73,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log("🔐 Initializing authentication...");
     
-    // ChatGPT fix: Only fetch user if we have a token (prevent early 401s)
-    const token = getToken();
-    if (!token) {
-      console.log("❌ No token found - skipping user fetch");
-      setIsLoading(false);
-      return;
-    }
-    
+    // Always try to fetch user - could be logged in via session cookie OR token
     fetchUser();
   }, [authTrigger]); // Re-fetch when authTrigger changes
   
