@@ -34,11 +34,9 @@ export default function SimpleAuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔵 handleSubmit called', { email: formData.email, isRegistering });
     setIsLoading(true);
 
     try {
-      console.log('🔵 Starting auth request...', isRegistering ? 'REGISTER' : 'LOGIN');
       if (isRegistering) {
         // Registration
         const result = await api('/api/auth/register', {
