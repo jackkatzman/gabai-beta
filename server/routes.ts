@@ -2376,7 +2376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/users/:id", async (req, res) => {
+  app.patch("/api/users/:id", jsonParser, async (req, res) => {
     try {
       console.log("🔄 User update request for ID:", req.params.id);
       console.log("🔄 Update data:", req.body);

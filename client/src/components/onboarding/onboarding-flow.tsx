@@ -335,7 +335,7 @@ function SmsConsentStep({
             <Label htmlFor="sms-consent" className="text-sm cursor-pointer">
               <span className="font-medium">Yes, enable SMS & voice reminders</span>
               <p className="text-xs text-gray-500 mt-1">
-                By checking this box, you consent to receive automated text messages and voice calls. 
+                Enable delivery of reminders YOU create via text or voice call.
                 Message and data rates may apply. Reply STOP to opt out anytime.
               </p>
             </Label>
