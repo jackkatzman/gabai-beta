@@ -109,10 +109,16 @@ function AppContent() {
       console.log("🔍 Auth not ready yet, waiting for authentication to settle...");
     }
     
-    // If we have a user and auth is ready, and we're on the root or loading page, navigate to chat
+    // If we have a user and auth is ready, and we're on the root or loading page
     if (authReady && user && (location === '/' || location === '')) {
-      console.log('🚀 User authenticated and auth ready, navigating to chat');
-      setLocation('/chat');
+      // Check if user needs onboarding first
+      if (!user.onboardingCompleted) {
+        console.log('🚀 New user needs onboarding, redirecting to /onboarding');
+        setLocation('/onboarding');
+      } else {
+        console.log('🚀 User authenticated and auth ready, navigating to chat');
+        setLocation('/chat');
+      }
     }
   }, [authReady, user, location, setLocation]);
 
