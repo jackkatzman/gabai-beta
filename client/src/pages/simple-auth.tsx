@@ -61,8 +61,8 @@ export default function SimpleAuthPage() {
           console.log('🔄 Refreshing auth state...');
           await refetch();
           
-          // Navigate to home
-          setLocation('/home');
+          // Navigate to chat (main page after login)
+          setLocation('/chat');
         } else {
           throw new Error(result.error || 'Registration failed');
         }
@@ -89,8 +89,8 @@ export default function SimpleAuthPage() {
           console.log('🔄 Refreshing auth state...');
           await refetch();
           
-          // Navigate to home
-          setLocation('/home');
+          // Navigate to chat (main page after login)
+          setLocation('/chat');
         } else {
           throw new Error(result.error || 'Login failed');
         }
