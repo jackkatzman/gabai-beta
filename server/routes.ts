@@ -722,21 +722,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Decode the Base64 token (same format as SMS verification creates)
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          const { userId, timestamp, phone, authMethod } = decoded;
+          const { userId, timestamp, phone, email, authMethod } = decoded;
+          
+          logger.info('🔑 Token decoded', 'auth-check', { userId, authMethod, hasPhone: !!phone, hasEmail: !!email });
           
           if (!userId) {
             console.log('❌ Invalid Bearer token: missing userId');
             return res.status(401).json({ message: "Invalid token" });
           }
           
-          // CRITICAL: Enforce strict token expiry for SMS auth (24 hours max)
+          // CRITICAL: Enforce strict token expiry (24 hours max)
           const tokenAge = Date.now() - timestamp;
           const maxAge = 24 * 60 * 60 * 1000; // 24 hours - force re-authentication daily
           if (tokenAge > maxAge) {
-            console.log('❌ Bearer token expired - must re-authenticate via SMS');
+            console.log('❌ Bearer token expired - must re-authenticate');
             // Clear the expired token from cookies
             res.clearCookie('gabai_token');
-            return res.status(401).json({ message: "Session expired. Please sign in again with SMS." });
+            return res.status(401).json({ message: "Session expired. Please sign in again." });
           }
           
           // Get user from database
@@ -746,15 +748,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(401).json({ message: "User not found" });
           }
           
-          // Validate that this is a phone-verified user (not a demo/test user)
-          // Must have either phone in token OR authMethod = 'sms' for new tokens
-          if (authMethod !== 'sms' && !(user as any).phone && !phone) {
-            console.log('❌ Token does not have valid SMS authentication');
-            return res.status(401).json({ message: "SMS authentication required. Please sign in with your phone number." });
+          // Validate authentication method - allow both SMS and email/password
+          if (authMethod === 'sms' || authMethod === 'email') {
+            logger.info('✅ User authenticated via Bearer token', 'auth-check', { 
+              email: (user as any).email, 
+              phone: (user as any).phone,
+              authMethod 
+            });
+            return res.json(user);
+          } else {
+            console.log('❌ Token has invalid authentication method:', authMethod);
+            return res.status(401).json({ message: "Invalid authentication method." });
           }
-          
-          console.log('✅ User authenticated via Bearer token:', (user as any).email || (user as any).phone);
-          return res.json(user);
         } catch (tokenError) {
           console.error('❌ Bearer token decode error:', tokenError);
           return res.status(401).json({ message: "Invalid token format" });
