@@ -45,9 +45,16 @@ export async function api(path: string, init: RequestInit = {}) {
   });
   
   if (res.status === 401) {
+    // For auth check endpoint, return null instead of throwing
+    // This prevents false error logs when user is simply not logged in
+    if (path === '/api/auth/user') {
+      console.log('ℹ️ No authenticated user - returning null');
+      return null;
+    }
+    
+    // For all other endpoints, clear token and redirect
     console.log('❌ 401 - clearing token and redirecting to login');
     clearToken();
-    // HashRouter safe redirect
     window.location.hash = '#/login';
     throw new Error('401 Unauthorized');
   }
