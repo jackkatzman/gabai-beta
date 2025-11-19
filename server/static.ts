@@ -90,6 +90,8 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html for HTML routes only (NOT API routes)
   app.use("*", (req, res, next) => {
+    console.log(`🔍 SPA Fallback handler - path: ${req.path}, method: ${req.method}`);
+    
     // CRITICAL: Skip API routes to prevent HTML responses for API calls
     if (req.path.startsWith('/api/')) {
       console.log('⚠️ API route not found:', req.path);
@@ -107,8 +109,11 @@ export function serveStatic(app: Express) {
         req.path.includes('.png') ||
         req.path.includes('.css') ||
         req.path.includes('.js')) {
+      console.log(`⏭️ Skipping fallback for: ${req.path}`);
       return next();
     }
+    
+    console.log(`📄 Serving index.html for: ${req.path}`);
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
