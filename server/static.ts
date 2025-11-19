@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { logger } from "./logger";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -30,25 +31,25 @@ export function serveStatic(app: Express) {
   for (const testPath of possiblePaths) {
     if (fs.existsSync(testPath)) {
       distPath = testPath;
-      console.log(`✅ Found public directory at: ${distPath}`);
+      logger.info(`✅ Found public directory at: ${distPath}`, "static-setup");
       break;
     }
   }
   
   if (!distPath) {
-    console.log(`❌ Public directory not found at any location!`);
-    console.log(`📁 Current dirname: ${dirname}`);
-    console.log(`📁 Current cwd: ${process.cwd()}`);
-    console.log(`📁 Tested paths:`);
-    possiblePaths.forEach(p => console.log(`   - ${p}`));
+    logger.error(`❌ Public directory not found at any location!`, "static-setup", {
+      dirname,
+      cwd: process.cwd(),
+      testedPaths: possiblePaths
+    });
     
     throw new Error(
       `Could not find the build directory, make sure to build the client first`,
     );
   }
 
-  console.log(`✅ Serving static files from: ${distPath}`);
-  console.log(`📂 Public directory contents:`, fs.readdirSync(distPath).slice(0, 10));
+  logger.info(`✅ Serving static files from: ${distPath}`, "static-setup");
+  logger.info(`📂 Public directory contents: ${fs.readdirSync(distPath).slice(0, 10).join(', ')}`, "static-setup");
   
   // Serve zip files directly with proper streaming - BEFORE static middleware
   app.get('/*.zip', (req, res) => {
@@ -90,11 +91,15 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html for HTML routes only (NOT API routes)
   app.use("*", (req, res, next) => {
-    console.log(`🔍 SPA Fallback handler - path: ${req.path}, method: ${req.method}`);
+    logger.info(`🔍 SPA Fallback handler - path: ${req.path}, method: ${req.method}`, "spa-fallback", {
+      path: req.path,
+      method: req.method,
+      userAgent: req.get('user-agent')
+    });
     
     // CRITICAL: Skip API routes to prevent HTML responses for API calls
     if (req.path.startsWith('/api/')) {
-      console.log('⚠️ API route not found:', req.path);
+      logger.warn(`⚠️ API route not found: ${req.path}`, "spa-fallback", { path: req.path });
       return res.status(404).json({ 
         error: 'API endpoint not found',
         path: req.path,
@@ -109,11 +114,11 @@ export function serveStatic(app: Express) {
         req.path.includes('.png') ||
         req.path.includes('.css') ||
         req.path.includes('.js')) {
-      console.log(`⏭️ Skipping fallback for: ${req.path}`);
+      logger.debug(`⏭️ Skipping fallback for: ${req.path}`, "spa-fallback");
       return next();
     }
     
-    console.log(`📄 Serving index.html for: ${req.path}`);
+    logger.info(`📄 Serving index.html for: ${req.path}`, "spa-fallback", { path: req.path });
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

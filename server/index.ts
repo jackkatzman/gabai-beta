@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
 import { setupAuth } from "./auth";
 import { setupSimpleMobileAuth } from "./mobile-auth-simple";
+import { logger } from "./logger";
 
 const app = express();
 
@@ -269,13 +270,16 @@ app.get('/api/health', (req, res) => {
     const { setupVite } = await import(devModule);
     await setupVite(app, server);
   } else {
-    console.log('🏭 Production mode - setting up static file serving');
+    logger.info('🏭 Production mode - setting up static file serving', 'server-startup');
     try {
       serveStatic(app);
-      console.log('✅ Static file serving configured successfully');
+      logger.info('✅ Static file serving configured successfully', 'server-startup');
     } catch (error) {
-      console.error('❌ CRITICAL: Failed to setup static file serving:', error);
-      console.error('This will cause SPA routing to fail - /chat and other routes will 404');
+      logger.error('❌ CRITICAL: Failed to setup static file serving', 'server-startup', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      logger.error('This will cause SPA routing to fail - /chat and other routes will 404', 'server-startup');
       // Re-throw to prevent server from starting in broken state
       throw error;
     }
@@ -288,7 +292,7 @@ app.get('/api/health', (req, res) => {
   const port = parseInt(process.env.PORT || defaultPort, 10);
   
   // Log startup configuration
-  console.log('🚀 Server startup configuration:', {
+  logger.info('🚀 Server startup configuration', 'server-startup', {
     NODE_ENV: process.env.NODE_ENV || 'production',
     PORT: port,
     HOST: '0.0.0.0',
@@ -312,37 +316,44 @@ app.get('/api/health', (req, res) => {
   // Ensure server binds correctly with explicit error handling
   server.listen(port, "0.0.0.0", () => {
     clearTimeout(startupTimeout); // Clear timeout on successful startup
-    console.log(`✅ Server successfully started`);
-    console.log(`📡 Listening on 0.0.0.0:${port}`);
+    logger.info(`✅ Server successfully started`, 'server-startup', {
+      host: '0.0.0.0',
+      port: port
+    });
     log(`serving on port ${port}`);
 
     // Log OAuth configuration status
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-      console.log('✅ OAuth configuration detected');
+      logger.info('✅ OAuth configuration detected', 'server-startup');
     } else {
-      console.log('⚠️  OAuth not configured - Google login will not work');
+      logger.warn('⚠️ OAuth not configured - Google login will not work', 'server-startup');
     }
 
     // Log Cloud Run detection
     if (process.env.K_SERVICE || process.env.CLOUD_RUN_JOB) {
-      console.log('☁️ Running on Cloud Run');
+      logger.info('☁️ Running on Cloud Run', 'server-startup', {
+        service: process.env.K_SERVICE,
+        job: process.env.CLOUD_RUN_JOB
+      });
     }
 
     // Ready for traffic
-    console.log('🚀 Server is ready to accept traffic');
+    logger.info('🚀 Server is ready to accept traffic', 'server-startup');
   });
 
   // Handle server errors
   server.on('error', (error: any) => {
     clearTimeout(startupTimeout);
-    console.error('❌ Server failed to start:', error.message);
+    logger.error('❌ Server failed to start', 'server-startup', {
+      error: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     
     if (error.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use. Please check for other processes.`);
+      logger.error(`Port ${port} is already in use. Please check for other processes.`, 'server-startup');
     } else if (error.code === 'EACCES') {
-      console.error(`Permission denied to bind to port ${port}. Try a port > 1024.`);
-    } else {
-      console.error('Server error details:', error);
+      logger.error(`Permission denied to bind to port ${port}. Try a port > 1024.`, 'server-startup');
     }
     
     // Exit with error code for Cloud Run to detect failure
