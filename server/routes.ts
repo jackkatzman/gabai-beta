@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { storage } from "./storage";
+import { logger } from "./logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1694,9 +1695,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", jsonParser, async (req, res) => {
     try {
+      logger.info('📧 POST /api/auth/login request received', 'auth-login', { 
+        email: req.body?.email,
+        hasPassword: !!req.body?.password 
+      });
+      
       const { email, password } = req.body;
       
       if (!email || !password) {
+        logger.warn('❌ Login failed - missing credentials', 'auth-login');
         return res.status(400).json({ error: 'Email and password are required' });
       }
       
