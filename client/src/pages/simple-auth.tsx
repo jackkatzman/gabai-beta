@@ -68,6 +68,8 @@ export default function SimpleAuthPage() {
         }
       } else {
         // Login
+        console.log('🔐 Starting login attempt...', { email: formData.email, hasPassword: !!formData.password });
+        
         const result = await api('/api/auth/login', {
           method: 'POST',
           body: JSON.stringify({
@@ -75,6 +77,8 @@ export default function SimpleAuthPage() {
             password: formData.password
           })
         });
+        
+        console.log('📨 Login API response:', result);
         
         if (result.success) {
           console.log('✅ Login successful');
@@ -97,7 +101,12 @@ export default function SimpleAuthPage() {
       }
     } catch (error) {
       console.error('❌ Authentication error:', error);
-      alert((error as Error).message);
+      console.error('❌ Error details:', {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        error: error
+      });
+      alert('Login failed: ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
