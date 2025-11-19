@@ -51,9 +51,9 @@ export default function SimpleAuthPage() {
         if (result.success) {
           console.log('✅ Registration successful');
           
-          // For APK: Save token to localStorage (like SMS auth)
-          if (result.token && isAPK) {
-            console.log('📱 APK mode: Saving authentication token');
+          // Save token to localStorage (for both web and APK)
+          if (result.token) {
+            console.log('💾 Saving authentication token');
             localStorage.setItem('gabai_token', result.token);
           }
           
@@ -79,9 +79,9 @@ export default function SimpleAuthPage() {
         if (result.success) {
           console.log('✅ Login successful');
           
-          // For APK: Save token to localStorage (like SMS auth)
-          if (result.token && isAPK) {
-            console.log('📱 APK mode: Saving authentication token');
+          // Save token to localStorage (for both web and APK)
+          if (result.token) {
+            console.log('💾 Saving authentication token');
             localStorage.setItem('gabai_token', result.token);
           }
           
