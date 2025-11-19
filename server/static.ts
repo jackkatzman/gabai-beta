@@ -16,31 +16,34 @@ export function log(message: string, source = "express") {
 export function serveStatic(app: Express) {
   // Use __dirname for CommonJS compatibility (Netlify) or import.meta.dirname for ESM
   const dirname = typeof __dirname !== 'undefined' ? __dirname : import.meta.dirname;
-  const distPath = path.resolve(dirname, "..", "dist", "public");
-
-  if (!fs.existsSync(distPath)) {
-    console.log(`❌ Public directory not found at: ${distPath}`);
-    console.log(`📁 Current dirname: ${dirname}`);
-    console.log(`📁 Checking if public exists at alternate locations...`);
-    
-    // Try other potential locations
-    const altPaths = [
-      path.resolve(dirname, "public"),
-      path.resolve(process.cwd(), "public"),
-      path.resolve(".", "public")
-    ];
-    
-    for (const altPath of altPaths) {
-      if (fs.existsSync(altPath)) {
-        console.log(`✅ Found public directory at: ${altPath}`);
-        break;
-      } else {
-        console.log(`❌ Not found at: ${altPath}`);
-      }
+  
+  // Try multiple possible locations for the public directory
+  const possiblePaths = [
+    path.resolve(dirname, "..", "dist", "public"), // Standard: dist/index.js -> dist/public
+    path.resolve(dirname, "public"),                // Cloud Run: index.js at root, public/ at root  
+    path.resolve(process.cwd(), "dist", "public"),  // Alternative: cwd is project root
+    path.resolve(process.cwd(), "public"),          // Alternative: public at project root
+  ];
+  
+  let distPath: string | null = null;
+  
+  for (const testPath of possiblePaths) {
+    if (fs.existsSync(testPath)) {
+      distPath = testPath;
+      console.log(`✅ Found public directory at: ${distPath}`);
+      break;
     }
+  }
+  
+  if (!distPath) {
+    console.log(`❌ Public directory not found at any location!`);
+    console.log(`📁 Current dirname: ${dirname}`);
+    console.log(`📁 Current cwd: ${process.cwd()}`);
+    console.log(`📁 Tested paths:`);
+    possiblePaths.forEach(p => console.log(`   - ${p}`));
     
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory, make sure to build the client first`,
     );
   }
 

@@ -269,7 +269,16 @@ app.get('/api/health', (req, res) => {
     const { setupVite } = await import(devModule);
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    console.log('🏭 Production mode - setting up static file serving');
+    try {
+      serveStatic(app);
+      console.log('✅ Static file serving configured successfully');
+    } catch (error) {
+      console.error('❌ CRITICAL: Failed to setup static file serving:', error);
+      console.error('This will cause SPA routing to fail - /chat and other routes will 404');
+      // Re-throw to prevent server from starting in broken state
+      throw error;
+    }
   }
 
   // Cloud Run compatibility: Use PORT environment variable
