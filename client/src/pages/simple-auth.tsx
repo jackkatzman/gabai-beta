@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import gabaiIcon from "@assets/gabai-icon-optimized.png";
 
 export default function SimpleAuthPage() {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, refetch } = useAuth();
   const [, setLocation] = useLocation();
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,11 +57,12 @@ export default function SimpleAuthPage() {
             localStorage.setItem('gabai_token', result.token);
           }
           
-          // Navigate to home for APK environments
-          if (window.location.protocol === 'file:') {
-            window.location.hash = '/';
-          }
-          window.location.reload();
+          // Refetch user data to update auth state (instead of reload)
+          console.log('🔄 Refreshing auth state...');
+          await refetch();
+          
+          // Navigate to home
+          setLocation('/home');
         } else {
           throw new Error(result.error || 'Registration failed');
         }
@@ -84,11 +85,12 @@ export default function SimpleAuthPage() {
             localStorage.setItem('gabai_token', result.token);
           }
           
-          // Navigate to home for APK environments
-          if (window.location.protocol === 'file:') {
-            window.location.hash = '/';
-          }
-          window.location.reload();
+          // Refetch user data to update auth state (instead of reload)
+          console.log('🔄 Refreshing auth state...');
+          await refetch();
+          
+          // Navigate to home
+          setLocation('/home');
         } else {
           throw new Error(result.error || 'Login failed');
         }

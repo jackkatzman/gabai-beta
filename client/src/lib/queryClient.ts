@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { api as bulletproofApi } from "./api-bulletproof";
 
 // Helper to ensure URLs have leading slash (fixes 404 after SMS verify)
 function ensureLeadingSlash(url: string): string {
@@ -22,11 +23,17 @@ export async function apiRequest(
   method: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // CRITICAL FIX: Ensure URL has leading slash (fixes 404 after SMS verify)
+  // Use bulletproof client's auth logic but return real Response
   url = ensureLeadingSlash(url);
-  console.log('📍 API request normalized:', url);
+  const originalPath = url;  // Keep original path for comparisons
   
-  // Detect if running as APK (Cordova/Capacitor or WebView)
+  const headers = new Headers();
+  
+  if (data && method !== "GET") {
+    headers.set("Content-Type", "application/json");
+  }
+  
+  // APK detection - MUST match getQueryFn logic exactly
   const isFileProtocol = window.location.protocol === 'file:';
   const isCordova = typeof (window as any).cordova !== 'undefined';
   const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
@@ -34,33 +41,31 @@ export async function apiRequest(
   const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
   const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
   
-  if (isAPK) {
-    console.log('📱 APK detected:', { isCordova, isCapacitor, isWebView, isVoltBuilder });
+  // Environment detection: relative URL for local dev, absolute for production/APK
+  const isDevelopment = 
+    window.location.hostname.includes('localhost') ||
+    window.location.hostname.includes('repl.co') ||  // Replit dev domains
+    window.location.hostname.includes('replit.dev') ||
+    window.location.hostname.includes('riker.replit.dev') ||
+    window.location.hostname.includes('127.0.0.1') ||
+    window.location.hostname.includes('0.0.0.0');
+  
+  let fullUrl: string;
+  if (isDevelopment && !isAPK) {
+    // Local development - use relative URL
+    fullUrl = originalPath;
+  } else {
+    // Production or APK - use absolute URL
+    fullUrl = `https://gabai.ai${originalPath}`;
   }
   
-  // If running as APK, prepend production API base
-  if (isAPK && url.startsWith('/api/')) {
-    url = `https://gabai.ai${url}`;
-    console.log('📱 APK API request:', url);
-  }
-  
-  // Get token for authentication - check multiple storage locations
-  // Always check for token, not just for APK
+  // Get token for authentication - check multiple storage locations (MATCH getQueryFn)
   const token = localStorage.getItem('gabai_token') || 
                 sessionStorage.getItem('gabai_token') || 
                 localStorage.getItem('token') ||
                 sessionStorage.getItem('token');
   
-  console.log('🔑 Token found:', !!token, 'for URL:', url);
-  
-  const headers = new Headers();
-  
-  // CRITICAL: Always set Content-Type for JSON requests
-  if (data && method !== "GET") {
-    headers.set("Content-Type", "application/json");
-  }
-  
-  // List of public endpoints that don't need authentication
+  // List of public endpoints that don't need authentication (MATCH getQueryFn)
   const publicEndpoints = [
     '/api/sms/send-verification',
     '/api/sms/verify-code',
@@ -70,66 +75,34 @@ export async function apiRequest(
     '/api/auth/simple-login'
   ];
   
-  const needsAuth = !publicEndpoints.some(endpoint => url.includes(endpoint));
+  // Check public endpoints against original path (not fullUrl with hostname)
+  const needsAuth = !publicEndpoints.some(endpoint => originalPath.includes(endpoint));
   
-  // Add Bearer token for authenticated endpoints only
-  if (token && needsAuth && (url.startsWith('/api') || url.includes('gabai.ai'))) {
+  // Add Bearer token for authenticated endpoints only (MATCH getQueryFn)
+  if (token && needsAuth && originalPath.startsWith('/api')) {
     headers.set('Authorization', `Bearer ${token}`);
-    console.log('✅ Adding Bearer token to authenticated endpoint:', url);
-  } else if (!needsAuth) {
-    console.log('🌐 Public endpoint, no auth needed:', url);
   }
   
-  // Add timeout using AbortController (60 seconds for chat to handle OpenAI delays, 15 seconds for others)
-  const timeoutMs = url.includes('/api/chat') ? 60000 : 15000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  // Use session cookies for web, omit for APK
+  const credentials = isAPK ? 'omit' : 'include';
   
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
-      credentials: "omit", // FIXED: Never use cookies - always use Bearer tokens
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeoutId);
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    console.error(`❌ API request failed to ${url}:`, error);
-    
-    // Show user-friendly error message
-    if (typeof (window as any).showToast === 'function') {
-      (window as any).showToast(`Connection error: ${error.message || 'Please check your internet'}`);
-    }
-    
-    if (error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs/1000} seconds`);
-    }
-    throw error;
-  }
+  const res = await fetch(fullUrl, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+    credentials,
+  });
   
-  // Handle 401s by clearing token and redirecting
+  // Handle 401 by clearing token and redirecting
   if (res.status === 401) {
-    console.log('❌ 401 Unauthorized - clearing token');
     localStorage.removeItem('gabai_token');
     sessionStorage.removeItem('gabai_token');
-    
-    // Detect if we're in APK for proper redirect
-    const isAPKRedirect = window.location.protocol === 'file:' ||
-                         (navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android')) ||
-                         (typeof (window as any).cordova !== 'undefined');
-    
-    if (isAPKRedirect) {
-      window.location.hash = '#/login';
-    } else {
-      window.location.hash = '#/login'; // CHATGPT FIX: Use hash routing
-    }
-    throw new Error('Unauthorized');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    window.location.hash = '#/login';
+    throw new Error('401 Unauthorized');
   }
-
+  
   await throwIfResNotOk(res);
   return res;
 }
@@ -151,6 +124,7 @@ export const getQueryFn: <T>(options: {
     
     // CRITICAL FIX: Ensure URL has leading slash (fixes 404 after SMS verify)
     url = ensureLeadingSlash(url);
+    const originalPath = url;  // Keep original path for comparisons
     console.log('📍 Query normalized URL:', url);
     
     // Detect if running as APK (Cordova/Capacitor or WebView)
@@ -161,14 +135,29 @@ export const getQueryFn: <T>(options: {
     const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
     const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
     
+    // Environment detection: relative URL for local dev, absolute for production/APK
+    const isDevelopment = 
+      window.location.hostname.includes('localhost') ||
+      window.location.hostname.includes('repl.co') ||  // Replit dev domains
+      window.location.hostname.includes('replit.dev') ||
+      window.location.hostname.includes('riker.replit.dev') ||
+      window.location.hostname.includes('127.0.0.1') ||
+      window.location.hostname.includes('0.0.0.0');
+    
     if (isAPK) {
       console.log('📱 APK detected in query:', { isCordova, isCapacitor, isWebView, isVoltBuilder });
     }
     
-    // If running as APK, prepend production API base
-    if (isAPK && url.startsWith('/api/')) {
-      url = `https://gabai.ai${url}`;
-      console.log('📱 APK Query request:', url);
+    // Compute full URL based on environment (mirror apiRequest logic)
+    let fullUrl: string;
+    if (isDevelopment && !isAPK) {
+      // Local development - use relative URL
+      fullUrl = originalPath;
+      console.log('🏠 Dev Query request:', fullUrl);
+    } else {
+      // Production or APK - use absolute URL
+      fullUrl = `https://gabai.ai${originalPath}`;
+      console.log('🌐 Production/APK Query request:', fullUrl);
     }
     
     // Get token for authentication - check multiple storage locations
@@ -178,7 +167,7 @@ export const getQueryFn: <T>(options: {
                   localStorage.getItem('token') ||
                   sessionStorage.getItem('token');
     
-    console.log('🔑 Query Token found:', !!token, 'for URL:', url);
+    console.log('🔑 Query Token found:', !!token, 'for path:', originalPath);
     
     const headers: HeadersInit = {};
     
@@ -192,23 +181,37 @@ export const getQueryFn: <T>(options: {
       '/api/auth/simple-login'
     ];
     
-    const needsAuth = !publicEndpoints.some(endpoint => url.includes(endpoint));
+    // Check public endpoints against original path (not fullUrl with hostname)
+    const needsAuth = !publicEndpoints.some(endpoint => originalPath.includes(endpoint));
     
     // Add Bearer token for authenticated endpoints only
-    if (token && needsAuth && (url.startsWith('/api') || url.includes('gabai.ai'))) {
+    if (token && needsAuth && originalPath.startsWith('/api')) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ Adding Bearer token to authenticated query:', url);
+      console.log('✅ Adding Bearer token to authenticated query:', originalPath);
     } else if (!needsAuth) {
-      console.log('🌐 Public query endpoint, no auth needed:', url);
+      console.log('🌐 Public query endpoint, no auth needed:', originalPath);
     }
     
-    const res = await fetch(url, {
+    // Use session cookies for web, omit for APK
+    const credentials = isAPK ? 'omit' : 'include';
+    
+    const res = await fetch(fullUrl, {
       headers,
-      credentials: "omit", // FIXED: Never use cookies - always use Bearer tokens
+      credentials,
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    // Handle 401 by clearing token and redirecting (MATCH apiRequest)
+    if (res.status === 401) {
+      localStorage.removeItem('gabai_token');
+      sessionStorage.removeItem('gabai_token');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      window.location.hash = '#/login';
+      
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      throw new Error('401 Unauthorized');
     }
 
     await throwIfResNotOk(res);
