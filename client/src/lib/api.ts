@@ -170,11 +170,10 @@ export const api = {
       ext = 'wav';
     }
 
-    // Check if we're in production or development
-    // APK uses file:// protocol, production uses gabai.ai domain
-    const isProduction = window.location.hostname === 'gabai.ai' || 
-                         window.location.protocol === 'file:';
-    const finalUrl = isProduction ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
+    // Use relative URL for web (both dev and production)
+    // Only use absolute URL for APK (file:// protocol)
+    const isAPK = window.location.protocol === 'file:';
+    const finalUrl = isAPK ? "https://gabai.ai/api/transcribe" : "/api/transcribe";
     
     const token = localStorage.getItem('gabai_token') || sessionStorage.getItem('gabai_token') || '';
     
@@ -185,7 +184,7 @@ export const api = {
     console.log('📤 Sending audio via FormData to:', finalUrl, {
       hostname: window.location.hostname,
       protocol: window.location.protocol,
-      isProduction,
+      isAPK,
       hasToken: !!token,
       tokenLength: token.length,
       blobSize: audioBlob.size,
@@ -206,7 +205,7 @@ export const api = {
         body: formData,
         headers,
         mode: 'cors',
-        credentials: isProduction ? 'omit' : 'include'
+        credentials: isAPK ? 'omit' : 'include'
       });
 
       console.log('📥 Transcription response status:', transcribeResponse.status, transcribeResponse.statusText);
