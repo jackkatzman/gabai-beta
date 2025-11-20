@@ -3312,7 +3312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/shopping-lists", async (req, res) => {
+  app.post("/api/shopping-lists", jsonParser, async (req, res) => {
     try {
       const listData = {
         ...req.body,
@@ -3325,102 +3325,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Create shopping list error:", error);
       res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Generic list item routes (used by frontend)
-  app.post("/api/list-items", async (req, res) => {
-    try {
-      console.log("📦 Creating list item with data:", req.body);
-      const itemData = insertListItemSchema.parse(req.body);
-      console.log("✅ Parsed item data:", itemData);
-      const item = await storage.createListItem(itemData);
-      console.log("💾 Created item in database:", item);
-      res.json(item);
-    } catch (error: any) {
-      console.error("Create list item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.patch("/api/list-items/:id", async (req, res) => {
-    try {
-      console.log("📝 Updating list item:", req.params.id, req.body);
-      const item = await storage.updateListItem(req.params.id, req.body);
-      console.log("✅ List item updated:", item);
-      res.json(item);
-    } catch (error: any) {
-      console.error("❌ Update list item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.delete("/api/list-items/:id", async (req, res) => {
-    try {
-      console.log("🗑️ Deleting list item:", req.params.id);
-      await storage.deleteListItem(req.params.id);
-      console.log("✅ List item deleted");
-      res.status(204).send();
-    } catch (error: any) {
-      console.error("❌ Delete list item error:", error);
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.post("/api/shopping-items", async (req, res) => {
-    try {
-      const itemData = insertListItemSchema.parse(req.body);
-      const item = await storage.createListItem(itemData);
-      res.json(item);
-    } catch (error: any) {
-      console.error("Create shopping item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Toggle list item completion
-  app.patch("/api/list-items/:id/toggle", async (req, res) => {
-    try {
-      console.log("🔄 Toggling list item:", req.params.id);
-      const item = await storage.toggleListItem(req.params.id);
-      console.log("✅ List item toggled:", item);
-      res.json(item);
-    } catch (error: any) {
-      console.error("❌ Toggle list item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Update list item (supporting both shopping-items and list-items routes)
-  app.patch("/api/shopping-items/:id", async (req, res) => {
-    try {
-      const item = await storage.updateListItem(req.params.id, req.body);
-      res.json(item);
-    } catch (error: any) {
-      console.error("Update shopping item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.patch("/api/list-items/:id", async (req, res) => {
-    try {
-      console.log("🔄 Updating list item:", req.params.id, req.body);
-      const item = await storage.updateListItem(req.params.id, req.body);
-      console.log("✅ List item updated:", item);
-      res.json(item);
-    } catch (error: any) {
-      console.error("❌ Update list item error:", error);
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.delete("/api/shopping-items/:id", async (req, res) => {
-    try {
-      await storage.deleteListItem(req.params.id);
-      res.status(204).send();
-    } catch (error: any) {
-      console.error("Delete shopping item error:", error);
-      res.status(500).json({ message: error.message });
     }
   });
 
@@ -4180,7 +4084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate Smart List Name endpoint  
-  app.post("/api/generate-list-name", async (req, res) => {
+  app.post("/api/generate-list-name", jsonParser, async (req, res) => {
     try {
       const { userId, profession } = req.body;
       
@@ -4205,7 +4109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Smart relabel list route
-  app.post("/api/relabel-list", async (req, res) => {
+  app.post("/api/relabel-list", jsonParser, async (req, res) => {
     try {
       const { listId, currentName, items, listType } = req.body;
       
@@ -4526,7 +4430,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Add collaborator to list endpoint
-  app.post("/api/smart-lists/:id/collaborators", async (req, res) => {
+  app.post("/api/smart-lists/:id/collaborators", jsonParser, async (req, res) => {
     try {
       const { id } = req.params;
       const { email } = req.body;
@@ -4550,7 +4454,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // AI Categorization endpoint
-  app.post("/api/categorize-item", async (req, res) => {
+  app.post("/api/categorize-item", jsonParser, async (req, res) => {
     try {
       const { itemName, listType } = req.body;
       
@@ -4603,7 +4507,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.post("/api/contacts", async (req, res) => {
+  app.post("/api/contacts", jsonParser, async (req, res) => {
     try {
       const contactData = req.body;
       const contact = await storage.createContact(contactData);
