@@ -37,6 +37,12 @@ const recurringOptions = [
   { value: "monthly", label: "Monthly" },
 ];
 
+// Helper function to get category information
+function getCategoryInfo(categoryValue: string) {
+  return categories.find(cat => cat.value === categoryValue) || 
+         { value: categoryValue, label: categoryValue, color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" };
+}
+
 export function RemindersPage({ user }: RemindersPageProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
@@ -100,14 +106,40 @@ export function RemindersPage({ user }: RemindersPageProps) {
   // Clear all completed reminders
   const clearCompletedMutation = useMutation({
     mutationFn: async () => {
-      const completedReminders = reminders.filter(r => r.completed);
-      await Promise.all(completedReminders.map(r => api.deleteReminder(r.id)));
+      // Fetch fresh list to ensure we're working with latest data
+      const freshReminders = await api.getUserReminders(user.id);
+      const completedReminders = freshReminders.filter(r => r.completed);
+      
+      if (completedReminders.length === 0) {
+        throw new Error("No completed reminders to clear");
+      }
+      
+      // Delete all completed reminders
+      const results = await Promise.allSettled(
+        completedReminders.map(r => api.deleteReminder(r.id))
+      );
+      
+      // Check if any failed
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.error('Some deletions failed:', failures);
+        throw new Error(`Failed to delete ${failures.length} reminder(s)`);
+      }
+      
+      return completedReminders.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
       toast({
         title: "Completed Reminders Cleared",
-        description: "All completed reminders have been removed.",
+        description: `Successfully removed ${count} completed reminder(s).`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Clear Failed",
+        description: error.message || "Failed to clear completed reminders.",
+        variant: "destructive",
       });
     },
   });
@@ -171,10 +203,6 @@ export function RemindersPage({ user }: RemindersPageProps) {
     });
   };
 
-  const getCategoryInfo = (categoryValue: string) => {
-    return categories.find(cat => cat.value === categoryValue) || 
-           { value: categoryValue, label: categoryValue, color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" };
-  };
 
   // Group reminders by time
   const groupedReminders = (reminders as Reminder[]).reduce((acc: Record<string, Reminder[]>, reminder: Reminder) => {
@@ -571,9 +599,4 @@ function parseVoiceReminder(text: string) {
     description: "",
     dueDate,
   };
-}
-
-function getCategoryInfo(categoryValue: string) {
-  return categories.find(cat => cat.value === categoryValue) || 
-         { value: categoryValue, label: categoryValue, color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" };
 }
