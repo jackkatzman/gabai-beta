@@ -40,11 +40,15 @@ export function useVoice(options: UseVoiceOptions = {}) {
       cleanup();
       
       console.log('🎤 Voice Input: Requesting microphone permission...');
+      console.log('🎤 User Agent:', navigator.userAgent);
+      console.log('🎤 HTTPS:', window.location.protocol === 'https:');
+      console.log('🎤 mediaDevices available:', !!navigator.mediaDevices);
       
       // Request microphone permission using PermissionManager
       const hasPermission = await permissionManager.requestMicrophonePermission();
       if (!hasPermission) {
-        throw new Error('Microphone permission denied');
+        console.error('🎤 Permission denied by PermissionManager');
+        throw new Error('Microphone permission denied. Please enable microphone access in your browser settings.');
       }
       
       console.log('🎤 Microphone permission granted, starting recording...');
@@ -86,11 +90,18 @@ export function useVoice(options: UseVoiceOptions = {}) {
         streamRef.current = null;
       }
       
-      // ChatGPT Fix: Try very permissive constraints first
-      const constraintOptions = [
-        { audio: true }, // Simplest - try this first
+      // Mobile-friendly audio constraints - start with simplest
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const constraintOptions = isMobile ? [
+        { audio: true }, // Mobile needs simplest constraints
+        { audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } },
+        { audio: { sampleRate: 16000 } }
+      ] : [
+        { audio: true }, // Desktop - try simple first
         { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }
       ];
+      
+      console.log('🎤 Mobile device:', isMobile);
       
       let stream: MediaStream | null = null;
       for (const constraints of constraintOptions) {
@@ -109,17 +120,26 @@ export function useVoice(options: UseVoiceOptions = {}) {
       }
       
       streamRef.current = stream;
-      console.log('🎤 APK: Microphone access granted, starting recording...');
+      console.log('🎤 Microphone access granted, starting recording...');
       
-      // APK-specific codec selection for maximum mobile compatibility
+      // Mobile-optimized codec selection
       let mediaRecorder;
-      const supportedFormats = [
+      const isMobileSafari = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const supportedFormats = isMobileSafari ? [
+        'audio/mp4',  // Safari iOS prefers mp4
+        'audio/wav',
         'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus'
+      ] : [
+        'audio/webm;codecs=opus',  // Android Chrome prefers webm
         'audio/webm',
         'audio/mp4',
         'audio/ogg;codecs=opus',
         'audio/wav'
       ];
+      
+      console.log('🎤 Is Mobile Safari:', isMobileSafari);
       
       let selectedFormat = null;
       for (const format of supportedFormats) {
