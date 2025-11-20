@@ -101,14 +101,14 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
   });
 
   const handleVoiceToggle = async () => {
-    console.log("🎤 APK Voice toggle clicked:", { isRecording, isTranscribing, disabled });
+    console.log("🎤 Voice toggle clicked:", { isRecording, isTranscribing, disabled });
     if (!disabled && !isTranscribing) {
       try {
-        console.log("🎤 APK Attempting to toggle recording...");
+        console.log("🎤 Attempting to toggle recording...");
         await toggleRecording();
-        console.log("🎤 APK Recording toggled successfully");
+        console.log("🎤 Recording toggled successfully");
       } catch (error) {
-        console.error("🎤 APK Voice recording error:", error);
+        console.error("🎤 Voice recording error:", error);
         // Clear any stuck states
         setTranscript("");
         setMessage("");
@@ -116,7 +116,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         alert(`Voice input error: ${(error as any).message || 'Please check microphone permissions'}`);
       }
     } else {
-      console.log("🎤 APK Voice toggle blocked:", { disabled, isTranscribing });
+      console.log("🎤 Voice toggle blocked:", { disabled, isTranscribing });
     }
   };
 
@@ -294,7 +294,7 @@ export function VoiceInput({ onSendMessage, disabled }: VoiceInputProps) {
         {/* Helper text for voice button */}
         <div className="text-center -mt-1">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {isRecording ? "Release to send" : "Hold to speak"}
+            {isRecording ? "Click to stop & send" : isTranscribing ? "Processing..." : "Click to speak"}
           </span>
         </div>
 
