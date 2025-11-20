@@ -1,5 +1,32 @@
 // ChatGPT's bulletproof API client - single source of truth
-const API = 'https://gabai.ai';
+// Detect the correct API base URL based on current environment
+function getAPIBase() {
+  // APK always uses production
+  if (window.location.protocol === 'file:') {
+    return 'https://gabai.ai';
+  }
+  
+  // If on localhost or replit dev, use relative URLs
+  if (window.location.hostname === 'localhost' || 
+      window.location.hostname.includes('replit.dev')) {
+    return '';  // Relative URL - same origin
+  }
+  
+  // Production domain
+  if (window.location.hostname === 'gabai.ai') {
+    return 'https://gabai.ai';
+  }
+  
+  // Replit deployment (like gabai-beta.jack741.replit.app)
+  if (window.location.hostname.includes('replit.app')) {
+    return '';  // Relative URL - same origin
+  }
+  
+  // Default: use current origin
+  return window.location.origin;
+}
+
+const API = getAPIBase();
 
 let _token: string | null = null;
 
