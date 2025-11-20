@@ -108,49 +108,57 @@ const listTypeTemplates = {
       "Seasonal Items", "Floral", "Household Goods", "Magazines & Books", "Checkout Items"
     ],
     icon: Apple,
-    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    supportsCurrency: true
   },
   punch_list: {
     name: "Contractor Punch List",
     categories: ["Plumber", "Electrician", "Painter", "Flooring", "HVAC", "General"],
     icon: Settings,
-    color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+    color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    supportsCurrency: true
   },
   waiting_list: {
     name: "Waiting List",
     categories: ["VIP", "Regular", "Walk-in", "Reservation"],
     icon: Clock,
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    supportsCurrency: true
   },
   todo: {
     name: "To-Do List",
     categories: ["Work", "Personal", "Urgent", "Later"],
     icon: CheckCircle2,
-    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    supportsCurrency: true
   },
   books: {
     name: "Reading List",
     categories: ["Fiction", "Non-Fiction", "Biographies", "Technical", "Self-Help", "To Read"],
     icon: BookOpen,
-    color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
+    color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+    supportsCurrency: true
   },
   movies: {
     name: "Movie Watchlist",
     categories: ["Action", "Comedy", "Drama", "Sci-Fi", "Documentary", "To Watch"],
     icon: Film,
-    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    supportsCurrency: true
   },
   travel: {
     name: "Travel Plans",
     categories: ["Destinations", "Hotels", "Activities", "Restaurants", "Packing", "Bookings"],
     icon: MapPin,
-    color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200"
+    color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+    supportsCurrency: true
   },
   gifts: {
     name: "Gift Ideas",
     categories: ["Birthday", "Holiday", "Anniversary", "Wedding", "Baby Shower", "Graduation"],
     icon: Gift,
-    color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200"
+    color: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+    supportsCurrency: true
   },
   payments: {
     name: "Payment Schedule",
