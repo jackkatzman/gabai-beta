@@ -1297,7 +1297,7 @@ const getSimpleCategory = (itemName: string): string => {
       };
       
       for (const [cat, items] of Object.entries(punchCategories)) {
-        if (cleanedName.toLowerCase().includes(items.some(work => cleanedName.toLowerCase().includes(work)))) {
+        if (items.some(work => cleanedName.toLowerCase().includes(work))) {
           category = cat;
           break;
         }
@@ -1982,7 +1982,7 @@ const getSimpleCategory = (itemName: string): string => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleVoiceAddItem(list.id)}
-                        disabled={isRecording || isTranscribing}
+                        disabled={isTranscribing}
                         className={`smart-list-voice-button min-w-[48px] ${
                           isRecording ? 'bg-red-50 border-red-300 text-red-600' : ''
                         } ${isTranscribing ? 'bg-blue-50 border-blue-300 text-blue-600' : ''}`}
@@ -1991,6 +1991,7 @@ const getSimpleCategory = (itemName: string): string => {
                           isTranscribing ? "Processing voice..." : 
                           "Add item by voice"
                         }
+                        data-testid="button-voice-add-item"
                       >
                         <Mic className={`h-5 w-5 ${isRecording ? 'animate-pulse text-red-600' : ''}`} />
                         {isTranscribing && (
