@@ -120,15 +120,23 @@ export function initializeAPKNetworkOverride() {
       }
 
       // CRITICAL: Ensure Content-Type for POST/PUT/PATCH so server can parse JSON
+      // BUT: Never add Content-Type for FormData - browser must set multipart/form-data with boundary
       if (['POST', 'PUT', 'PATCH'].includes(finalInit.method?.toUpperCase() || 'GET')) {
-        // Use new Headers to properly normalize and set headers
-        const headers = new Headers(finalInit.headers || {});
-        // Only set Content-Type if not already set
-        if (!headers.has('Content-Type')) {
-          headers.set('Content-Type', 'application/json');
+        // Check if body is FormData - if so, don't touch Content-Type
+        const isFormData = finalInit.body instanceof FormData;
+        
+        if (!isFormData) {
+          // Use new Headers to properly normalize and set headers
+          const headers = new Headers(finalInit.headers || {});
+          // Only set Content-Type if not already set
+          if (!headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
+            console.log('📦 Added Content-Type: application/json for method:', finalInit.method);
+          }
+          finalInit.headers = headers;
+        } else {
+          console.log('📤 FormData detected - letting browser set Content-Type with boundary');
         }
-        finalInit.headers = headers;
-        console.log('📦 Added Content-Type: application/json for method:', finalInit.method);
       }
     }
 
