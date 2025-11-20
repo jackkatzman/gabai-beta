@@ -121,7 +121,7 @@ export default function HomePage() {
         return <OCRPage />;
 
       default:
-        return <ChatInterface user={user} />;
+        return <ChatInterface />;
     }
   };
 
