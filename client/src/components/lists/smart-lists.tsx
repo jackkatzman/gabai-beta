@@ -1260,7 +1260,8 @@ const getSimpleCategory = (itemName: string): string => {
     }
     console.log('✅ List found:', selectedList.name);
 
-    // Extract price from voice input (e.g., "milk $3.50" or "milk 3.50")
+    // Extract price from voice input - find price pattern, remove it cleanly
+    // Handles: "milk $3.50", "$3.50", "milk for $5", etc.
     let cleanedName = itemName;
     let extractedPrice: number | null = null;
     
@@ -1268,17 +1269,40 @@ const getSimpleCategory = (itemName: string): string => {
     const supportsCurrency = (template as any)?.supportsCurrency;
     
     if (supportsCurrency) {
-      // Match patterns like "$3.50", "3.50", "$3", "3"
-      const priceMatch = itemName.match(/\$?(\d+\.?\d*)/);
-      if (priceMatch) {
-        const priceText = priceMatch[1];
-        const parsedPrice = parseFloat(priceText);
-        if (!isNaN(parsedPrice) && parsedPrice > 0) {
-          extractedPrice = parsedPrice;
-          // Remove price from name (e.g., "milk $3.50" → "milk")
-          cleanedName = itemName.replace(/\$?\d+\.?\d*/, '').trim();
-          console.log('💰 Extracted price from voice:', { original: itemName, name: cleanedName, price: extractedPrice });
+      // Find price patterns: "$3.50", "for $5", "each $3", "dollar 3.50"
+      const pricePatterns = [
+        { regex: /\$(\d+(?:\.\d{1,2})?)/, name: 'dollar-sign' },
+        { regex: /\bdollars?\s+(\d+(?:\.\d{1,2})?)/i, name: 'dollar-word' }
+      ];
+      
+      for (const pattern of pricePatterns) {
+        const match = itemName.match(pattern.regex);
+        if (match) {
+          const price = parseFloat(match[1]);
+          if (!isNaN(price) && price > 0) {
+            extractedPrice = price;
+            // Remove the entire matched price phrase from the original text
+            cleanedName = itemName.replace(match[0], '').trim();
+            // Clean up orphaned connectors left over after removing price
+            cleanedName = cleanedName.replace(/\s+(for|each)\s*$/i, '').trim();
+            cleanedName = cleanedName.replace(/\s{2,}/g, ' '); // Normalize multiple spaces
+            
+            console.log(`💰 Extracted price (${pattern.name}):`, { 
+              original: itemName, 
+              name: cleanedName, 
+              price: extractedPrice,
+              removed: match[0]
+            });
+            break;
+          }
         }
+      }
+      
+      // Validation: ensure we didn't end up with empty name
+      if (extractedPrice && !cleanedName) {
+        console.warn('⚠️ Price extraction left empty name, reverting');
+        cleanedName = itemName;
+        extractedPrice = null;
       }
     }
 
