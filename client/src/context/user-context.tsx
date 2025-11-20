@@ -67,7 +67,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUserState(null);
       }
     } catch (error) {
-      console.error("🔥 Authentication error:", error);
+      console.error("🔥 Authentication error:", {
+        message: (error as Error).message,
+        error: error,
+        stack: (error as Error).stack
+      });
       setUserState(null);
     } finally {
       setIsLoading(false);
