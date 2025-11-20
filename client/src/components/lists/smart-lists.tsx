@@ -1292,20 +1292,31 @@ const getSimpleCategory = (itemName: string): string => {
   };
 
   const handleVoiceAddItem = async (listId: string) => {
-    if (isVoiceAddingItem || createItemMutation.isPending) return; // Prevent duplicate voice operations
+    console.log('🎤 handleVoiceAddItem CALLED', { listId, isRecording, isTranscribing });
     
-    setIsVoiceAddingItem(true);
+    // Don't block on isVoiceAddingItem - it prevents stop button from working
+    // Only block if mutation is pending
+    if (createItemMutation.isPending) {
+      console.log('⚠️ Voice add item blocked - mutation pending');
+      return;
+    }
+    
     setSelectedListId(listId);
     
     try {
       if (isRecording) {
         // Stop recording if already recording
-        stopRecording();
+        console.log('🛑 Stopping recording...');
+        await stopRecording();
+        setIsVoiceAddingItem(false);
       } else {
         // Start recording
-        startRecording();
+        console.log('▶️ Starting recording...');
+        setIsVoiceAddingItem(true);
+        await startRecording();
       }
     } catch (error) {
+      console.error('❌ Voice error:', error);
       toast({
         title: "Voice Error",
         description: "Failed to record voice input",
