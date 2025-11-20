@@ -1244,28 +1244,8 @@ const getSimpleCategory = (itemName: string): string => {
     let category = "Other";
     
     if (selectedList.type === "shopping") {
-      // Call AI categorization API for intelligent grocery categorization
-      try {
-        const response = await fetch('/api/categorize-item', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            itemName: itemName,
-            listType: 'shopping'
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          category = result.category || "Other";
-        } else {
-          // Fallback to simple categorization if AI fails
-          category = getSimpleCategory(itemName.toLowerCase());
-        }
-      } catch (error) {
-        console.error('AI categorization failed, using fallback:', error);
-        category = getSimpleCategory(itemName.toLowerCase());
-      }
+      // Use simple categorization instead of AI to avoid delays and errors
+      category = getSimpleCategory(itemName.toLowerCase());
     } else if (selectedList.type === "punch_list") {
       const punchCategories = {
         "Plumbing": ["plumb", "pipe", "drain", "faucet", "toilet", "shower", "sink"],
