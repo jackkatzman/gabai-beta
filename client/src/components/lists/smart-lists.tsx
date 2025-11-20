@@ -1234,11 +1234,23 @@ const getSimpleCategory = (itemName: string): string => {
   };
 
   const handleAddItem = async (listId: string, itemName: string) => {
-    if (!itemName.trim()) return;
-    if (createItemMutation.isPending) return; // Prevent duplicate submissions
+    console.log('🔵 handleAddItem CALLED with:', { listId, itemName });
+    
+    if (!itemName.trim()) {
+      console.log('⚠️ Item name is empty, returning');
+      return;
+    }
+    if (createItemMutation.isPending) {
+      console.log('⚠️ Mutation already pending, returning');
+      return; // Prevent duplicate submissions
+    }
     
     const selectedList = lists.find(list => list.id === listId);
-    if (!selectedList) return;
+    if (!selectedList) {
+      console.log('⚠️ List not found:', listId);
+      return;
+    }
+    console.log('✅ List found:', selectedList.name);
 
     // Use AI-powered smart categorization for shopping items
     let category = "Other";
