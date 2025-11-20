@@ -263,9 +263,11 @@ export function useVoice(options: UseVoiceOptions = {}) {
   }, [options, toast, cleanup, api]);
 
   const stopRecording = useCallback(async () => {
+    console.log('🛑 STOP RECORDING CALLED');
     try {
       // Check if we're using Cordova recording
       const isAPK = CordovaDirect.isAvailable();
+      console.log('🛑 isAPK:', isAPK);
       
       if (isAPK) {
         console.log('🎤 Stopping native Cordova recording...');
@@ -277,8 +279,10 @@ export function useVoice(options: UseVoiceOptions = {}) {
           if (audioBlob && audioBlob.size > 0) {
             console.log('🎤 Got audio blob:', audioBlob.type, audioBlob.size);
             const { text } = await api.transcribeAudio(audioBlob);
+            console.log('🎤 Transcribed text:', text);
             
             if (options.onTranscriptionComplete) {
+              console.log('🎤 Calling onTranscriptionComplete with:', text);
               options.onTranscriptionComplete(text);
             }
             
@@ -299,6 +303,11 @@ export function useVoice(options: UseVoiceOptions = {}) {
           if (options.onError) {
             options.onError(error.message || 'Recording failed');
           }
+          toast({
+            title: "Recording Error",
+            description: error.message || 'Recording failed',
+            variant: "destructive",
+          });
         } finally {
           setIsTranscribing(false);
         }
@@ -306,17 +315,27 @@ export function useVoice(options: UseVoiceOptions = {}) {
       }
       
       // For web recording, stop MediaRecorder if it's active
+      console.log('🛑 Web recording - checking MediaRecorder state:', mediaRecorderRef.current?.state);
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        console.log('🛑 Stopping MediaRecorder...');
         mediaRecorderRef.current.stop();
+      } else {
+        console.log('⚠️ MediaRecorder not in recording state');
       }
       // Also cleanup streams immediately
       if (streamRef.current) {
+        console.log('🛑 Stopping media stream tracks...');
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     } catch (error) {
       console.error('❌ Error stopping recording:', error);
+      toast({
+        title: "Stop Recording Error",
+        description: (error as Error).message || 'Failed to stop recording',
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [options, toast]);
 
   const toggleRecording = useCallback(async () => {
     console.log('🎤 Toggle recording:', { isRecording, isTranscribing });
