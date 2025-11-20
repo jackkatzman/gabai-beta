@@ -1260,12 +1260,34 @@ const getSimpleCategory = (itemName: string): string => {
     }
     console.log('✅ List found:', selectedList.name);
 
+    // Extract price from voice input (e.g., "milk $3.50" or "milk 3.50")
+    let cleanedName = itemName;
+    let extractedPrice: number | null = null;
+    
+    const template = listTypeTemplates[selectedList.type as keyof typeof listTypeTemplates];
+    const supportsCurrency = (template as any)?.supportsCurrency;
+    
+    if (supportsCurrency) {
+      // Match patterns like "$3.50", "3.50", "$3", "3"
+      const priceMatch = itemName.match(/\$?(\d+\.?\d*)/);
+      if (priceMatch) {
+        const priceText = priceMatch[1];
+        const parsedPrice = parseFloat(priceText);
+        if (!isNaN(parsedPrice) && parsedPrice > 0) {
+          extractedPrice = parsedPrice;
+          // Remove price from name (e.g., "milk $3.50" → "milk")
+          cleanedName = itemName.replace(/\$?\d+\.?\d*/, '').trim();
+          console.log('💰 Extracted price from voice:', { original: itemName, name: cleanedName, price: extractedPrice });
+        }
+      }
+    }
+
     // Use AI-powered smart categorization for shopping items
     let category = "Other";
     
     if (selectedList.type === "shopping") {
       // Use simple categorization instead of AI to avoid delays and errors
-      category = getSimpleCategory(itemName.toLowerCase());
+      category = getSimpleCategory(cleanedName.toLowerCase());
     } else if (selectedList.type === "punch_list") {
       const punchCategories = {
         "Plumbing": ["plumb", "pipe", "drain", "faucet", "toilet", "shower", "sink"],
@@ -1275,7 +1297,7 @@ const getSimpleCategory = (itemName: string): string => {
       };
       
       for (const [cat, items] of Object.entries(punchCategories)) {
-        if (items.some(work => itemName.toLowerCase().includes(work))) {
+        if (cleanedName.toLowerCase().includes(items.some(work => cleanedName.toLowerCase().includes(work)))) {
           category = cat;
           break;
         }
@@ -1284,12 +1306,14 @@ const getSimpleCategory = (itemName: string): string => {
 
     setSelectedListId(listId);
     
-    const template = listTypeTemplates[selectedList.type as keyof typeof listTypeTemplates];
-    const amount = (template as any)?.supportsCurrency ? parseCurrency(newItemAmount) : null;
+    // Use extracted price from voice OR manual input field
+    const amount = supportsCurrency 
+      ? (extractedPrice !== null ? extractedPrice : parseCurrency(newItemAmount))
+      : null;
     
     createItemMutation.mutate({
       listId,
-      name: itemName,
+      name: cleanedName,
       category,
       assignedTo: selectedList.type === "punch_list" ? newItemAssignedTo : undefined,
       amount: amount,
