@@ -97,6 +97,21 @@ export function RemindersPage({ user }: RemindersPageProps) {
     },
   });
 
+  // Clear all completed reminders
+  const clearCompletedMutation = useMutation({
+    mutationFn: async () => {
+      const completedReminders = reminders.filter(r => r.completed);
+      await Promise.all(completedReminders.map(r => api.deleteReminder(r.id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders", user.id] });
+      toast({
+        title: "Completed Reminders Cleared",
+        description: "All completed reminders have been removed.",
+      });
+    },
+  });
+
   // Voice input for creating reminders
   const { isRecording, isTranscribing, toggleRecording } = useVoice({
     onTranscriptionComplete: (text) => {
@@ -195,7 +210,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Reminders
           </h2>
@@ -222,6 +237,23 @@ export function RemindersPage({ user }: RemindersPageProps) {
             </DialogContent>
           </Dialog>
         </div>
+        {reminders.some(r => r.completed) && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (window.confirm('Delete all completed reminders?')) {
+                clearCompletedMutation.mutate();
+              }
+            }}
+            disabled={clearCompletedMutation.isPending}
+            className="w-full text-sm"
+            data-testid="clear-completed-button"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {clearCompletedMutation.isPending ? 'Clearing...' : 'Clear Completed'}
+          </Button>
+        )}
       </div>
 
       {/* Quick Voice Reminder */}

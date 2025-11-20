@@ -105,7 +105,7 @@ export function ContactsPage() {
 
   const downloadVCard = async (contactId: string, contactName: string) => {
     try {
-      api.downloadVCard(contactId);
+      await api.downloadVCard(contactId);
       toast({
         title: "VCard Downloaded",
         description: `Contact card for ${contactName} has been downloaded.`,
