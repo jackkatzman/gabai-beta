@@ -12,6 +12,17 @@ import { api } from "@/lib/api";
 export function ChatInterface() {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('💬 ChatInterface mounted/updated:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userName: user?.name,
+      timestamp: new Date().toISOString()
+    });
+  }, [user]);
+  
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(() => {
     if (typeof window !== "undefined" && user) {
       return localStorage.getItem(`gabai_conversation_${user.id}`) || null;
