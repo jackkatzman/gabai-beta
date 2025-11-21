@@ -15,7 +15,7 @@ import { speechService } from "./services/speech";
 import { generateVCard, extractContactFromText } from "./services/vcard";
 import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShortener";
 import { sendMagicLink, sendPasswordResetEmail } from "./services/email";
-import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, generateVerificationCode, verifyCodeSMS, normalizePhoneNumber } from "./services/sms";
+import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, sendSMS, generateVerificationCode, verifyCodeSMS, normalizePhoneNumber } from "./services/sms";
 import bcrypt from "bcryptjs";
 
 const openai = new OpenAI({ 
@@ -4380,8 +4380,12 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       // Send SMS to each member
       for (const member of members) {
         try {
-          await twilioService.sendSMS(member.phone, smsMessage);
-          sentCount++;
+          const result = await sendSMS(member.phone, smsMessage);
+          if (result.success) {
+            sentCount++;
+          } else {
+            errors.push({ phone: member.phone, error: result.error || 'Failed to send' });
+          }
         } catch (error: any) {
           console.error(`Failed to send SMS to ${member.phone}:`, error);
           errors.push({ phone: member.phone, error: error.message });

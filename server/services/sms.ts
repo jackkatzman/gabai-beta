@@ -257,6 +257,60 @@ export async function sendReminderSMS(phoneNumber: string, title: string, descri
   }
 }
 
+// Generic function to send any SMS message
+export async function sendSMS(phoneNumber: string, message: string): Promise<SMSResult> {
+  let cleanPhone = phoneNumber.replace(/[^\d+]/g, '');
+  
+  // Add +1 if it's a US number without country code
+  if (!cleanPhone.startsWith('+') && cleanPhone.length === 10) {
+    cleanPhone = '+1' + cleanPhone;
+  } else if (cleanPhone.startsWith('1') && cleanPhone.length === 11) {
+    cleanPhone = '+' + cleanPhone;
+  }
+  
+  // Filter message for profanity
+  const cleanMessage = censorText(message, 'generic-sms');
+  
+  try {
+    if (!twilioClient) {
+      console.log('📱 SMS Development Mode:', { phone: cleanPhone, message: cleanMessage });
+      return { 
+        success: true,
+        messageId: 'dev-' + Date.now(),
+        devMode: true
+      };
+    }
+    
+    console.log('📱 Sending SMS:', { phone: cleanPhone });
+    
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+    if (!fromNumber) {
+      throw new Error('TWILIO_PHONE_NUMBER environment variable not set');
+    }
+    
+    const twilioMessage = await twilioClient.messages.create({
+      body: cleanMessage,
+      from: fromNumber,
+      to: cleanPhone
+    });
+    
+    console.log('✅ SMS sent via Twilio:', { 
+      phone: cleanPhone, 
+      messageId: twilioMessage.sid,
+      status: twilioMessage.status
+    });
+    
+    return { success: true, messageId: twilioMessage.sid };
+  } catch (error: any) {
+    console.error('❌ Failed to send SMS:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send SMS',
+      devMode: true
+    };
+  }
+}
+
 // Updated function to send custom verification SMS with Twilio
 // Add optional channel parameter for voice fallback (ChatGPT recommended)
 export async function sendCodeSMS(phoneNumber: string, code?: string, channel: 'sms' | 'call' = 'sms'): Promise<SMSResult> {
