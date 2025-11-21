@@ -1,10 +1,10 @@
 {
-  "version": "3.0.125",
-  "buildDate": "2025-11-21T12:40:09Z",
-  "commitMessage": "Enhanced error logging - catches ALL exceptions",
+  "version": "3.0.126",
+  "buildDate": "2025-11-21T14:39:44Z",
+  "commitMessage": "FIXED: OAuth redirect uses hash routing for APK",
   "fixes": [
-    "Comprehensive error logging for ALL fetch failures",
-    "Logs network errors, 404s, and exceptions",
-    "Production debugging enabled"
+    "OAuth callback now redirects to /#/ instead of / for APK",
+    "This fixes the 404 error after Google login",
+    "Hash routing compatibility for file:// protocol"
   ]
 }

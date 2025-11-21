@@ -1,0 +1,10 @@
+{
+  "version": "3.0.125",
+  "buildDate": "2025-11-21T12:40:09Z",
+  "commitMessage": "Enhanced error logging - catches ALL exceptions",
+  "fixes": [
+    "Comprehensive error logging for ALL fetch failures",
+    "Logs network errors, 404s, and exceptions",
+    "Production debugging enabled"
+  ]
+}

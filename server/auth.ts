@@ -234,8 +234,9 @@ export function setupAuth(app: Express) {
                 window.close();
               } else {
                 // Fallback - redirect to main app WITH token in URL
+                // APK USES HASH ROUTING - must include #/ for routes to work
                 setTimeout(() => {
-                  window.location.href = '/?auth=success&t=${token}';
+                  window.location.href = '/#/?auth=success&t=${token}';
                 }, 2000);
               }
             </script>
