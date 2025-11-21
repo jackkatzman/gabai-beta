@@ -1165,7 +1165,28 @@ const getSimpleCategory = (itemName: string): string => {
   // Toggle item completion mutation
   const toggleItemMutation = useMutation({
     mutationFn: (itemId: string) => api.toggleListItem(itemId),
-    onSuccess: () => {
+    onMutate: async (itemId) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/smart-lists", user.id] });
+      const previousLists = queryClient.getQueryData(["/api/smart-lists", user.id]);
+      
+      queryClient.setQueryData(["/api/smart-lists", user.id], (old: any) => {
+        if (!old) return old;
+        return old.map((list: any) => ({
+          ...list,
+          items: list.items?.map((item: any) =>
+            item.id === itemId ? { ...item, completed: !item.completed } : item
+          ),
+        }));
+      });
+      
+      return { previousLists };
+    },
+    onError: (err, itemId, context: any) => {
+      if (context?.previousLists) {
+        queryClient.setQueryData(["/api/smart-lists", user.id], context.previousLists);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
     },
   });
