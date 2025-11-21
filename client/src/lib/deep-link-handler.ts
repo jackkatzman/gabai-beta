@@ -29,8 +29,15 @@ export function setupDeepLinkHandler() {
               localStorage.removeItem('gabai_mobile_auth_in_progress');
               localStorage.removeItem('gabai_mobile_auth_timestamp');
               
-              // Trigger a page refresh to update auth state
-              window.location.reload();
+              // Dispatch custom event to trigger immediate auth refetch
+              const authEvent = new CustomEvent('gabai-auth-token', { detail: { user } });
+              window.dispatchEvent(authEvent);
+              console.log('🔔 Dispatched gabai-auth-token event');
+              
+              // Wait a bit for auth refetch before reload
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
             }
           } catch (error) {
             console.log('❌ Auth check failed:', error);

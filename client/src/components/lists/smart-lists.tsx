@@ -575,7 +575,8 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
                      hyphens: 'none',
                      wordBreak: 'keep-all',
                      overflowWrap: 'anywhere',
-                     paddingRight: '16px'
+                     paddingRight: '16px',
+                     textDecoration: item.completed ? 'line-through' : 'none'
                    }}>
                   {item.name || 'Unnamed Item'}
                 </span>

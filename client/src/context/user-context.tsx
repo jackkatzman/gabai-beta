@@ -67,6 +67,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUserState(null);
       }
     } catch (error) {
+      // Log all errors for debugging - the api function already handles expected 401s by returning null
       console.error("🔥 Authentication error:", {
         message: (error as Error).message,
         error: error,
@@ -94,7 +95,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     };
     
+    // Listen for custom auth token event (from OAuth completion)
+    const handleAuthToken = (e: Event) => {
+      console.log('🔔 Received gabai-auth-token event - refetching user immediately');
+      setAuthTrigger(prev => prev + 1); // Trigger re-fetch
+    };
+    
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('gabai-auth-token', handleAuthToken);
     
     // Also check periodically if we don't have a user but have a token
     const interval = setInterval(() => {
@@ -108,6 +116,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('gabai-auth-token', handleAuthToken);
       clearInterval(interval);
     };
   }, [user, isLoading]);

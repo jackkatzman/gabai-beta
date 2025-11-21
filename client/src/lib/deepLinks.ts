@@ -30,9 +30,21 @@ export function setupDeepLinks() {
         if (token) {
           console.log('✅ Deep link auth token received');
           localStorage.setItem('gabai_token', token);
+          localStorage.setItem('authToken', token); // Also set authToken for compatibility
+          
+          // Dispatch custom event to trigger immediate auth refetch
+          const authEvent = new CustomEvent('gabai-auth-token', { detail: { token } });
+          window.dispatchEvent(authEvent);
+          console.log('🔔 Dispatched gabai-auth-token event');
+          
+          // Wait a bit for auth refetch to complete before navigating
+          setTimeout(() => {
+            window.location.replace('/');
+          }, 500);
+        } else {
+          // No token, just navigate
+          window.location.replace('/');
         }
-        // Route off callback
-        window.location.replace('/');
       }
     });
   } else {

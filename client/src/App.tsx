@@ -244,6 +244,43 @@ export default function App() {
   React.useEffect(() => {
     setupDeepLinkHandler();
     
+    // Check for OAuth completion token in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth');
+    const token = urlParams.get('t');
+    
+    if (authSuccess === 'success' && token) {
+      console.log('🔐 OAuth success detected in URL - saving token');
+      localStorage.setItem('gabai_token', token);
+      localStorage.setItem('authToken', token);
+      
+      // Dispatch custom event to trigger auth refetch
+      window.dispatchEvent(new CustomEvent('gabai-auth-token', { detail: { token } }));
+      console.log('🔔 Dispatched gabai-auth-token event from URL params');
+      
+      // Clean up URL
+      const newUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
+    }
+    
+    // Listen for postMessage from OAuth popup
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && typeof event.data === 'object' && event.data.type === 'auth_success') {
+        console.log('🔐 OAuth success via postMessage - saving token');
+        const token = event.data.token;
+        if (token) {
+          localStorage.setItem('gabai_token', token);
+          localStorage.setItem('authToken', token);
+          
+          // Dispatch custom event to trigger auth refetch
+          window.dispatchEvent(new CustomEvent('gabai-auth-token', { detail: { token } }));
+          console.log('🔔 Dispatched gabai-auth-token event from postMessage');
+        }
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
     // Initialize Cordova and permissions when app starts
     const initializeCordova = async () => {
       if (window.cordova) {
@@ -280,6 +317,11 @@ export default function App() {
     };
     
     initializeCordova();
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   // Use hash routing for APK, regular routing for web

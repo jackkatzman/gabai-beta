@@ -230,12 +230,12 @@ export function setupAuth(app: Express) {
             <script>
               // Close this window/tab and let parent know auth is complete
               if (window.opener) {
-                window.opener.postMessage('auth_success', '*');
+                window.opener.postMessage({type: 'auth_success', token: '${token}'}, '*');
                 window.close();
               } else {
-                // Fallback - redirect to main app
+                // Fallback - redirect to main app WITH token in URL
                 setTimeout(() => {
-                  window.location.href = '/';
+                  window.location.href = '/?auth=success&t=${token}';
                 }, 2000);
               }
             </script>
