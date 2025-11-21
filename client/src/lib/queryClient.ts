@@ -14,6 +14,32 @@ function ensureLeadingSlash(url: string): string {
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
+    
+    // Log all non-2xx responses to production monitoring
+    const errorLog = {
+      status: res.status,
+      url: res.url,
+      statusText: res.statusText,
+      responseText: text,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    };
+    
+    // Send to production logbridge
+    try {
+      await fetch('https://replit-log-link-jack741.replit.app/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level: 'error',
+          message: `API Request Failed: ${res.status} ${res.url}`,
+          source: 'gabai-apk',
+          app: 'gabai-prod',
+          metadata: errorLog
+        })
+      }).catch(() => {}); // Silent fail if logging service is down
+    } catch (e) {}
+    
     throw new Error(`${res.status}: ${text}`);
   }
 }
