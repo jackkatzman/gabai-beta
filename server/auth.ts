@@ -233,11 +233,15 @@ export function setupAuth(app: Express) {
                 window.opener.postMessage({type: 'auth_success', token: '${token}'}, '*');
                 window.close();
               } else {
-                // Fallback - redirect to main app WITH token in URL
-                // APK USES HASH ROUTING - must include #/ for routes to work
+                // Fallback - save token in localStorage and redirect to clean hash URL
+                // This avoids router path matching issues with query params in hash
+                localStorage.setItem('gabai_token', '${token}');
+                localStorage.setItem('authToken', '${token}');
+                // Trigger event to notify app of new auth token
+                window.dispatchEvent(new CustomEvent('gabai-auth-token', { detail: { token: '${token}' } }));
                 setTimeout(() => {
-                  window.location.href = '/#/?auth=success&t=${token}';
-                }, 2000);
+                  window.location.href = '/#/';
+                }, 1000);
               }
             </script>
           </body>

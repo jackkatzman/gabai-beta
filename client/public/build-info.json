@@ -1,10 +1,11 @@
 {
-  "version": "3.0.127",
-  "buildDate": "2025-11-21T15:13:27Z",
-  "commitMessage": "FIXED: Hash routing enabled for VoltBuilder APKs + OAuth token parsing",
+  "version": "3.0.128",
+  "buildDate": "2025-11-21T16:27:49Z",
+  "commitMessage": "FINAL FIX: OAuth redirects to clean hash URL without query params",
   "fixes": [
-    "APK now properly detects VoltBuilder environment and uses hash routing",
-    "OAuth callback token is parsed from hash-based query params",
-    "Prevents 404 'page not found' after Google login"
+    "OAuth callback saves token directly to localStorage",
+    "Redirects to clean /#/ URL instead of /#/?auth=...",
+    "Prevents router from seeing query params as part of path",
+    "Fixes 404 'page not found' after Google login"
   ]
 }
