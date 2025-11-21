@@ -26,6 +26,7 @@ import PasswordResetPage from "./pages/password-reset";
 import GroupsPage from "./pages/groups";
 import { isNativeMobileApp } from "./utils/capacitor";
 import { setupDeepLinkHandler } from "./lib/deep-link-handler";
+import { setupDeepLinks } from "./lib/deepLinks";
 import { CordovaDirect } from "./lib/cordova-direct";
 
 class ErrorBoundary extends Component<
@@ -243,6 +244,7 @@ export default function App() {
   // Setup deep link handler for mobile OAuth and initialize Cordova
   React.useEffect(() => {
     setupDeepLinkHandler();
+    setupDeepLinks(); // Handle native deep links globally for APK builds
     
     // Check for OAuth completion token in URL params
     const urlParams = new URLSearchParams(window.location.search);
