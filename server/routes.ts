@@ -102,9 +102,13 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
   }
   
   // Check for mobile token-based authentication
-  // Check both Authorization header AND cookies
+  // Check Authorization header, cookies, AND query params (ONLY for download endpoints)
   const authHeader = req.headers.authorization;
   const cookieToken = req.cookies?.gabai_token;
+  const queryToken = req.query?.token;
+  
+  // Only allow query token for specific download endpoints (more secure)
+  const allowQueryToken = req.path.includes('/vcard') || req.path.includes('/calendar-export');
   
   let token = null;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -113,6 +117,11 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
   } else if (cookieToken) {
     token = cookieToken;
     console.log('🍪 Token found in cookie for mobile auth');
+  } else if (queryToken && typeof queryToken === 'string' && allowQueryToken) {
+    token = queryToken;
+    console.log('🔗 Token found in query parameter (allowed for download endpoint)');
+  } else if (queryToken && typeof queryToken === 'string' && !allowQueryToken) {
+    console.log('⚠️ Query token rejected - not allowed for this endpoint:', req.path);
   }
   
   if (token) {
@@ -143,6 +152,16 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
           const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
           userId = payload.sub || payload.userId || payload.uid;
           console.log('✅ JWT decoded, userId:', userId, 'payload keys:', Object.keys(payload));
+          
+          // Check JWT expiration if present
+          if (payload.exp) {
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp < now) {
+              console.log('❌ JWT token expired');
+              return res.status(401).json({ error: 'Token expired' });
+            }
+            console.log('✅ JWT token valid, expires:', new Date(payload.exp * 1000).toISOString());
+          }
         } else {
           throw new Error('Invalid JWT format - expected 3 parts');
         }
@@ -4298,7 +4317,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Share list endpoint
-  app.post("/api/smart-lists/:id/share", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists/:id/share", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const { id } = req.params;
       console.log('🔗 Sharing list with ID:', id);
@@ -4312,7 +4331,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Share list with group endpoint (sends SMS to all group members)
-  app.post("/api/smart-lists/:id/share-with-group", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists/:id/share-with-group", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const { id } = req.params;
       const { groupId, message } = req.body;
@@ -4400,7 +4419,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Update share mode for a list
-  app.post("/api/smart-lists/:listId/share-mode", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists/:listId/share-mode", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const { listId } = req.params;
       const { shareMode } = req.body;
@@ -4545,7 +4564,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.get("/api/contacts/:id/vcard", async (req, res) => {
+  app.get("/api/contacts/:id/vcard", isAuthenticated, async (req, res) => {
     try {
       const contact = await storage.getContact(req.params.id);
       if (!contact) {
