@@ -4568,8 +4568,26 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.get("/api/contacts/:id/vcard", isAuthenticated, async (req, res) => {
+  app.get("/api/contacts/:id/vcard", async (req, res) => {
     try {
+      // Support both session auth and query token (for APK downloads)
+      let userId = req.user?.id;
+      
+      if (!userId && req.query.token) {
+        try {
+          const user = await storage.getUserByToken(req.query.token as string);
+          if (user) {
+            userId = user.id;
+          }
+        } catch (error) {
+          console.error("Token validation error:", error);
+        }
+      }
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
       const contact = await storage.getContact(req.params.id);
       if (!contact) {
         return res.status(404).json({ message: "Contact not found" });
