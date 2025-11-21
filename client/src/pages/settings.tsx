@@ -72,7 +72,25 @@ export default function SettingsPage() {
   });
 
   const handleSaveProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ Cannot save: user is null');
+      toast({
+        title: "Error",
+        description: "Please log in again to save your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!user.id) {
+      console.error('❌ Cannot save: user.id is missing', user);
+      toast({
+        title: "Error",
+        description: "User ID is missing. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     console.log('💾 Attempting to save profile for user:', user.id);
     setIsSaving(true);
@@ -99,7 +117,10 @@ export default function SettingsPage() {
         }
       });
 
+      console.log('📤 Sending update to /api/users/' + user.id, updates);
       await updateProfileMutation.mutateAsync(updates);
+    } catch (error) {
+      console.error('❌ Save profile error:', error);
     } finally {
       setIsSaving(false);
     }
@@ -177,31 +198,6 @@ export default function SettingsPage() {
                       <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                         <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full p-0"
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) {
-                              toast({
-                                title: "Profile picture feature",
-                                description: "Profile picture upload is coming soon! This will let you set your avatar.",
-                              });
-                            }
-                          };
-                          input.click();
-                        }}
-                      >
-                        <Camera className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Click camera icon to upload profile picture
                     </div>
                   </div>
                   

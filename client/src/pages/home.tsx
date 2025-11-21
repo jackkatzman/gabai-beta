@@ -155,15 +155,12 @@ export default function HomePage() {
       
       {/* Fixed Header - Always visible */}
       <header className="mobile-header bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <img 
             src={gabaiLogo} 
             alt="GabAi" 
             className="w-8 h-8 object-contain"
           />
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {getPageTitle()}
-          </h1>
         </div>
         
         <div className="flex items-center space-x-2">

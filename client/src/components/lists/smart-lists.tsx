@@ -439,7 +439,8 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
         <Checkbox
           checked={item.completed ?? false}
           onCheckedChange={onToggle}
-          className="h-4 w-4"
+          className="h-6 w-6 touch-manipulation cursor-pointer"
+          data-testid={`checkbox-item-${item.id}`}
         />
       </div>
       {/* MIDDLE: text (takes more space) */}
@@ -460,8 +461,8 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
             />
             <div className="flex space-x-2">
               <Select value={editCategory} onValueChange={setEditCategory}>
-                <SelectTrigger className="text-base h-12 min-h-[48px]">
-                  <SelectValue />
+                <SelectTrigger className="text-base h-12 min-h-[48px] flex-1 min-w-[120px]">
+                  <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -474,7 +475,7 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
                   value={editAmount}
                   onChange={(e) => setEditAmount(formatCurrencyInput(e.target.value))}
                   placeholder="$0.00"
-                  className="text-xs h-8 w-20"
+                  className="text-base h-12 w-24 flex-shrink-0"
                 />
               )}
             </div>
