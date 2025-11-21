@@ -228,12 +228,23 @@ export function setupAuth(app: Express) {
             <h2>Authentication Successful!</h2>
             <p>Returning to GabAi...</p>
             <script>
-              // Close this window/tab and let parent know auth is complete
-              if (window.opener) {
+              console.log('🔐 OAuth callback page loaded');
+              
+              // Check if opened in iframe (mobile OAuth)
+              if (window.parent && window.parent !== window) {
+                console.log('📱 Detected iframe context - sending message to parent');
+                window.parent.postMessage({type: 'auth_success', token: '${token}'}, '*');
+              } 
+              // Check if opened in popup (desktop OAuth)
+              else if (window.opener) {
+                console.log('💻 Detected popup context - sending message to opener');
                 window.opener.postMessage({type: 'auth_success', token: '${token}'}, '*');
                 window.close();
-              } else {
-                // Fallback - save token in localStorage and redirect to clean hash URL
+              } 
+              // Fallback - standalone window/tab
+              else {
+                console.log('🔄 Standalone window - using localStorage fallback');
+                // Save token in localStorage and redirect to clean hash URL
                 // This avoids router path matching issues with query params in hash
                 localStorage.setItem('gabai_token', '${token}');
                 localStorage.setItem('authToken', '${token}');

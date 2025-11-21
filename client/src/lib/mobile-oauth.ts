@@ -114,14 +114,30 @@ export async function startMobileAuth() {
     
     // Listen for auth success messages from iframe
     const messageHandler = (event: MessageEvent) => {
-      if (event.origin !== API_BASE) return;
+      if (event.origin !== API_BASE) {
+        console.log('⚠️ Ignoring message from untrusted origin:', event.origin);
+        return;
+      }
       
       if (event.data === 'auth_success' || event.data?.type === 'auth_success') {
         console.log('✅ Auth success message received from iframe');
         
+        // Extract and save the token if provided
+        const token = event.data?.token || event.data;
+        if (typeof token === 'string' && token.length > 10) {
+          console.log('💾 Saving auth token to localStorage');
+          localStorage.setItem('gabai_token', token);
+          localStorage.setItem('authToken', token);
+        } else {
+          console.log('⚠️ No token in message, auth may fail');
+        }
+        
         // Clean up iframe and overlay
         document.body.removeChild(iframe);
         document.body.removeChild(overlay);
+        if (document.body.contains(closeBtn)) {
+          document.body.removeChild(closeBtn);
+        }
         window.removeEventListener('message', messageHandler);
         
         // Reload to refresh auth state
