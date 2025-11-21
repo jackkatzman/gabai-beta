@@ -1,10 +1,10 @@
 {
-  "version": "3.0.126",
-  "buildDate": "2025-11-21T14:39:44Z",
-  "commitMessage": "FIXED: OAuth redirect uses hash routing for APK",
+  "version": "3.0.127",
+  "buildDate": "2025-11-21T15:13:27Z",
+  "commitMessage": "FIXED: Hash routing enabled for VoltBuilder APKs + OAuth token parsing",
   "fixes": [
-    "OAuth callback now redirects to /#/ instead of / for APK",
-    "This fixes the 404 error after Google login",
-    "Hash routing compatibility for file:// protocol"
+    "APK now properly detects VoltBuilder environment and uses hash routing",
+    "OAuth callback token is parsed from hash-based query params",
+    "Prevents 404 'page not found' after Google login"
   ]
 }

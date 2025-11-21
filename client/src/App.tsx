@@ -236,33 +236,58 @@ const useHashLocation = () => {
 };
 
 export default function App() {
-  // Detect if running as APK
-  const isAPK = window.location.protocol === 'file:' || 
-                window.location.hostname === 'localhost' ||
-                typeof window.Android !== 'undefined';
+  // Detect if running as APK - check for VoltBuilder markers too
+  const isFileProtocol = window.location.protocol === 'file:';
+  const isCordova = typeof (window as any).cordova !== 'undefined';
+  const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
+  const isWebView = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
+  const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
+  const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
 
   // Setup deep link handler for mobile OAuth and initialize Cordova
   React.useEffect(() => {
     setupDeepLinkHandler();
     setupDeepLinks(); // Handle native deep links globally for APK builds
     
-    // Check for OAuth completion token in URL params
+    // Check for OAuth completion token in URL params (both regular and hash-based)
+    let authSuccess: string | null = null;
+    let token: string | null = null;
+    
+    // Check regular query params first (web OAuth)
     const urlParams = new URLSearchParams(window.location.search);
-    const authSuccess = urlParams.get('auth');
-    const token = urlParams.get('t');
+    authSuccess = urlParams.get('auth');
+    token = urlParams.get('t');
+    
+    // If not found and we have hash params, check hash-based query params (APK OAuth)
+    if (!token && window.location.hash.includes('?')) {
+      const hashParts = window.location.hash.split('?');
+      if (hashParts.length > 1) {
+        const hashParams = new URLSearchParams(hashParts[1]);
+        authSuccess = hashParams.get('auth');
+        token = hashParams.get('t');
+        console.log('🔐 Checking hash-based OAuth params:', { authSuccess, hasToken: !!token });
+      }
+    }
     
     if (authSuccess === 'success' && token) {
-      console.log('🔐 OAuth success detected in URL - saving token');
+      console.log('🔐 OAuth success detected - saving token');
       localStorage.setItem('gabai_token', token);
       localStorage.setItem('authToken', token);
       
       // Dispatch custom event to trigger auth refetch
       window.dispatchEvent(new CustomEvent('gabai-auth-token', { detail: { token } }));
-      console.log('🔔 Dispatched gabai-auth-token event from URL params');
+      console.log('🔔 Dispatched gabai-auth-token event');
       
-      // Clean up URL
-      const newUrl = window.location.pathname + window.location.hash;
-      window.history.replaceState({}, '', newUrl);
+      // Clean up URL - remove query params but keep the base path/hash
+      if (isAPK) {
+        // For APK, just keep the hash path without query params
+        const hashPath = window.location.hash.split('?')[0] || '#/';
+        window.location.hash = hashPath;
+      } else {
+        // For web, clean up regular query params
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+      }
     }
     
     // Listen for postMessage from OAuth popup
