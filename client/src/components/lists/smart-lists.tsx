@@ -1078,51 +1078,10 @@ const getSimpleCategory = (itemName: string): string => {
       setShareCode(data.shareCode);
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
       
-      const shareUrl = `https://gabai.ai/shared/${data.shareCode}`;
       const listName = lists.find(l => l.id === data.listId)?.name || "list";
-      const message = `Check out my "${listName}" list on GabAi!`;
       
-      // Try native sharing first for mobile
-      const isAPK = window.location.protocol === 'file:' || 
-                    typeof (window as any).cordova !== 'undefined' || 
-                    typeof (window as any).Capacitor !== 'undefined' ||
-                    (window as any).IS_VOLTBUILDER_APK;
-      
-      if (isAPK) {
-        console.log("📱 Detected APK environment, attempting native share");
-        
-        // Import CordovaDirect dynamically
-        const { CordovaDirect } = await import('@/lib/cordova-direct');
-        const shared = await CordovaDirect.shareNative({
-          message: message,
-          subject: `GabAi List: ${listName}`,
-          url: shareUrl,
-          chooserTitle: 'Share your GabAi list'
-        });
-        
-        if (shared) {
-          toast({
-            title: "List shared!",
-            description: "Your list has been shared successfully.",
-          });
-        } else {
-          // Fallback to clipboard if native share fails
-          console.log("📋 Native share unavailable, using clipboard");
-          copyShareLink(data.shareCode);
-          toast({
-            title: "List shared!",
-            description: "Link copied to clipboard. Paste anywhere to share.",
-          });
-        }
-      } else {
-        // Use clipboard on web
-        console.log("🌐 Web environment, using clipboard");
-        copyShareLink(data.shareCode);
-        toast({
-          title: "List shared!",
-          description: "Your list is now shareable. Link copied to clipboard.",
-        });
-      }
+      // Use the unified native share function
+      await shareListNatively(data.shareCode, listName);
     },
     onError: (error: any) => {
       console.error("❌ Share mutation error:", error);
@@ -1390,6 +1349,74 @@ const getSimpleCategory = (itemName: string): string => {
       title: "Link copied!",
       description: "Share this link with collaborators",
     });
+  };
+
+  const shareListNatively = async (shareCode: string, listName: string) => {
+    // Always use production URL for sharing
+    const url = `https://gabai.ai/shared/${shareCode}`;
+    const message = `Check out my "${listName}" list on GabAi!`;
+    
+    try {
+      // Use native share on mobile if available
+      if (CordovaDirect.isAvailable()) {
+        console.log("📱 Using Cordova native share menu");
+        const shared = await CordovaDirect.shareNative({
+          message: message,
+          subject: `${listName} - GabAi List`,
+          url: url,
+          chooserTitle: "Share your GabAi list"
+        });
+        
+        if (shared) {
+          toast({
+            title: "Shared!",
+            description: "List shared successfully",
+          });
+        }
+        return;
+      }
+      
+      // Try Web Share API for modern browsers
+      if (navigator.share) {
+        console.log("🌐 Using Web Share API");
+        await navigator.share({
+          title: `${listName} - GabAi List`,
+          text: message,
+          url: url,
+        });
+        toast({
+          title: "Shared!",
+          description: "List shared successfully",
+        });
+      } else {
+        // Final fallback - copy to clipboard
+        await navigator.clipboard.writeText(`${message} ${url}`);
+        toast({
+          title: "Link Copied!",
+          description: "Share link copied to clipboard",
+        });
+      }
+    } catch (error: any) {
+      // Handle user cancellation gracefully
+      if (error.name === 'AbortError') {
+        console.log("📋 User cancelled share");
+        return;
+      }
+      
+      console.error("❌ Share error:", error);
+      toast({
+        title: "Share Failed",
+        description: "Could not share list. Link copied to clipboard instead.",
+        variant: "destructive",
+      });
+      
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(`${message} ${url}`);
+      } catch (clipError) {
+        console.error("❌ Clipboard error:", clipError);
+      }
+    }
   };
 
   const shareViaWhatsApp = async (shareCode: string, listName: string) => {
@@ -1800,121 +1827,102 @@ const getSimpleCategory = (itemName: string): string => {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     {/* Left side - Actions */}
                     <div className="flex items-center space-x-2">
-                      {list.isShared ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation" style={{ touchAction: 'manipulation' }}>
-                              <Share2 className="h-4 w-4 mr-1" />
-                              Share
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => copyShareLink(list.shareCode!)}>
-                              <Link className="h-4 w-4 mr-2" />
-                              Copy Link
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareViaWhatsApp(list.shareCode!, list.name)}>
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Share via WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareViaSMS(list.shareCode!, list.name)}>
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              Share via SMS
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareViaEmail(list.shareCode!, list.name)}>
-                              <Mail className="h-4 w-4 mr-2" />
-                              Share via Email
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {/* Only show permission toggle for list owner */}
-                            {list.userId === user.id ? (
-                              <>
-                                <DropdownMenuLabel className="text-xs text-gray-500">Share Mode</DropdownMenuLabel>
-                                <DropdownMenuItem 
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    updateShareModeMutation.mutate({ 
-                                      listId: list.id, 
-                                      shareMode: list.shareMode === 'edit' ? 'view' : 'edit' 
-                                    });
-                                  }}
-                                  className="flex items-center justify-between"
-                                >
-                                  <span className="flex items-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation"
+                            style={{ touchAction: 'manipulation' }}
+                          >
+                            <Share2 className="h-4 w-4 mr-1" />
+                            Share
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              console.log("📱 Native share clicked for list:", list.id);
+                              if (list.isShared) {
+                                // Use native share for already-shared lists
+                                shareListNatively(list.shareCode!, list.name);
+                              } else {
+                                // Create share link first
+                                shareListMutation.mutate(list.id);
+                              }
+                            }}
+                          >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share...
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedListForGroupShare(list.id);
+                              setGroupShareDialogOpen(true);
+                            }}
+                          >
+                            <Users className="h-4 w-4 mr-2" />
+                            Share with Group
+                          </DropdownMenuItem>
+                          
+                          {list.isShared && (
+                            <>
+                              <DropdownMenuSeparator />
+                              
+                              {/* Only show permission toggle for list owner */}
+                              {list.userId === user.id ? (
+                                <>
+                                  <DropdownMenuLabel className="text-xs text-gray-500">Share Mode</DropdownMenuLabel>
+                                  <DropdownMenuItem 
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      updateShareModeMutation.mutate({ 
+                                        listId: list.id, 
+                                        shareMode: list.shareMode === 'edit' ? 'view' : 'edit' 
+                                      });
+                                    }}
+                                    className="flex items-center justify-between"
+                                  >
+                                    <span className="flex items-center">
+                                      {list.shareMode === 'edit' ? (
+                                        <>
+                                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                          Can Edit
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Circle className="h-4 w-4 mr-2" />
+                                          View Only
+                                        </>
+                                      )}
+                                    </span>
+                                    <span className="text-xs text-gray-400 ml-2">
+                                      {list.shareMode === 'edit' ? 'Click for View Only' : 'Click for Can Edit'}
+                                    </span>
+                                  </DropdownMenuItem>
+                                </>
+                              ) : (
+                                <>
+                                  <DropdownMenuLabel className="text-xs text-gray-500">Permissions</DropdownMenuLabel>
+                                  <DropdownMenuItem disabled className="flex items-center opacity-60">
                                     {list.shareMode === 'edit' ? (
                                       <>
                                         <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                                        Can Edit
+                                        <span>You can edit this list</span>
                                       </>
                                     ) : (
                                       <>
                                         <Circle className="h-4 w-4 mr-2" />
-                                        View Only
+                                        <span>View only (ask owner for edit access)</span>
                                       </>
                                     )}
-                                  </span>
-                                  <span className="text-xs text-gray-400 ml-2">
-                                    {list.shareMode === 'edit' ? 'Click for View Only' : 'Click for Can Edit'}
-                                  </span>
-                                </DropdownMenuItem>
-                              </>
-                            ) : (
-                              <>
-                                <DropdownMenuLabel className="text-xs text-gray-500">Permissions</DropdownMenuLabel>
-                                <DropdownMenuItem disabled className="flex items-center opacity-60">
-                                  {list.shareMode === 'edit' ? (
-                                    <>
-                                      <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                                      <span>You can edit this list</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Circle className="h-4 w-4 mr-2" />
-                                      <span>View only (ask owner for edit access)</span>
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="min-h-[44px] min-w-[60px] px-3 py-2 touch-action-manipulation"
-                              style={{ touchAction: 'manipulation' }}
-                            >
-                              <Share2 className="h-4 w-4 mr-1" />
-                              Share
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                console.log("🔗 Share link clicked for list:", list.id);
-                                shareListMutation.mutate(list.id);
-                              }}
-                            >
-                              <Link className="h-4 w-4 mr-2" />
-                              Share Link
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedListForGroupShare(list.id);
-                                setGroupShareDialogOpen(true);
-                              }}
-                            >
-                              <Users className="h-4 w-4 mr-2" />
-                              Share with Group
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       
                       {/* Delete List Button */}
                       <Button
