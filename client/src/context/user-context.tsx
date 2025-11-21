@@ -15,6 +15,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authTrigger, setAuthTrigger] = useState(0); // Force refetch when auth changes
+  const [retryCount, setRetryCount] = useState(0); // Track retry attempts for invalid tokens
 
   // Check if this is a mobile environment (enhanced detection)
   const isMobileEnvironment = () => {
@@ -62,9 +63,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (userData) {
         console.log("✅ User authenticated:", userData);
         setUserState(userData);
+        setRetryCount(0); // Reset retry counter on success
       } else {
         console.log("❌ No authenticated user");
         setUserState(null);
+        
+        // If we have a token but no user after fetching, it's likely invalid
+        if (token) {
+          const newCount = retryCount + 1;
+          setRetryCount(newCount);
+          console.log(`⚠️ Token exists but no user (attempt ${newCount}/3)`);
+          
+          // After 3 failed attempts, clear the invalid token
+          if (newCount >= 3) {
+            console.log('🗑️ Clearing invalid token after 3 failed attempts');
+            localStorage.removeItem('gabai_token');
+            localStorage.removeItem('authToken');
+            setRetryCount(0);
+          }
+        }
       }
     } catch (error) {
       // Log all errors for debugging - the api function already handles expected 401s by returning null
@@ -105,10 +122,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('gabai-auth-token', handleAuthToken);
     
     // Also check periodically if we don't have a user but have a token
+    // But stop after 3 failed attempts to prevent infinite loops
     const interval = setInterval(() => {
       const token = getToken();
-      if (token && !user && !isLoading) {
-        console.log('🔄 Found token without user - refetching');
+      if (token && !user && !isLoading && retryCount < 3) {
+        console.log(`🔄 Found token without user - refetching (attempt ${retryCount + 1}/3)`);
         setIsLoading(true);
         fetchUser();
       }
@@ -119,7 +137,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('gabai-auth-token', handleAuthToken);
       clearInterval(interval);
     };
-  }, [user, isLoading]);
+  }, [user, isLoading, retryCount]);
 
   const setUser = (newUser: User | null) => {
     console.log('👤 Setting user:', newUser?.id || 'null');
