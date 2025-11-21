@@ -49,41 +49,42 @@ export async function apiRequest(
   method: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Use bulletproof client's auth logic but return real Response
-  url = ensureLeadingSlash(url);
-  const originalPath = url;  // Keep original path for comparisons
-  
-  const headers = new Headers();
-  
-  if (data && method !== "GET") {
-    headers.set("Content-Type", "application/json");
-  }
-  
-  // APK detection - MUST match getQueryFn logic exactly
-  const isFileProtocol = window.location.protocol === 'file:';
-  const isCordova = typeof (window as any).cordova !== 'undefined';
-  const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
-  const isWebView = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
-  const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
-  const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
-  
-  // Environment detection: relative URL for local dev, absolute for production/APK
-  const isDevelopment = 
-    window.location.hostname.includes('localhost') ||
-    window.location.hostname.includes('repl.co') ||  // Replit dev domains
-    window.location.hostname.includes('replit.dev') ||
-    window.location.hostname.includes('riker.replit.dev') ||
-    window.location.hostname.includes('127.0.0.1') ||
-    window.location.hostname.includes('0.0.0.0');
-  
-  let fullUrl: string;
-  if (isDevelopment && !isAPK) {
-    // Local development - use relative URL
-    fullUrl = originalPath;
-  } else {
-    // Production or APK - use absolute URL
-    fullUrl = `https://gabai.ai${originalPath}`;
-  }
+  try {
+    // Use bulletproof client's auth logic but return real Response
+    url = ensureLeadingSlash(url);
+    const originalPath = url;  // Keep original path for comparisons
+    
+    const headers = new Headers();
+    
+    if (data && method !== "GET") {
+      headers.set("Content-Type", "application/json");
+    }
+    
+    // APK detection - MUST match getQueryFn logic exactly
+    const isFileProtocol = window.location.protocol === 'file:';
+    const isCordova = typeof (window as any).cordova !== 'undefined';
+    const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
+    const isWebView = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
+    const isVoltBuilder = (window as any).IS_VOLTBUILDER_APK;
+    const isAPK = isFileProtocol || isCordova || isCapacitor || isWebView || isVoltBuilder;
+    
+    // Environment detection: relative URL for local dev, absolute for production/APK
+    const isDevelopment = 
+      window.location.hostname.includes('localhost') ||
+      window.location.hostname.includes('repl.co') ||  // Replit dev domains
+      window.location.hostname.includes('replit.dev') ||
+      window.location.hostname.includes('riker.replit.dev') ||
+      window.location.hostname.includes('127.0.0.1') ||
+      window.location.hostname.includes('0.0.0.0');
+    
+    let fullUrl: string;
+    if (isDevelopment && !isAPK) {
+      // Local development - use relative URL
+      fullUrl = originalPath;
+    } else {
+      // Production or APK - use absolute URL
+      fullUrl = `https://gabai.ai${originalPath}`;
+    }
   
   // Get token for authentication - check multiple storage locations (MATCH getQueryFn)
   const token = localStorage.getItem('gabai_token') || 
@@ -112,25 +113,51 @@ export async function apiRequest(
   // Use session cookies for web, omit for APK
   const credentials = isAPK ? 'omit' : 'include';
   
-  const res = await fetch(fullUrl, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials,
-  });
-  
-  // Handle 401 by clearing token and redirecting
-  if (res.status === 401) {
-    localStorage.removeItem('gabai_token');
-    sessionStorage.removeItem('gabai_token');
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    window.location.hash = '#/login';
-    throw new Error('401 Unauthorized');
+    const res = await fetch(fullUrl, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials,
+    });
+    
+    // Handle 401 by clearing token and redirecting
+    if (res.status === 401) {
+      localStorage.removeItem('gabai_token');
+      sessionStorage.removeItem('gabai_token');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      window.location.hash = '#/login';
+      throw new Error('401 Unauthorized');
+    }
+    
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error: any) {
+    // Log ALL errors to production monitoring
+    try {
+      await fetch('https://replit-log-link-jack741.replit.app/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level: 'error',
+          message: `API Request Exception: ${method} ${url}`,
+          source: 'gabai-apk',
+          app: 'gabai-prod',
+          metadata: {
+            errorMessage: error?.message || 'Unknown error',
+            errorStack: error?.stack,
+            url: url,
+            method: method,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            location: window.location.href
+          }
+        })
+      }).catch(() => {});
+    } catch (e) {}
+    
+    throw error;
   }
-  
-  await throwIfResNotOk(res);
-  return res;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
