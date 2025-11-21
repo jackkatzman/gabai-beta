@@ -461,7 +461,15 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
             />
             <div className="flex space-x-2">
               <Select value={editCategory} onValueChange={setEditCategory}>
-                <SelectTrigger className="text-base !h-12 !min-h-[48px] flex-1 min-w-[120px]">
+                <SelectTrigger 
+                  className="text-base !h-12 !min-h-[48px] flex-1 min-w-[120px]"
+                  style={{
+                    fontSize: '16px',
+                    minHeight: '48px',
+                    height: '48px',
+                    lineHeight: '1.5',
+                  }}
+                >
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
