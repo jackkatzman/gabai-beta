@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@shared/schema";
-import { getToken } from '@/lib/auth';
+import { getToken, setToken } from '@/lib/auth';
 import { api } from '@/lib/api-bulletproof';
 
 interface UserContextType {
@@ -77,8 +77,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           // After 3 failed attempts, clear the invalid token
           if (newCount >= 3) {
             console.log('🗑️ Clearing invalid token after 3 failed attempts');
-            localStorage.removeItem('gabai_token');
-            localStorage.removeItem('authToken');
+            setToken(null); // This clears both localStorage and bulletproof client cache
             setRetryCount(0);
           }
         }
