@@ -4201,7 +4201,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.post("/api/smart-lists", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const listData = insertSmartListSchema.parse(req.body);
       const list = await storage.createSmartList(listData);
@@ -4212,7 +4212,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.patch("/api/smart-lists/:id", jsonParser, async (req, res) => {
+  app.patch("/api/smart-lists/:id", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const updates = insertSmartListSchema.partial().parse(req.body);
       const list = await storage.updateSmartList(req.params.id, updates);
@@ -4223,7 +4223,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.delete("/api/smart-lists/:id", async (req, res) => {
+  app.delete("/api/smart-lists/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteSmartList(req.params.id);
       res.status(204).send();
@@ -4235,7 +4235,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
 
 
 
-  app.post("/api/smart-lists/join", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists/join", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const { shareCode, userId } = req.body;
       if (!shareCode || !userId) {
@@ -4250,7 +4250,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // List items routes  
-  app.post("/api/list-items", jsonParser, async (req, res) => {
+  app.post("/api/list-items", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const itemData = insertListItemSchema.parse(req.body);
       const userId = req.user?.id || req.body.userId;
@@ -4271,7 +4271,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.patch("/api/list-items/:id", jsonParser, async (req, res) => {
+  app.patch("/api/list-items/:id", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const updates = insertListItemSchema.partial().parse(req.body);
       
@@ -4337,7 +4337,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   }
 
   // Toggle list item completion
-  app.patch("/api/list-items/:id/toggle", async (req, res) => {
+  app.patch("/api/list-items/:id/toggle", isAuthenticated, async (req, res) => {
     try {
       console.log('✅ Toggle request received for item:', req.params.id);
       console.log('🔍 Toggle: Headers:', { authorization: req.headers.authorization ? 'Present' : 'Missing' });
@@ -4437,7 +4437,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
-  app.delete("/api/list-items/:id", async (req, res) => {
+  app.delete("/api/list-items/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.id || req.body.userId;
       
@@ -4597,7 +4597,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // Add collaborator to list endpoint
-  app.post("/api/smart-lists/:id/collaborators", jsonParser, async (req, res) => {
+  app.post("/api/smart-lists/:id/collaborators", isAuthenticated, jsonParser, async (req, res) => {
     try {
       const { id } = req.params;
       const { email } = req.body;
