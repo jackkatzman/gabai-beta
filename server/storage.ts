@@ -302,6 +302,13 @@ export class DatabaseStorage implements IStorage {
         }
         
         const decoded = JSON.parse(Buffer.from(normalizedToken, 'base64').toString());
+        
+        // Validate decoded token has userId
+        if (!decoded || typeof decoded !== 'object') {
+          console.log('❌ getUserByToken: Invalid decoded token format');
+          return undefined;
+        }
+        
         userId = decoded.userId;
         
         // Check token age for legacy tokens (7 days)
@@ -594,6 +601,10 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(listItems.id, id))
       .returning();
+    
+    if (!item) {
+      throw new Error("Failed to toggle list item");
+    }
     
     return item;
   }
