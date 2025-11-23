@@ -6,19 +6,19 @@ export function initializeAPKNetworkOverride() {
     return;
   }
 
-  // Debug detailed APK detection  
+  // Debug detailed APK detection
   const protocolCheck = window.location.protocol === 'file:';
   const cordovaCheck = typeof (window as any).cordova !== 'undefined';
   const capacitorCheck = typeof (window as any).Capacitor !== 'undefined';
   const androidWebViewCheck = navigator.userAgent.includes('wv') && navigator.userAgent.includes('Android');
-  
+
   // CRITICAL FIX: Exclude web browsers even if Capacitor is loaded
-  const isWebBrowser = window.location.protocol.startsWith('http') && 
-                       !navigator.userAgent.includes('wv') && 
+  const isWebBrowser = window.location.protocol.startsWith('http') &&
+                       !navigator.userAgent.includes('wv') &&
                        !navigator.userAgent.includes('Android');
-  
+
   const isAPK = (protocolCheck || cordovaCheck || capacitorCheck || androidWebViewCheck) && !isWebBrowser;
-  
+
   console.log('🔍 APK Detection:', { isAPK, protocol: window.location.protocol });
 
   if (!isAPK) {
@@ -93,19 +93,19 @@ export function initializeAPKNetworkOverride() {
         '/api/auth/google',
         '/api/auth/simple-login'
       ];
-      
+
       const needsAuth = !publicEndpoints.some(endpoint => url.includes(endpoint));
 
       if (needsAuth) {
         // Add Bearer token from storage if available - check ALL known keys for compatibility
-        const token = localStorage.getItem('authToken') || 
+        const token = localStorage.getItem('authToken') ||
                      localStorage.getItem('gabai_token') ||
                      localStorage.getItem('gabai_jwt') ||
                      localStorage.getItem('token') ||
                      sessionStorage.getItem('authToken') ||
                      sessionStorage.getItem('gabai_token') ||
                      sessionStorage.getItem('token');
-        
+
         if (token) {
           // Use new Headers to properly normalize and set headers
           const headers = new Headers(finalInit.headers || {});
@@ -124,7 +124,7 @@ export function initializeAPKNetworkOverride() {
       if (['POST', 'PUT', 'PATCH'].includes(finalInit.method?.toUpperCase() || 'GET')) {
         // Check if body is FormData - if so, don't touch Content-Type
         const isFormData = finalInit.body instanceof FormData;
-        
+
         if (!isFormData) {
           // Use new Headers to properly normalize and set headers
           const headers = new Headers(finalInit.headers || {});
