@@ -533,9 +533,9 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
   return (
     <Card className={`${isOverdue && !reminder.completed ? "border-red-300 dark:border-red-700" : ""}`}>
       <CardContent className="pt-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2 mb-2 flex-wrap">
               <h4 className={`font-medium ${
                 reminder.completed 
                   ? "line-through text-gray-500 dark:text-gray-400" 
@@ -556,7 +556,7 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
               </p>
             )}
             
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center space-x-2 mb-2 flex-wrap">
               <Clock className="h-3 w-3 text-gray-400" />
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {dueDate.toLocaleString('en-US', { 
@@ -583,7 +583,7 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
             )}
           </div>
           
-          <div className="flex items-center space-x-2 ml-4">
+          <div className="flex items-center space-x-1 flex-shrink-0">
             <Button
               size="sm"
               variant="ghost"
@@ -593,6 +593,7 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
                   ? "text-green-600 hover:text-green-700" 
                   : "text-gray-400 hover:text-green-600"
               }`}
+              data-testid="button-complete-reminder"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -601,6 +602,7 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
               variant="ghost"
               onClick={() => onDelete(reminder.id)}
               className="w-8 h-8 p-0 text-gray-400 hover:text-red-600"
+              data-testid="button-delete-reminder"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
