@@ -1247,10 +1247,23 @@ const getSimpleCategory = (itemName: string): string => {
         userId: user.id,
         completed: data?.completed 
       });
+      
+      // Update cache with FULL server response to capture all updated fields
+      queryClient.setQueryData(["/api/smart-lists", user.id], (old: any) => {
+        if (!old) return old;
+        return old.map((list: any) => ({
+          ...list,
+          items: list.items?.map((item: any) =>
+            item.id === itemId ? { ...item, ...data } : item
+          ),
+        }));
+      });
     },
     onSettled: () => {
-      console.log('🔄 Toggle settled - invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      // Delayed refetch for eventual consistency without disrupting UI
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
+      }, 1000);
     },
   });
 
