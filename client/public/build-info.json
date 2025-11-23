@@ -1,11 +1,11 @@
 {
-  "version": "3.0.128",
-  "buildDate": "2025-11-21T16:27:49Z",
-  "commitMessage": "FINAL FIX: OAuth redirects to clean hash URL without query params",
+  "version": "3.0.129",
+  "buildDate": "2025-11-23T07:15:00Z",
+  "buildTimestamp": "${new Date().toISOString()}",
+  "commitMessage": "Fresh build with proper cache clearing",
   "fixes": [
-    "OAuth callback saves token directly to localStorage",
-    "Redirects to clean /#/ URL instead of /#/?auth=...",
-    "Prevents router from seeing query params as part of path",
-    "Fixes 404 'page not found' after Google login"
+    "Implemented comprehensive build cleaning",
+    "Removed all cached artifacts",
+    "Ensured latest code is always deployed"
   ]
 }
