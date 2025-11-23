@@ -49,6 +49,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByPhone(phone: string): Promise<User | undefined>;
   getUserByResetToken(token: string): Promise<User | undefined>;
+  getUserByToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
   deleteUser(id: string): Promise<void>;
@@ -262,6 +263,68 @@ export class DatabaseStorage implements IStorage {
   async getUserByResetToken(token: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.resetToken, token));
     return user;
+  }
+
+  async getUserByToken(token: string): Promise<User | undefined> {
+    try {
+      let userId: string | undefined;
+
+      // Try JWT format first (3 parts separated by dots)
+      if (token.includes('.')) {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          // Decode JWT payload (middle part)
+          let payloadB64 = parts[1];
+          // Handle base64url padding
+          while (payloadB64.length % 4) payloadB64 += '=';
+          payloadB64 = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
+          
+          const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+          userId = payload.sub || payload.userId || payload.uid;
+          
+          // Check JWT expiration if present
+          if (payload.exp) {
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp < now) {
+              console.log('❌ getUserByToken: JWT token expired');
+              return undefined;
+            }
+          }
+        }
+      }
+
+      // Try legacy base64 format if JWT failed
+      if (!userId) {
+        // Normalize base64 padding
+        let normalizedToken = token.replace(/-/g, '+').replace(/_/g, '/');
+        while (normalizedToken.length % 4) {
+          normalizedToken += '=';
+        }
+        
+        const decoded = JSON.parse(Buffer.from(normalizedToken, 'base64').toString());
+        userId = decoded.userId;
+        
+        // Check token age for legacy tokens (7 days)
+        if (decoded.timestamp) {
+          const tokenAge = Date.now() - decoded.timestamp;
+          const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+          if (tokenAge > maxAge) {
+            console.log('❌ getUserByToken: Legacy token expired');
+            return undefined;
+          }
+        }
+      }
+
+      // Look up user by ID
+      if (userId) {
+        return await this.getUser(userId);
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error('getUserByToken error:', error);
+      return undefined;
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
