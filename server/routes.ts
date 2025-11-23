@@ -191,7 +191,8 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
           return res.status(401).json({ error: 'Invalid token format' });
         }
         
-        userId = decoded.userId;
+        // Support both legacy formats: {id: ...} and {userId: ...}
+        userId = decoded.userId || decoded.id;
         
         console.log('✅ Legacy token decoded:', {
           userId,
@@ -3884,11 +3885,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenToUse) {
         try {
           const decoded = JSON.parse(Buffer.from(tokenToUse, 'base64').toString());
-          if (decoded && typeof decoded === 'object' && decoded.userId) {
-            authenticatedUserId = decoded.userId;
-            console.log('📅 SMS token authenticated for calendar export', queryToken ? '(from URL)' : '(from cookie)');
+          if (decoded && typeof decoded === 'object') {
+            // Support both legacy formats: {id: ...} and {userId: ...}
+            authenticatedUserId = decoded.userId || decoded.id;
+            if (authenticatedUserId) {
+              console.log('📅 SMS token authenticated for calendar export', queryToken ? '(from URL)' : '(from cookie)');
+            } else {
+              console.log('📅 Invalid token format - missing userId/id');
+            }
           } else {
-            console.log('📅 Invalid token format - missing userId');
+            console.log('📅 Invalid token format');
           }
         } catch (e) {
           console.error('📅 Token decode error:', e);
@@ -4020,11 +4026,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenToUse) {
         try {
           const decoded = JSON.parse(Buffer.from(tokenToUse, 'base64').toString());
-          if (decoded && typeof decoded === 'object' && decoded.userId) {
-            authenticatedUserId = decoded.userId;
-            console.log('📅 SMS token authenticated for event export', queryToken ? '(from URL)' : '(from cookie)');
+          if (decoded && typeof decoded === 'object') {
+            // Support both legacy formats: {id: ...} and {userId: ...}
+            authenticatedUserId = decoded.userId || decoded.id;
+            if (authenticatedUserId) {
+              console.log('📅 SMS token authenticated for event export', queryToken ? '(from URL)' : '(from cookie)');
+            } else {
+              console.log('📅 Invalid token format - missing userId/id');
+            }
           } else {
-            console.log('📅 Invalid token format - missing userId');
+            console.log('📅 Invalid token format');
           }
         } catch (e) {
           console.error('📅 Token decode error:', e);

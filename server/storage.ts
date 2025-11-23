@@ -309,7 +309,8 @@ export class DatabaseStorage implements IStorage {
           return undefined;
         }
         
-        userId = decoded.userId;
+        // Support both legacy formats: {id: ...} and {userId: ...}
+        userId = decoded.userId || decoded.id;
         
         // Check token age for legacy tokens (7 days)
         if (decoded.timestamp) {
