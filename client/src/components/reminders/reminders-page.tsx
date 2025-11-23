@@ -78,7 +78,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
   // Unified reminders query for both web and mobile
   const { data: reminders = [], isLoading } = useQuery<Reminder[]>({
     queryKey: ["/api/reminders", user.id],
-    queryFn: () => api.getUserReminders(user.id),
+    queryFn: () => api.getReminders(user.id),
     enabled: !!user?.id
   });
 
@@ -125,8 +125,8 @@ export function RemindersPage({ user }: RemindersPageProps) {
   const clearCompletedMutation = useMutation({
     mutationFn: async () => {
       // Fetch fresh list to ensure we're working with latest data
-      const freshReminders = await api.getUserReminders(user.id);
-      const completedReminders = freshReminders.filter(r => r.completed);
+      const freshReminders = await api.getReminders(user.id);
+      const completedReminders = freshReminders.filter((r: Reminder) => r.completed);
       
       if (completedReminders.length === 0) {
         throw new Error("No completed reminders to clear");
@@ -134,11 +134,11 @@ export function RemindersPage({ user }: RemindersPageProps) {
       
       // Delete all completed reminders
       const results = await Promise.allSettled(
-        completedReminders.map(r => api.deleteReminder(r.id))
+        completedReminders.map((r: Reminder) => api.deleteReminder(r.id))
       );
       
       // Check if any failed
-      const failures = results.filter(r => r.status === 'rejected');
+      const failures = results.filter((r: PromiseSettledResult<void>) => r.status === 'rejected');
       if (failures.length > 0) {
         console.error('Some deletions failed:', failures);
         throw new Error(`Failed to delete ${failures.length} reminder(s)`);
