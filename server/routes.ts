@@ -184,6 +184,13 @@ const isAuthenticated = async (req: any, res: any, next: any) => {
         });
         
         decoded = JSON.parse(Buffer.from(normalizedToken, 'base64').toString());
+        
+        // Validate decoded is a valid object
+        if (!decoded || typeof decoded !== 'object') {
+          console.log('❌ Invalid decoded token format');
+          return res.status(401).json({ error: 'Invalid token format' });
+        }
+        
         userId = decoded.userId;
         
         console.log('✅ Legacy token decoded:', {
@@ -3877,8 +3884,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenToUse) {
         try {
           const decoded = JSON.parse(Buffer.from(tokenToUse, 'base64').toString());
-          authenticatedUserId = decoded.userId;
-          console.log('📅 SMS token authenticated for calendar export', queryToken ? '(from URL)' : '(from cookie)');
+          if (decoded && typeof decoded === 'object' && decoded.userId) {
+            authenticatedUserId = decoded.userId;
+            console.log('📅 SMS token authenticated for calendar export', queryToken ? '(from URL)' : '(from cookie)');
+          } else {
+            console.log('📅 Invalid token format - missing userId');
+          }
         } catch (e) {
           console.error('📅 Token decode error:', e);
         }
@@ -4009,8 +4020,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenToUse) {
         try {
           const decoded = JSON.parse(Buffer.from(tokenToUse, 'base64').toString());
-          authenticatedUserId = decoded.userId;
-          console.log('📅 SMS token authenticated for event export', queryToken ? '(from URL)' : '(from cookie)');
+          if (decoded && typeof decoded === 'object' && decoded.userId) {
+            authenticatedUserId = decoded.userId;
+            console.log('📅 SMS token authenticated for event export', queryToken ? '(from URL)' : '(from cookie)');
+          } else {
+            console.log('📅 Invalid token format - missing userId');
+          }
         } catch (e) {
           console.error('📅 Token decode error:', e);
         }
