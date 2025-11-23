@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget 
     id="ai.gabai.app" 
-    version="3.0.101" 
-    android-versionCode="101" 
-    ios-CFBundleVersion="101.0.0" 
+    version="3.0.131" 
+    android-versionCode="131" 
+    ios-CFBundleVersion="120.0.0" 
     xmlns="http://www.w3.org/ns/widgets" 
     xmlns:android="http://schemas.android.com/apk/res/android">
     
