@@ -560,7 +560,6 @@ function ReminderCard({ reminder, onComplete, onDelete, isOverdue }: ReminderCar
               <Clock className="h-3 w-3 text-gray-400" />
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {dueDate.toLocaleString('en-US', { 
-                  timeZone: 'America/New_York',
                   month: 'short',
                   day: 'numeric', 
                   year: 'numeric',
