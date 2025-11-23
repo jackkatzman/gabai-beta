@@ -197,14 +197,44 @@ export function RemindersPage({ user }: RemindersPageProps) {
       return;
     }
 
+    // Parse the datetime-local string and send it as ISO string with local timezone offset
+    // This prevents the browser from converting to UTC when serializing as JSON
+    // Format: "YYYY-MM-DDTHH:MM" -> "YYYY-MM-DDTHH:MM:00-05:00" (with user's timezone)
+    const localDate = new Date(newReminder.dueDate);
+    // Format as ISO string preserving local timezone offset
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const hours = String(localDate.getHours()).padStart(2, '0');
+    const minutes = String(localDate.getMinutes()).padStart(2, '0');
+    const seconds = '00';
+    
+    // Get timezone offset in format +/-HH:MM
+    const tzOffset = -localDate.getTimezoneOffset();
+    const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0');
+    const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, '0');
+    const tzSign = tzOffset >= 0 ? '+' : '-';
+    const timezoneOffset = `${tzSign}${tzHours}:${tzMinutes}`;
+    
+    const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${timezoneOffset}`;
+    
     createReminderMutation.mutate({
       userId: user.id,
       title: newReminder.title.trim(),
       description: newReminder.description.trim() || null,
-      dueDate: new Date(newReminder.dueDate),
+      dueDate: localISOString as any, // Send as string with timezone offset
       category: newReminder.category || null,
       recurring: newReminder.recurring || null,
       completed: false,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      groupId: null,
+      smsEnabled: false,
+      smsPhone: null,
+      smsSent: false,
+      smsSentAt: null,
+      smsStatus: 'pending',
+      reminderMinutes: 0,
+      reminderType: 'notification'
     });
   };
 

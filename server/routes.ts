@@ -4274,7 +4274,26 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   app.patch("/api/list-items/:id", jsonParser, async (req, res) => {
     try {
       const updates = insertListItemSchema.partial().parse(req.body);
-      const userId = req.user?.id || req.body.userId;
+      
+      // Support session auth, body userId, and Authorization header (like toggle endpoint)
+      let userId = req.user?.id || req.body.userId;
+      
+      // If no user yet, try to get from Authorization header token
+      if (!userId) {
+        const authHeader = req.headers.authorization;
+        if (authHeader?.startsWith('Bearer ')) {
+          const token = authHeader.substring(7);
+          try {
+            const user = await storage.getUserByToken(token);
+            if (user) {
+              userId = user.id;
+              console.log('✅ Authenticated via Bearer token for list item update');
+            }
+          } catch (error) {
+            console.error('❌ Bearer token validation failed:', error);
+          }
+        }
+      }
       
       // Get the item to check permissions
       if (userId) {
