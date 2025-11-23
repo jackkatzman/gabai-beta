@@ -1172,8 +1172,12 @@ const getSimpleCategory = (itemName: string): string => {
 
   // Toggle item completion mutation
   const toggleItemMutation = useMutation({
-    mutationFn: (itemId: string) => api.toggleListItem(itemId),
+    mutationFn: (itemId: string) => {
+      console.log('🔄 Toggle mutation called for item:', itemId);
+      return api.toggleListItem(itemId);
+    },
     onMutate: async (itemId) => {
+      console.log('✅ Toggle onMutate - optimistic update for item:', itemId);
       await queryClient.cancelQueries({ queryKey: ["/api/smart-lists", user.id] });
       const previousLists = queryClient.getQueryData(["/api/smart-lists", user.id]);
       
@@ -1190,11 +1194,21 @@ const getSimpleCategory = (itemName: string): string => {
       return { previousLists };
     },
     onError: (err, itemId, context: any) => {
+      console.error('❌ Toggle error for item:', itemId, err);
+      toast({
+        title: "Failed to Toggle",
+        description: err?.message || "Could not update item. Please try again.",
+        variant: "destructive",
+      });
       if (context?.previousLists) {
         queryClient.setQueryData(["/api/smart-lists", user.id], context.previousLists);
       }
     },
+    onSuccess: (data, itemId) => {
+      console.log('✅ Toggle success for item:', itemId, data);
+    },
     onSettled: () => {
+      console.log('🔄 Toggle settled - invalidating queries');
       queryClient.invalidateQueries({ queryKey: ["/api/smart-lists", user.id] });
     },
   });
