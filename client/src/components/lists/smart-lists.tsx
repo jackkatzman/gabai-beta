@@ -3,6 +3,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+
+// Production monitoring logger
+async function logToMonitoring(level: 'error' | 'warn' | 'info' | 'debug', message: string, metadata: any = {}) {
+  try {
+    await fetch('https://replit-log-link-jack741.replit.app/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        level,
+        message,
+        source: 'gabai-checkbox',
+        app: 'gabai-prod',
+        metadata: {
+          ...metadata,
+          timestamp: new Date().toISOString(),
+          url: window.location.href
+        }
+      })
+    });
+  } catch (e) {
+    console.error('Failed to send log:', e);
+  }
+}
 // Removed Card imports for borderless Superlist-style interface
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
@@ -1174,10 +1197,16 @@ const getSimpleCategory = (itemName: string): string => {
   const toggleItemMutation = useMutation({
     mutationFn: (itemId: string) => {
       console.log('🔄 Toggle mutation called for item:', itemId);
+      logToMonitoring('info', 'Checkbox toggle mutation started', { 
+        itemId, 
+        userId: user.id,
+        userName: user.name || user.email 
+      });
       return api.toggleListItem(itemId);
     },
     onMutate: async (itemId) => {
       console.log('✅ Toggle onMutate - optimistic update for item:', itemId);
+      logToMonitoring('debug', 'Toggle onMutate - applying optimistic update', { itemId });
       await queryClient.cancelQueries({ queryKey: ["/api/smart-lists", user.id] });
       const previousLists = queryClient.getQueryData(["/api/smart-lists", user.id]);
       
@@ -1195,6 +1224,13 @@ const getSimpleCategory = (itemName: string): string => {
     },
     onError: (err, itemId, context: any) => {
       console.error('❌ Toggle error for item:', itemId, err);
+      logToMonitoring('error', 'Checkbox toggle FAILED', { 
+        itemId, 
+        userId: user.id,
+        error: err?.message,
+        errorStack: err?.stack,
+        errorName: err?.name
+      });
       toast({
         title: "Failed to Toggle",
         description: err?.message || "Could not update item. Please try again.",
@@ -1206,6 +1242,11 @@ const getSimpleCategory = (itemName: string): string => {
     },
     onSuccess: (data, itemId) => {
       console.log('✅ Toggle success for item:', itemId, data);
+      logToMonitoring('info', 'Checkbox toggle SUCCESS', { 
+        itemId, 
+        userId: user.id,
+        completed: data?.completed 
+      });
     },
     onSettled: () => {
       console.log('🔄 Toggle settled - invalidating queries');

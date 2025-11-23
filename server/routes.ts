@@ -4295,6 +4295,28 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
     }
   });
 
+  // Production monitoring logger
+  async function logToMonitoring(level: string, message: string, metadata: any = {}) {
+    try {
+      await fetch('https://replit-log-link-jack741.replit.app/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level,
+          message,
+          source: 'gabai-server',
+          app: 'gabai-prod',
+          metadata: {
+            ...metadata,
+            timestamp: new Date().toISOString()
+          }
+        })
+      }).catch(e => console.error('Failed to send log:', e));
+    } catch (e) {
+      console.error('Monitoring error:', e);
+    }
+  }
+
   // Toggle list item completion
   app.patch("/api/list-items/:id/toggle", async (req, res) => {
     try {
@@ -4302,6 +4324,13 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       console.log('🔍 Toggle: Headers:', { authorization: req.headers.authorization ? 'Present' : 'Missing' });
       console.log('🔍 Toggle: Session user:', req.user?.id || 'None');
       console.log('🔍 Toggle: Body userId:', req.body?.userId || 'None');
+      
+      logToMonitoring('info', 'Server received checkbox toggle request', {
+        itemId: req.params.id,
+        hasAuthHeader: !!req.headers.authorization,
+        hasSessionUser: !!req.user?.id,
+        hasBodyUserId: !!req.body?.userId
+      });
       
       // Support session auth, body userId, and Authorization header
       let userId = req.user?.id || req.body.userId;
@@ -4313,17 +4342,27 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
         if (authHeader?.startsWith('Bearer ')) {
           const token = authHeader.substring(7);
           console.log('🔑 Toggle: Attempting Bearer token authentication, token length:', token.length);
+          logToMonitoring('debug', 'Attempting Bearer token auth for toggle', {
+            tokenLength: token.length,
+            tokenPrefix: token.substring(0, 10)
+          });
           try {
             const user = await storage.getUserByToken(token);
             if (user) {
               userId = user.id;
               console.log('✅ Toggle: User authenticated via Bearer token:', userId);
+              logToMonitoring('info', 'User authenticated via Bearer token', { userId });
             } else {
               console.log('❌ Toggle: getUserByToken returned no user');
+              logToMonitoring('error', 'Token validation returned no user', { token: token.substring(0, 20) });
             }
           } catch (error) {
             console.error("❌ Toggle: Token validation error:", error);
             console.error("❌ Toggle: Error stack:", (error as Error).stack);
+            logToMonitoring('error', 'Token validation threw error', {
+              error: (error as Error).message,
+              stack: (error as Error).stack
+            });
           }
         }
       } else {
@@ -4331,6 +4370,10 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       }
       
       console.log('🔍 Toggle: Final userId:', userId || 'NONE');
+      logToMonitoring('debug', 'Toggle auth check complete', {
+        userId: userId || 'NONE',
+        authenticated: !!userId
+      });
       
       // Get the item to check permissions
       if (userId) {
@@ -4350,6 +4393,11 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       console.log('🔄 Toggle: Calling toggleListItem...');
       const item = await storage.toggleListItem(req.params.id);
       console.log('✅ Toggle: Success, returning item');
+      logToMonitoring('info', 'Toggle SUCCESS - item updated', {
+        itemId: req.params.id,
+        userId,
+        completed: item.completed
+      });
       res.json(item);
     } catch (error: any) {
       console.error("❌ Toggle list item error:", error);
@@ -4358,6 +4406,13 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
         message: error.message,
         name: error.name,
         code: error.code
+      });
+      logToMonitoring('error', 'Toggle FAILED in server', {
+        itemId: req.params.id,
+        error: error.message,
+        errorName: error.name,
+        errorCode: error.code,
+        stack: error.stack
       });
       res.status(500).json({ message: error.message });
     }
