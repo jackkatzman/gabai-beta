@@ -46,10 +46,28 @@ function getCategoryInfo(categoryValue: string) {
 export function RemindersPage({ user }: RemindersPageProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
+  
+  // Helper function to get default datetime in user's local timezone
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    // Round up to next hour
+    now.setHours(now.getHours() + 1);
+    now.setMinutes(0);
+    now.setSeconds(0);
+    now.setMilliseconds(0);
+    // Format for datetime-local input in local timezone: YYYY-MM-DDTHH:MM
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  
   const [newReminder, setNewReminder] = useState({
     title: "",
     description: "",
-    dueDate: "",
+    dueDate: getDefaultDateTime(),
     category: "",
     recurring: "",
   });
@@ -163,7 +181,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
     setNewReminder({
       title: "",
       description: "",
-      dueDate: "",
+      dueDate: getDefaultDateTime(),
       category: "",
       recurring: "",
     });
