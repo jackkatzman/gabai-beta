@@ -4288,6 +4288,10 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   app.patch("/api/list-items/:id/toggle", async (req, res) => {
     try {
       console.log('✅ Toggle request received for item:', req.params.id);
+      console.log('🔍 Toggle: Headers:', { authorization: req.headers.authorization ? 'Present' : 'Missing' });
+      console.log('🔍 Toggle: Session user:', req.user?.id || 'None');
+      console.log('🔍 Toggle: Body userId:', req.body?.userId || 'None');
+      
       // Support session auth, body userId, and Authorization header
       let userId = req.user?.id || req.body.userId;
       
@@ -4297,7 +4301,7 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
         console.log('🔑 Toggle: Checking Authorization header:', authHeader ? 'Present' : 'Missing');
         if (authHeader?.startsWith('Bearer ')) {
           const token = authHeader.substring(7);
-          console.log('🔑 Toggle: Attempting Bearer token authentication');
+          console.log('🔑 Toggle: Attempting Bearer token authentication, token length:', token.length);
           try {
             const user = await storage.getUserByToken(token);
             if (user) {
@@ -4308,27 +4312,42 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
             }
           } catch (error) {
             console.error("❌ Toggle: Token validation error:", error);
+            console.error("❌ Toggle: Error stack:", (error as Error).stack);
           }
         }
       } else {
         console.log('✅ Toggle: User already authenticated:', userId);
       }
       
+      console.log('🔍 Toggle: Final userId:', userId || 'NONE');
+      
       // Get the item to check permissions
       if (userId) {
+        console.log('🔍 Toggle: Checking permissions...');
         const existingItem = await storage.getListItem(req.params.id);
+        console.log('🔍 Toggle: Existing item:', existingItem ? 'Found' : 'Not found');
         if (existingItem) {
+          console.log('🔍 Toggle: Item listId:', existingItem.listId);
           const canEdit = await storage.canUserEditList(userId, existingItem.listId);
+          console.log('🔍 Toggle: Can edit:', canEdit);
           if (!canEdit) {
             return res.status(403).json({ message: "You don't have permission to edit items in this list" });
           }
         }
       }
       
+      console.log('🔄 Toggle: Calling toggleListItem...');
       const item = await storage.toggleListItem(req.params.id);
+      console.log('✅ Toggle: Success, returning item');
       res.json(item);
     } catch (error: any) {
-      console.error("Toggle list item error:", error);
+      console.error("❌ Toggle list item error:", error);
+      console.error("❌ Toggle error stack:", error.stack);
+      console.error("❌ Toggle error details:", {
+        message: error.message,
+        name: error.name,
+        code: error.code
+      });
       res.status(500).json({ message: error.message });
     }
   });
