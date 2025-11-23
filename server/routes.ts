@@ -4272,23 +4272,31 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   // Toggle list item completion
   app.patch("/api/list-items/:id/toggle", async (req, res) => {
     try {
+      console.log('✅ Toggle request received for item:', req.params.id);
       // Support session auth, body userId, and Authorization header
       let userId = req.user?.id || req.body.userId;
       
       // If no user yet, try to get from Authorization header token
       if (!userId) {
         const authHeader = req.headers.authorization;
+        console.log('🔑 Toggle: Checking Authorization header:', authHeader ? 'Present' : 'Missing');
         if (authHeader?.startsWith('Bearer ')) {
           const token = authHeader.substring(7);
+          console.log('🔑 Toggle: Attempting Bearer token authentication');
           try {
             const user = await storage.getUserByToken(token);
             if (user) {
               userId = user.id;
+              console.log('✅ Toggle: User authenticated via Bearer token:', userId);
+            } else {
+              console.log('❌ Toggle: getUserByToken returned no user');
             }
           } catch (error) {
-            console.error("Token validation error:", error);
+            console.error("❌ Toggle: Token validation error:", error);
           }
         }
+      } else {
+        console.log('✅ Toggle: User already authenticated:', userId);
       }
       
       // Get the item to check permissions
@@ -4587,21 +4595,44 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
 
   app.get("/api/contacts/:id/vcard", async (req, res) => {
     try {
-      // Support both session auth and query token (for APK downloads)
+      console.log('📇 vCard download requested for contact:', req.params.id);
+      // Support session auth, Authorization header, and query token (for APK downloads)
       let userId = req.user?.id;
       
+      // Try Authorization header first
+      if (!userId) {
+        const authHeader = req.headers.authorization;
+        if (authHeader?.startsWith('Bearer ')) {
+          const token = authHeader.substring(7);
+          console.log('🔑 vCard: Attempting Bearer token authentication');
+          try {
+            const user = await storage.getUserByToken(token);
+            if (user) {
+              userId = user.id;
+              console.log('✅ vCard: User authenticated via Bearer token:', userId);
+            }
+          } catch (error) {
+            console.error("❌ vCard: Token validation error:", error);
+          }
+        }
+      }
+      
+      // Fallback to query token
       if (!userId && req.query.token) {
+        console.log('🔑 vCard: Attempting query token authentication');
         try {
           const user = await storage.getUserByToken(req.query.token as string);
           if (user) {
             userId = user.id;
+            console.log('✅ vCard: User authenticated via query token:', userId);
           }
         } catch (error) {
-          console.error("Token validation error:", error);
+          console.error("❌ vCard: Query token validation error:", error);
         }
       }
       
       if (!userId) {
+        console.log('❌ vCard: Authentication failed - no valid user found');
         return res.status(401).json({ message: "Authentication required" });
       }
       
