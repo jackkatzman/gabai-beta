@@ -418,9 +418,9 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-1 px-1 py-2 transition-all duration-150 smart-list-item-row ${
+      className={`flex items-center gap-1 px-1 py-1 transition-all duration-150 smart-list-item-row ${
         item.completed 
-          ? "opacity-60 line-through" 
+          ? "opacity-60" 
           : ""
       } ${isDragging ? "scale-105 opacity-95" : ""} w-full relative will-change-transform`}
     >
