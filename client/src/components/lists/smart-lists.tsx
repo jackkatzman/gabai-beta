@@ -81,7 +81,25 @@ import {
   Hash,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2
+  CheckCircle2,
+  Carrot,
+  Beef,
+  Drumstick,
+  Cake,
+  IceCream,
+  Pizza,
+  Soup,
+  Candy,
+  Beer,
+  Sparkles,
+  Droplet,
+  Sparkle,
+  Wind,
+  Flame,
+  Cherry,
+  Croissant,
+  CakeSlice,
+  Sandwich
 } from "lucide-react";
 import { CordovaDirect } from "@/lib/cordova-direct";
 import {
@@ -201,69 +219,69 @@ const listTypeTemplates = {
 
 const categoryIcons = {
   // Fresh Foods
-  produce: Apple,
-  meat: Ham,
-  poultry: Ham,
+  produce: Carrot,
+  meat: Beef,
+  poultry: Drumstick,
   seafood: Fish,
-  deli: Utensils,
-  bakery: Cookie,
+  deli: Sandwich,
+  bakery: Croissant,
   "prepared foods": Utensils,
   
   // Dairy & Refrigerated
   dairy: Milk,
   "milk & cream": Milk,
-  yogurt: Milk,
+  yogurt: IceCream,
   cheese: Milk,
   "butter & margarine": Milk,
   eggs: Egg,
-  "refrigerated juices": Apple,
+  "refrigerated juices": Cherry,
   "packaged deli meats": Ham,
   
   // Frozen
   frozen: Snowflake,
-  "frozen vegetables": Snowflake,
-  "frozen fruit": Snowflake,
-  "ice cream & desserts": Cookie,
-  "frozen meals & pizzas": Snowflake,
+  "frozen vegetables": Carrot,
+  "frozen fruit": Cherry,
+  "ice cream & desserts": IceCream,
+  "frozen meals & pizzas": Pizza,
   "frozen meat & seafood": Fish,
-  "breakfast items": Cookie,
+  "breakfast items": Croissant,
   
   // Pantry / Dry Goods
   pantry: ShoppingBag,
-  "canned goods": Package,
+  "canned goods": Soup,
   "pasta & rice": Wheat,
-  "baking supplies": Cookie,
-  "spices & seasonings": Package,
+  "baking supplies": Cake,
+  "spices & seasonings": Sparkles,
   cereals: Wheat,
   snacks: Cookie,
-  "candy & chocolate": Cookie,
-  condiments: Package,
-  sauces: Package,
+  "candy & chocolate": Candy,
+  condiments: Droplet,
+  sauces: Flame,
   
   // Beverages
   beverages: Coffee,
-  water: Coffee,
-  "soft drinks": Coffee,
-  juice: Apple,
+  water: Droplet,
+  "soft drinks": Beer,
+  juice: Cherry,
   "coffee & tea": Coffee,
-  "energy drinks": Coffee,
+  "energy drinks": Zap,
   "beer & wine": Wine,
   
   // Household & Non-Food
-  household: Zap,
-  "cleaning supplies": Zap,
-  "paper goods": ShoppingBag,
+  household: ShoppingBag,
+  "cleaning supplies": Sparkle,
+  "paper goods": Package,
   "laundry products": Shirt,
-  "kitchen & trash bags": ShoppingBag,
+  "kitchen & trash bags": Package,
   "pet food & supplies": Heart,
   
   // Health & Personal Care
   pharmacy: Heart,
   "over-the-counter meds": Heart,
-  "personal care": Heart,
-  cosmetics: Heart,
+  "personal care": Sparkles,
+  cosmetics: Sparkles,
   "baby supplies": Baby,
-  "feminine products": Heart,
+  "feminine products": Flower,
   
   // Seasonal & Misc
   "seasonal items": Flower,
@@ -276,12 +294,14 @@ const categoryIcons = {
   grains: Wheat,
   
   // Work categories
-  plumber: Settings,
-  painter: Settings,
-  electrician: Settings,
-  plumbing: Settings,
-  electrical: Settings,
-  painting: Settings
+  plumber: Droplet,
+  painter: Sparkles,
+  electrician: Zap,
+  plumbing: Droplet,
+  electrical: Zap,
+  painting: Sparkles,
+  flooring: Package,
+  hvac: Wind
 };
 
 const getCategoryIcon = (category: string) => {
@@ -418,14 +438,14 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-1 px-1 py-1 transition-all duration-150 smart-list-item-row ${
+      className={`flex items-center gap-0.5 px-0.5 py-0.5 transition-all duration-150 smart-list-item-row ${
         item.completed 
           ? "opacity-60" 
           : ""
       } ${isDragging ? "scale-105 opacity-95" : ""} w-full relative will-change-transform`}
     >
       {/* LEFT: sorter + checkbox (minimal width, never grow) */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-0.5 shrink-0">
         <button
           {...attributes}
           {...listeners}
