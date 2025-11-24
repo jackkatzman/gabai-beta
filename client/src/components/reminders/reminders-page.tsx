@@ -181,10 +181,22 @@ export function RemindersPage({ user }: RemindersPageProps) {
     setNewReminder({
       title: "",
       description: "",
-      dueDate: getDefaultDateTime(),
+      dueDate: getDefaultDateTime(), // Recalculates current time
       category: "",
       recurring: "",
     });
+  };
+  
+  // Recalculate default time when dialog opens
+  const handleDialogOpen = (open: boolean) => {
+    setIsCreateDialogOpen(open);
+    if (open) {
+      // Reset the due date to current time + 1 hour when opening
+      setNewReminder(prev => ({
+        ...prev,
+        dueDate: getDefaultDateTime()
+      }));
+    }
   };
 
   const handleCreateReminder = () => {
@@ -290,7 +302,7 @@ export function RemindersPage({ user }: RemindersPageProps) {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Reminders
           </h2>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="w-10 h-10 rounded-full p-0">
                 <Plus className="h-5 w-5" />

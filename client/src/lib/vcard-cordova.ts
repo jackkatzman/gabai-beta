@@ -55,8 +55,19 @@ export async function saveAndOpenVCard(options: {
     const fullUrl = vcardUrl.startsWith('http') ? vcardUrl : `https://gabai.ai${vcardUrl}`;
     
     try {
-      // Fetch the vCard data
-      const response = await fetch(fullUrl);
+      // Get auth token for APK downloads
+      const token = localStorage.getItem('gabai_token') || 
+                   sessionStorage.getItem('gabai_token') || 
+                   localStorage.getItem('token') || 
+                   sessionStorage.getItem('token');
+      
+      // Fetch the vCard data with authentication
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(fullUrl, { headers });
       if (!response.ok) {
         throw new Error(`Failed to fetch vCard: ${response.status}`);
       }
