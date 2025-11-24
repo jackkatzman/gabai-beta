@@ -49,18 +49,23 @@ export function RemindersPage({ user }: RemindersPageProps) {
   
   // Helper function to get default datetime in user's local timezone
   const getDefaultDateTime = () => {
+    // Force local timezone by using current timestamp and timezone offset
     const now = new Date();
-    // Round up to next hour
-    now.setHours(now.getHours() + 1);
-    now.setMinutes(0);
-    now.setSeconds(0);
-    now.setMilliseconds(0);
-    // Format for datetime-local input in local timezone: YYYY-MM-DDTHH:MM
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const localTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    
+    // Add 1 hour to current local time
+    localTime.setHours(localTime.getHours() + 1);
+    localTime.setMinutes(0);
+    localTime.setSeconds(0);
+    localTime.setMilliseconds(0);
+    
+    // Format for datetime-local input: YYYY-MM-DDTHH:MM
+    const year = localTime.getFullYear();
+    const month = String(localTime.getMonth() + 1).padStart(2, '0');
+    const day = String(localTime.getDate()).padStart(2, '0');
+    const hours = String(localTime.getHours()).padStart(2, '0');
+    const minutes = String(localTime.getMinutes()).padStart(2, '0');
+    
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
   

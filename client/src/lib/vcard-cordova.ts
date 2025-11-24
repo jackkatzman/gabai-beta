@@ -80,33 +80,53 @@ export async function saveAndOpenVCard(options: {
         try {
           const fileEntry = await writeVCardToCache(filename, vcardData);
           console.log('📇 VCard saved to:', fileEntry.toURL());
+          console.log('📇 VCard native path:', fileEntry.nativeURL);
           
           // Try to open with fileOpener2 if available
           if ((window as any).cordova?.plugins?.fileOpener2) {
+            console.log('📇 Opening VCard with fileOpener2...');
+            // Use nativeURL instead of toURL() for better Android compatibility
+            const filePath = fileEntry.nativeURL || fileEntry.toURL();
             (window as any).cordova.plugins.fileOpener2.open(
-              fileEntry.toURL(),
-              'text/vcard',
+              filePath,
+              'text/x-vcard',
               {
                 error: (e: any) => {
-                  console.log('📇 VCard open failed, trying fallback', e);
-                  // Fallback to download
-                  const blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8' });
-                  const a = document.createElement('a');
-                  a.href = URL.createObjectURL(blob);
-                  a.download = filename;
-                  a.click();
+                  console.error('📇 VCard open failed:', e);
+                  // Try with socialSharing plugin as fallback
+                  if ((window as any).plugins?.socialsharing) {
+                    console.log('📇 Trying socialSharing plugin...');
+                    (window as any).plugins.socialsharing.shareWithOptions({
+                      files: [filePath],
+                      message: 'Save contact',
+                      subject: 'Contact'
+                    }, 
+                    () => console.log('📇 VCard shared successfully'),
+                    (err: any) => console.error('📇 SocialSharing failed:', err)
+                    );
+                  } else {
+                    console.log('📇 No share options available, file saved to cache');
+                  }
                 },
                 success: () => console.log('📇 VCard opened successfully')
               }
             );
           } else {
-            // Fallback if fileOpener2 not available
-            const blob = new Blob([vcardData], { type: 'text/vcard;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            a.click();
-            console.log('📇 VCard download triggered (no fileOpener2)');
+            console.log('📇 fileOpener2 not available');
+            // Try socialSharing if available
+            if ((window as any).plugins?.socialsharing) {
+              console.log('📇 Using socialSharing to share VCard...');
+              (window as any).plugins.socialsharing.shareWithOptions({
+                files: [fileEntry.nativeURL || fileEntry.toURL()],
+                message: 'Save contact',
+                subject: 'Contact'
+              },
+              () => console.log('📇 VCard shared successfully'),
+              (err: any) => console.error('📇 SocialSharing failed:', err)
+              );
+            } else {
+              console.log('📇 No plugins available, file saved to cache at:', fileEntry.nativeURL);
+            }
           }
           return;
         } catch (error) {
