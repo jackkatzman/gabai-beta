@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Download, Smartphone, UserCheck } from "lucide-react";
+import { Download, Smartphone, UserCheck, Shield } from "lucide-react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoSpinner } from "@/components/ui/logo-spinner";
 import { useState, useEffect } from "react";
@@ -1125,6 +1126,19 @@ export default function LoginPage() {
 
           <div className="text-center text-xs text-muted-foreground mt-4 px-2">
             <p>By signing up, you agree to receive SMS one-time passcodes for account login and verification.</p>
+          </div>
+
+          <div className="text-center mt-4">
+            <Link href="/privacy">
+              <Button
+                variant="link"
+                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                data-testid="link-privacy-policy"
+              >
+                <Shield className="h-3 w-3 mr-1" />
+                Privacy Policy
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
