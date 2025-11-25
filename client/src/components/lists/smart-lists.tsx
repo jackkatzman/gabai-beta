@@ -438,14 +438,14 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-0.5 px-0.5 py-0.5 transition-all duration-150 smart-list-item-row ${
+      className={`flex items-center gap-0 px-0 py-0 transition-all duration-150 smart-list-item-row ${
         item.completed 
           ? "opacity-60" 
           : ""
       } ${isDragging ? "scale-105 opacity-95" : ""} w-full relative will-change-transform`}
     >
       {/* LEFT: sorter + checkbox (minimal width, never grow) */}
-      <div className="flex items-center gap-0.5 shrink-0">
+      <div className="flex items-center gap-0 shrink-0">
         <button
           {...attributes}
           {...listeners}
