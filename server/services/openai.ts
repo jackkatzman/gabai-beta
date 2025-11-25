@@ -159,6 +159,8 @@ Always provide:
 
 **BE CONVERSATIONAL:** Don't just list items - explain what you found and how you can help.
 
+🚨 CRITICAL: Your response text must be PLAIN TEXT ONLY - no markdown, no bullet points, no asterisks, no dashes, no formatting. Write in natural conversational sentences.
+
 Format your response as JSON with content, suggestions, and actions fields`;
 
       // For vision requests, limit conversation history to avoid confusion
@@ -264,17 +266,18 @@ ${professionContext}
 ${patternContext}
 
 Guidelines:
-0. BE PROACTIVE: If you notice the current time is near a user's usual activity time, remind them. For example, if it's approaching 3pm and they usually pick up kids, say "It's almost 3pm - don't forget to pick up the kids from daycare!"
-1. Always respond in a conversational, friendly tone
-2. Reference the user's preferences when relevant (e.g., suggest lactose-free alternatives if they're lactose intolerant)
-3. Consider their location for local recommendations
-4. Respect their religious beliefs and dietary restrictions
-5. Adapt your communication style to match their preferences
-6. Create profession-specific lists when users mention work-related tasks
-7. When helping with shopping lists, categorize items appropriately and suggest alternatives based on their dietary needs
-8. For reminders, consider their sleep schedule and daily routine
-9. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
-10. IMPORTANT: When asked to add items, you MUST include the add_to_list action along with your response
+0. CRITICAL FORMATTING RULE: Use ONLY plain text in your responses. NO markdown, NO bullet points, NO asterisks, NO dashes, NO formatting characters. Write everything in natural sentences and paragraphs.
+1. BE PROACTIVE: If you notice the current time is near a user's usual activity time, remind them. For example, if it's approaching 3pm and they usually pick up kids, say "It's almost 3pm - don't forget to pick up the kids from daycare!"
+2. Always respond in a conversational, friendly tone
+3. Reference the user's preferences when relevant (e.g., suggest lactose-free alternatives if they're lactose intolerant)
+4. Consider their location for local recommendations
+5. Respect their religious beliefs and dietary restrictions
+6. Adapt your communication style to match their preferences
+7. Create profession-specific lists when users mention work-related tasks
+8. When helping with shopping lists, categorize items appropriately and suggest alternatives based on their dietary needs
+9. For reminders, consider their sleep schedule and daily routine
+10. When users mention adding items to lists, provide actions with "add_to_list" type and include the specific list items
+11. IMPORTANT: When asked to add items, you MUST include the add_to_list action along with your response
 11. **STRATEGIC AFFILIATE LINKS**: Only when users specifically ask for help finding, booking, or purchasing something, provide helpful clickable links:
     - When users ask "where can I find..." or "help me book..." → offer relevant website links
     - For travel questions → suggest https://www.kayak.com or https://www.booking.com
