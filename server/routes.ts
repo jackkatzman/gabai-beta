@@ -2621,17 +2621,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", isAuthenticated, checkChatLimit, jsonParser, async (req: any, res) => {
     try {
+      const messageData = insertMessageSchema.parse(req.body);
+      const message = await storage.createMessage(messageData);
+      
       if (req.incrementChatCount && !req.rateLimitBypass) {
-        const result = await req.incrementChatCount();
+        let result;
+        try {
+          result = await req.incrementChatCount();
+        } catch (incrementError) {
+          console.error('❌ CRITICAL: Increment threw error, deleting message:', incrementError);
+          try {
+            await storage.deleteMessage(message.id);
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete message after increment error:', deleteError);
+          }
+          throw incrementError;
+        }
+        
         if (!result.success) {
+          try {
+            await storage.deleteMessage(message.id);
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete message after quota exceeded:', deleteError);
+            return res.status(500).json({ 
+              error: 'Failed to enforce rate limit. Please contact support.' 
+            });
+          }
           return res.status(429).json({ 
             error: 'Daily chat limit reached. Please try again tomorrow or upgrade to premium.' 
           });
         }
       }
       
-      const messageData = insertMessageSchema.parse(req.body);
-      const message = await storage.createMessage(messageData);
       res.json(message);
     } catch (error: any) {
       console.error("Create message error:", error);
@@ -3440,27 +3461,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📅 SMS enabled:', bodyWithDate.smsEnabled);
       console.log('📅 Phone number:', bodyWithDate.smsPhone);
       
+      const reminderData = insertReminderSchema.parse(bodyWithDate);
+      console.log('✅ Validated reminder data:', reminderData);
+      
+      let reminder;
       try {
+        reminder = await storage.createReminder(reminderData);
+        console.log('✅ Reminder created in database:', reminder);
+        
         if (req.incrementReminderCount && !req.rateLimitBypass) {
-          const result = await req.incrementReminderCount();
+          let result;
+          try {
+            result = await req.incrementReminderCount();
+          } catch (incrementError) {
+            console.error('❌ CRITICAL: Increment threw error, deleting reminder:', incrementError);
+            await storage.deleteReminder(reminder.id);
+            throw incrementError;
+          }
+          
           if (!result.success) {
+            try {
+              await storage.deleteReminder(reminder.id);
+            } catch (deleteError) {
+              console.error('❌ CRITICAL: Failed to delete reminder after quota exceeded:', deleteError);
+              return res.status(500).json({ 
+                error: 'Failed to enforce rate limit. Please contact support.' 
+              });
+            }
             return res.status(429).json({ 
               error: 'Daily reminder limit reached. Please try again tomorrow or upgrade to premium.' 
             });
           }
         }
         
-        const reminderData = insertReminderSchema.parse(bodyWithDate);
-        console.log('✅ Validated reminder data:', reminderData);
-        
-        const reminder = await storage.createReminder(reminderData);
-        console.log('✅ Reminder created in database:', reminder);
-        
         res.json(reminder);
-      } catch (parseError: any) {
-        console.error('❌ Schema validation failed:', parseError);
-        console.error('🔍 Validation errors:', parseError.errors || parseError.message);
-        throw parseError;
+      } catch (creationError: any) {
+        if (reminder) {
+          try {
+            await storage.deleteReminder(reminder.id);
+            console.log('🔄 Deleted reminder after creation/increment error');
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete reminder after error:', deleteError);
+          }
+        }
+        throw creationError;
       }
     } catch (error: any) {
       console.error("❌ Create reminder error:", error);
@@ -4275,15 +4319,6 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   // List items routes  
   app.post("/api/list-items", isAuthenticated, checkListItemLimit, jsonParser, async (req: any, res) => {
     try {
-      if (req.incrementListItemCount && !req.rateLimitBypass) {
-        const result = await req.incrementListItemCount();
-        if (!result.success) {
-          return res.status(429).json({ 
-            error: 'Daily list item limit reached. Please try again tomorrow or upgrade to premium.' 
-          });
-        }
-      }
-      
       const itemData = insertListItemSchema.parse(req.body);
       const userId = req.user?.id || req.body.userId;
       
@@ -4296,6 +4331,36 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
       }
       
       const item = await storage.createListItem(itemData);
+      
+      if (req.incrementListItemCount && !req.rateLimitBypass) {
+        let result;
+        try {
+          result = await req.incrementListItemCount();
+        } catch (incrementError) {
+          console.error('❌ CRITICAL: Increment threw error, deleting list item:', incrementError);
+          try {
+            await storage.deleteListItem(item.id);
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete list item after increment error:', deleteError);
+          }
+          throw incrementError;
+        }
+        
+        if (!result.success) {
+          try {
+            await storage.deleteListItem(item.id);
+          } catch (deleteError) {
+            console.error('❌ CRITICAL: Failed to delete list item after quota exceeded:', deleteError);
+            return res.status(500).json({ 
+              error: 'Failed to enforce rate limit. Please contact support.' 
+            });
+          }
+          return res.status(429).json({ 
+            error: 'Daily list item limit reached. Please try again tomorrow or upgrade to premium.' 
+          });
+        }
+      }
+      
       res.json(item);
     } catch (error: any) {
       console.error("Create list item error:", error);

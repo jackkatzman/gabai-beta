@@ -18,7 +18,16 @@ The client is a React and TypeScript application, using Radix UI components and 
 The backend is a Node.js Express application providing RESTful APIs and WebSockets for real-time features. It follows a modular design with separate handlers for features like authentication and list management. Authentication is handled via Passport.js with Google OAuth2.
 
 ## Data Storage
-PostgreSQL serves as the primary database, managed with Drizzle ORM for type-safe operations. The schema supports users, conversations, messages, smart lists, reminders, contacts, user patterns, preferences, onboarding states, and activity logging for personalization.
+PostgreSQL serves as the primary database, managed with Drizzle ORM for type-safe operations. The schema supports users, conversations, messages, smart lists, reminders, contacts, user patterns, preferences, onboarding states, activity logging for personalization, and daily usage limits for rate limiting.
+
+## Rate Limiting System
+The backend implements atomic daily rate limiting for free users to ensure fair usage and system stability:
+- **Architecture**: Atomic SQL upserts with UNIQUE constraints on (user_id, date) prevent race conditions under concurrent load.
+- **Limits**: Configurable via environment variables (FREE_CHAT_PER_DAY=50, FREE_LIST_ITEMS_PER_DAY=100, FREE_REMINDERS_PER_DAY=20).
+- **Enforcement**: Middleware checks limits, handlers create resources and atomically increment counters, compensating deletes roll back on quota overflow.
+- **Premium Bypass**: Users with isPremium=true skip all rate limit checks.
+- **Panic Mode**: DISABLE_CHAT_TEMPORARILY env var returns 503 for chat endpoints when enabled.
+- **Error Handling**: Failed compensating deletes return 500 with critical error logging to maintain quota/resource consistency.
 
 ## Mobile Architecture
 GabAi supports multiple deployment strategies:
