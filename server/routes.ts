@@ -19,7 +19,9 @@ import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, sendSMS, generateVerifi
 import bcrypt from "bcryptjs";
 
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "",
+  timeout: 30000, // 30 second timeout to prevent indefinite hangs
+  maxRetries: 2  // Retry up to 2 times on transient failures
 });
 
 // Function to process URLs in content and add affiliate shortening
@@ -4176,6 +4178,8 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
         messages: [{ role: "user", content: prompt }],
         max_tokens: 50,
         temperature: 0.3
+      }, {
+        timeout: 20000 // 20s timeout for simple list naming
       });
 
       const newName = completion.choices[0]?.message?.content?.trim() || currentName;

@@ -6,7 +6,9 @@ import { censorText } from "./profanity";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "",
+  timeout: 30000, // 30 second timeout to prevent indefinite hangs
+  maxRetries: 2  // Retry up to 2 times on transient failures
 });
 
 export interface AIResponse {
@@ -197,6 +199,8 @@ Format your response as JSON with content, suggestions, and actions fields`;
       response_format: { type: "json_object" },
       temperature: 0.7,
       max_tokens: imageData ? 1500 : 1000,
+    }, {
+      timeout: imageData ? 45000 : 30000 // 45s for images, 30s for text
     });
 
     // Parse response with fallback for non-JSON responses
