@@ -1,12 +1,4 @@
-modules = [
-  "nodejs-20",
-  "web",
-  "bash",
-  "swift-5.8",
-  "java-17",
-  "postgresql-16",
-  "python-3.11",
-]
+modules = ["nodejs-20", "web", "bash", "swift-5.8", "java-17", "python-3.11", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -47,6 +39,10 @@ waitForPort = 5000
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 35705
+externalPort = 3000
+
 [agent]
 integrations = [
   "javascript_database==1.0.0",
@@ -55,3 +51,11 @@ integrations = [
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix"]
+
+[userenv]
+
+[userenv.shared]
+FREE_CHAT_PER_DAY = "50"
+FREE_LIST_ITEMS_PER_DAY = "100"
+FREE_REMINDERS_PER_DAY = "20"
+DISABLE_CHAT_TEMPORARILY = "false"

@@ -12,6 +12,7 @@ import {
   activityLog,
   groups,
   groupMembers,
+  dailyUsageLimits,
   type User,
   type InsertUser,
   type Conversation,
@@ -38,6 +39,8 @@ import {
   type InsertGroup,
   type GroupMember,
   type InsertGroupMember,
+  type DailyUsageLimits,
+  type InsertDailyUsageLimits,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -239,6 +242,12 @@ export interface IStorage {
     lifetimeValue?: number;
     registrationSource?: string;
   }>>;
+
+  // Daily usage limit operations
+  getDailyUsage(userId: string, date: string): Promise<DailyUsageLimits | undefined>;
+  incrementChatCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }>;
+  incrementListItemCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }>;
+  incrementReminderCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1441,6 +1450,71 @@ export class DatabaseStorage implements IStorage {
     );
 
     return userProfiles;
+  }
+
+  async getDailyUsage(userId: string, date: string): Promise<DailyUsageLimits | undefined> {
+    const [usage] = await db
+      .select()
+      .from(dailyUsageLimits)
+      .where(and(eq(dailyUsageLimits.userId, userId), eq(dailyUsageLimits.date, date)));
+    return usage;
+  }
+
+  async incrementChatCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }> {
+    const result = await db.execute(sql`
+      INSERT INTO daily_usage_limits (user_id, date, chat_count, list_item_count, reminder_count)
+      VALUES (${userId}, ${date}, 1, 0, 0)
+      ON CONFLICT (user_id, date)
+      DO UPDATE SET 
+        chat_count = daily_usage_limits.chat_count + 1,
+        updated_at = NOW()
+      WHERE daily_usage_limits.chat_count < ${limit}
+      RETURNING *
+    `);
+    
+    if (result.rows.length === 0) {
+      return { success: false };
+    }
+    
+    return { success: true, usage: result.rows[0] as DailyUsageLimits };
+  }
+
+  async incrementListItemCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }> {
+    const result = await db.execute(sql`
+      INSERT INTO daily_usage_limits (user_id, date, chat_count, list_item_count, reminder_count)
+      VALUES (${userId}, ${date}, 0, 1, 0)
+      ON CONFLICT (user_id, date)
+      DO UPDATE SET 
+        list_item_count = daily_usage_limits.list_item_count + 1,
+        updated_at = NOW()
+      WHERE daily_usage_limits.list_item_count < ${limit}
+      RETURNING *
+    `);
+    
+    if (result.rows.length === 0) {
+      return { success: false };
+    }
+    
+    return { success: true, usage: result.rows[0] as DailyUsageLimits };
+  }
+
+  async incrementReminderCount(userId: string, date: string, limit: number): Promise<{ success: boolean; usage?: DailyUsageLimits }> {
+    const result = await db.execute(sql`
+      INSERT INTO daily_usage_limits (user_id, date, chat_count, list_item_count, reminder_count)
+      VALUES (${userId}, ${date}, 0, 0, 1)
+      ON CONFLICT (user_id, date)
+      DO UPDATE SET 
+        reminder_count = daily_usage_limits.reminder_count + 1,
+        updated_at = NOW()
+      WHERE daily_usage_limits.reminder_count < ${limit}
+      RETURNING *
+    `);
+    
+    if (result.rows.length === 0) {
+      return { success: false };
+    }
+    
+    return { success: true, usage: result.rows[0] as DailyUsageLimits };
   }
 }
 

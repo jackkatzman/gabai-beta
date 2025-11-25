@@ -17,6 +17,7 @@ import { createShortLink, getLongUrl, getLinkStats } from "./services/linkShorte
 import { sendMagicLink, sendPasswordResetEmail } from "./services/email";
 import { sendMagicLinkSMS, sendCodeSMS, sendReminderSMS, sendSMS, generateVerificationCode, verifyCodeSMS, normalizePhoneNumber } from "./services/sms";
 import bcrypt from "bcryptjs";
+import { checkChatLimit, checkListItemLimit, checkReminderLimit } from "./middleware/rateLimiter";
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "",
@@ -2618,8 +2619,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", jsonParser, async (req, res) => {
+  app.post("/api/messages", isAuthenticated, checkChatLimit, jsonParser, async (req: any, res) => {
     try {
+      if (req.incrementChatCount && !req.rateLimitBypass) {
+        const result = await req.incrementChatCount();
+        if (!result.success) {
+          return res.status(429).json({ 
+            error: 'Daily chat limit reached. Please try again tomorrow or upgrade to premium.' 
+          });
+        }
+      }
+      
       const messageData = insertMessageSchema.parse(req.body);
       const message = await storage.createMessage(messageData);
       res.json(message);
@@ -3390,7 +3400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/reminders", jsonParser, async (req, res) => {
+  app.post("/api/reminders", isAuthenticated, checkReminderLimit, jsonParser, async (req: any, res) => {
     try {
       console.log('📝 Received reminder creation request:', req.body);
       console.log('📝 User authenticated:', req.isAuthenticated() ? 'Yes' : 'No');
@@ -3431,6 +3441,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📅 Phone number:', bodyWithDate.smsPhone);
       
       try {
+        if (req.incrementReminderCount && !req.rateLimitBypass) {
+          const result = await req.incrementReminderCount();
+          if (!result.success) {
+            return res.status(429).json({ 
+              error: 'Daily reminder limit reached. Please try again tomorrow or upgrade to premium.' 
+            });
+          }
+        }
+        
         const reminderData = insertReminderSchema.parse(bodyWithDate);
         console.log('✅ Validated reminder data:', reminderData);
         
@@ -4254,8 +4273,17 @@ Suggest a concise, descriptive name (2-4 words) that captures what this list is 
   });
 
   // List items routes  
-  app.post("/api/list-items", isAuthenticated, jsonParser, async (req, res) => {
+  app.post("/api/list-items", isAuthenticated, checkListItemLimit, jsonParser, async (req: any, res) => {
     try {
+      if (req.incrementListItemCount && !req.rateLimitBypass) {
+        const result = await req.incrementListItemCount();
+        if (!result.success) {
+          return res.status(429).json({ 
+            error: 'Daily list item limit reached. Please try again tomorrow or upgrade to premium.' 
+          });
+        }
+      }
+      
       const itemData = insertListItemSchema.parse(req.body);
       const userId = req.user?.id || req.body.userId;
       

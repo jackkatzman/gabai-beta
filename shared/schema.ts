@@ -421,3 +421,25 @@ export type UserPattern = typeof userPatterns.$inferSelect;
 export type InsertUserPattern = z.infer<typeof insertUserPatternSchema>;
 export type ActivityLog = typeof activityLog.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+
+export const dailyUsageLimits = pgTable("daily_usage_limits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: varchar("date").notNull(),
+  chatCount: integer("chat_count").default(0).notNull(),
+  listItemCount: integer("list_item_count").default(0).notNull(),
+  reminderCount: integer("reminder_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userDateUnique: sql`UNIQUE (user_id, date)`
+}));
+
+export const insertDailyUsageLimitsSchema = createInsertSchema(dailyUsageLimits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type DailyUsageLimits = typeof dailyUsageLimits.$inferSelect;
+export type InsertDailyUsageLimits = z.infer<typeof insertDailyUsageLimitsSchema>;
