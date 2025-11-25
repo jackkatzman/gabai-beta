@@ -31,6 +31,7 @@ import { useUser } from "@/context/user-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getCommonTimezones } from "@/lib/timezone";
+import { Link } from "wouter";
 import type { User as UserType } from "@/types";
 
 interface SettingsPageProps {
@@ -42,9 +43,10 @@ export function SettingsPage({ user }: SettingsPageProps) {
   const [voiceResponsesEnabled, setVoiceResponsesEnabled] = useState(true);
   const [smartNotificationsEnabled, setSmartNotificationsEnabled] = useState(true);
   const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { setUser } = useUser();
-  const { logout, isLoggingOut } = useAuth();
+  const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -72,12 +74,44 @@ export function SettingsPage({ user }: SettingsPageProps) {
     updateUserMutation.mutate(updates);
   };
 
-  const handleDeleteAllData = () => {
-    // This would need to be implemented on the backend
-    toast({
-      title: "Feature Coming Soon",
-      description: "Data deletion will be available in a future update.",
-    });
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const phone = user.phone || user.email?.replace('@sms.gabaiapp.com', '');
+      if (!phone) throw new Error('No phone number found');
+      
+      const response = await fetch(`/api/user/delete-my-account/${encodeURIComponent(phone)}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete account');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Account Deleted",
+        description: "Your account and all data have been permanently deleted.",
+      });
+      setDeleteDialogOpen(false);
+      // Wait a moment then logout
+      setTimeout(() => {
+        logout.mutate();
+      }, 1500);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete account. Please contact support.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate();
   };
 
   const handleExportData = () => {
@@ -306,16 +340,16 @@ export function SettingsPage({ user }: SettingsPageProps) {
             <Button
               variant="ghost"
               className="w-full justify-start h-auto p-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-              onClick={() => logout()}
-              disabled={isLoggingOut}
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
             >
               <div className="flex items-center space-x-3">
-                {isLoggingOut ? (
+                {logout.isPending ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <ExternalLink className="h-4 w-4" />
                 )}
-                <span>{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
+                <span>{logout.isPending ? "Signing out..." : "Sign Out"}</span>
               </div>
             </Button>
           </CardContent>
@@ -359,14 +393,76 @@ export function SettingsPage({ user }: SettingsPageProps) {
               <ChevronRight className="h-4 w-4 text-gray-400" />
             </Button>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto p-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-              onClick={handleDeleteAllData}
-            >
-              <Trash2 className="h-4 w-4 mr-3" />
-              <span>Delete All Data</span>
-            </Button>
+            <Link href="/privacy">
+              <Button
+                variant="ghost"
+                className="w-full justify-between h-auto p-3"
+              >
+                <div className="flex items-center space-x-3">
+                  <Shield className="h-4 w-4" />
+                  <span>Privacy Policy</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+              </Button>
+            </Link>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-auto p-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                  data-testid="button-delete-account"
+                >
+                  <Trash2 className="h-4 w-4 mr-3" />
+                  <span>Delete Account</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Account?</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    This will permanently delete your account and all associated data, including:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    <li>All conversations and messages</li>
+                    <li>Smart lists and reminders</li>
+                    <li>Calendar events and contacts</li>
+                    <li>Preferences and settings</li>
+                  </ul>
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                    This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteDialogOpen(false)}
+                      className="flex-1"
+                      disabled={deleteAccountMutation.isPending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      className="flex-1"
+                      disabled={deleteAccountMutation.isPending}
+                      data-testid="button-confirm-delete"
+                    >
+                      {deleteAccountMutation.isPending ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete Account'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 
