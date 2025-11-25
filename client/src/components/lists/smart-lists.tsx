@@ -487,7 +487,7 @@ function SortableItem({ item, onToggle, onDelete, onEdit, showCurrency = false, 
         />
       </div>
       {/* MIDDLE: text (takes more space) */}
-      <div className="flex-1 min-w-0 max-w-none pl-1 pr-1">
+      <div className="flex-1 min-w-0 max-w-none pl-0.5 pr-1">
         {isEditing ? (
           <div className="space-y-2 w-full">
             <Input
