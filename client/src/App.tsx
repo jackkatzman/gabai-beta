@@ -20,6 +20,7 @@ import DevTestPage from "./pages/dev-test";
 import CordovaTestPage from "./pages/cordova-test";
 import AboutPage from "./pages/about";
 import PrivacyPage from "./pages/privacy";
+import AccountDeletionPage from "./pages/account-deletion";
 import NotFound from "./pages/not-found";
 import PhoneVerificationPage from "./pages/phone-verification";
 import PasswordResetPage from "./pages/password-reset";
@@ -129,6 +130,7 @@ function AppContent() {
       {/* Public routes - accessible without authentication */}
       <Route path="/about" component={AboutPage} />
       <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/account-deletion" component={AccountDeletionPage} />
       <Route path="/landing" component={LandingPage} />
       <Route path="/sms-compliance" component={SMSCompliancePage} />
       <Route path="/shared/:shareCode" component={SharedListPage} />
