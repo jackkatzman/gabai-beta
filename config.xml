@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget 
     id="ai.gabai.app" 
-    version="3.0.141" 
-    android-versionCode="141" 
+    version="3.0.142" 
+    android-versionCode="142" 
     ios-CFBundleVersion="120.0.0" 
     xmlns="http://www.w3.org/ns/widgets" 
     xmlns:android="http://schemas.android.com/apk/res/android">
