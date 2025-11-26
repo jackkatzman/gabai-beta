@@ -4,7 +4,7 @@
   "platform": "android",
   "android": { 
     "cordova_android_version": "14.0.1", 
-    "build_type": "aab" 
+    "build_type": "apk" 
   },
   "verbose": true
 }
