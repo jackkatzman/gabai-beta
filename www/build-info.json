@@ -1,13 +1,1 @@
-
-{
-  "version": "3.0.130",
-  "buildDate": "2025-11-23T07:30:00Z",
-  "buildTimestamp": "2025-11-23T07:30:00.000Z",
-  "commitMessage": "Fix APK reload loop and authentication flow",
-  "fixes": [
-    "Fixed build timestamp generation",
-    "Prevented service worker reload loops",
-    "Stabilized APK authentication flow",
-    "Ensured clean build artifacts"
-  ]
-}
+{"status": "ok", "build": "2025-11-25T17:32:53Z"}

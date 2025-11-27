@@ -132,8 +132,8 @@ export const CordovaDirect = {
     return new Promise((resolve) => {
       recordingStopResolver = resolve;
       
-      // Stop the MediaRecorder
-      if (activeMediaRecorder.state === 'recording') {
+      // Stop the MediaRecorder (with null check for TypeScript)
+      if (activeMediaRecorder && activeMediaRecorder.state === 'recording') {
         activeMediaRecorder.stop();
       }
       
@@ -395,6 +395,66 @@ export const CordovaDirect = {
     });
   },
   
+  // Helper: Extract best phone number from contact (prioritize mobile)
+  extractBestPhone(phoneNumbers: any[]): string {
+    if (!phoneNumbers || phoneNumbers.length === 0) return '';
+    
+    console.log('📞 Available phone numbers:', phoneNumbers.map((p: any) => ({
+      type: p.type,
+      value: p.value
+    })));
+    
+    // Priority order for phone types (mobile first for SMS)
+    const typePriority = ['mobile', 'cell', 'iphone', 'main', 'home', 'work', 'other'];
+    
+    // Sort phone numbers by priority
+    const sortedPhones = [...phoneNumbers].sort((a, b) => {
+      const aType = (a.type || '').toLowerCase();
+      const bType = (b.type || '').toLowerCase();
+      const aIndex = typePriority.findIndex(t => aType.includes(t));
+      const bIndex = typePriority.findIndex(t => bType.includes(t));
+      // If type not found, put at end
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+    
+    // Find first valid phone number
+    for (const phoneEntry of sortedPhones) {
+      const rawValue = phoneEntry.value;
+      if (!rawValue) continue;
+      
+      // Clean the phone number but preserve + for international
+      // Remove everything except digits and leading +
+      let cleaned = rawValue.trim();
+      const hasPlus = cleaned.startsWith('+');
+      cleaned = cleaned.replace(/[^\d]/g, '');
+      
+      // Re-add the + if it was there (for international numbers)
+      if (hasPlus && cleaned.length > 0) {
+        cleaned = '+' + cleaned;
+      }
+      
+      // Validate: must have at least 10 digits (US) or 7+ for international with +
+      const digitCount = cleaned.replace(/\D/g, '').length;
+      if (digitCount >= 7) {
+        console.log('📱 Selected phone:', cleaned, 'from type:', phoneEntry.type || 'unknown');
+        return cleaned;
+      }
+    }
+    
+    // Fallback: return first phone even if it seems short
+    const firstValue = phoneNumbers[0]?.value;
+    if (firstValue) {
+      let cleaned = firstValue.trim();
+      const hasPlus = cleaned.startsWith('+');
+      cleaned = cleaned.replace(/[^\d]/g, '');
+      if (hasPlus) cleaned = '+' + cleaned;
+      console.log('📱 Fallback phone:', cleaned);
+      return cleaned;
+    }
+    
+    return '';
+  },
+
   // Pick a contact from device contacts
   async pickContact(): Promise<{ name: string; phone: string } | null> {
     console.log('📱 Picking contact...');
@@ -410,15 +470,12 @@ export const CordovaDirect = {
         
         try {
           contactsX.pickContact((contact: any) => {
-            console.log('📱 ContactsX contact selected:', contact);
+            console.log('📱 ContactsX contact selected:', JSON.stringify(contact, null, 2));
             
             // ContactsX returns different structure than legacy plugin
             if (contact) {
-              // Extract phone number
-              let phone = '';
-              if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-                phone = contact.phoneNumbers[0].value?.replace(/\D/g, '') || '';
-              }
+              // Extract phone number - prioritize mobile numbers
+              const phone = this.extractBestPhone(contact.phoneNumbers);
               
               // Extract name
               const name = contact.displayName || 
@@ -430,7 +487,8 @@ export const CordovaDirect = {
                 console.log('✅ Contact parsed from ContactsX:', { name, phone });
                 resolve({ name, phone });
               } else {
-                console.log('⚠️ ContactsX contact has no phone numbers');
+                console.log('⚠️ ContactsX contact has no valid phone numbers');
+                console.log('📞 Raw phoneNumbers:', JSON.stringify(contact.phoneNumbers));
                 resolve(null);
               }
             } else {
@@ -505,17 +563,23 @@ export const CordovaDirect = {
         console.log('📱 Using legacy navigator.contacts plugin...');
         navigator.contacts.pickContact(
           (contact: any) => {
-            console.log('📱 Legacy contact selected:', contact);
+            console.log('📱 Legacy contact selected:', JSON.stringify(contact, null, 2));
             
             if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-              const phone = contact.phoneNumbers[0].value.replace(/\D/g, '');
+              // Use the improved phone extractor
+              const phone = this.extractBestPhone(contact.phoneNumbers);
               const name = contact.displayName || 
                          contact.name?.formatted || 
                          contact.name?.givenName || 
                          'Contact';
               
-              console.log('✅ Contact parsed:', { name, phone });
-              resolve({ name, phone });
+              if (phone) {
+                console.log('✅ Contact parsed:', { name, phone });
+                resolve({ name, phone });
+              } else {
+                console.log('⚠️ Legacy contact has no valid phone numbers');
+                resolve(null);
+              }
             } else {
               console.log('⚠️ Contact has no phone numbers');
               resolve(null);
