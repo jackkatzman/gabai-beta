@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["docker_28", "imagemagick", "openjdk17", "unzip", "zip"]
+packages = ["docker_28", "file", "freetype", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjdk17", "openjpeg", "tcl", "tk", "unzip", "zip", "zlib"]
 
 [deployment]
 deploymentTarget = "cloudrun"
@@ -42,6 +42,10 @@ externalPort = 80
 [[ports]]
 localPort = 35705
 externalPort = 3000
+
+[[ports]]
+localPort = 38233
+externalPort = 3002
 
 [[ports]]
 localPort = 40495
