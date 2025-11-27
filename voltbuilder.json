@@ -1,10 +1,5 @@
 {
-  "app_name": "GabAi",
-  "app_id": "ai.gabai.app",
-  "platform": "android",
-  "android": { 
-    "cordova_android_version": "14.0.1", 
-    "build_type": "aab" 
-  },
+  "androidPackageType": "bundle",
+  "release": "release",
   "verbose": true
 }
