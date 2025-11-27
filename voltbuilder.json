@@ -1,4 +1,8 @@
 {
+  "androidAlias": "gabai",
+  "androidAliasPassword": "GabAi2025!Secure",
+  "androidKeystore": "certificates/android.keystore",
+  "androidKeystorePassword": "GabAi2025!Secure",
   "androidPackageType": "bundle",
   "release": "release",
   "verbose": true
